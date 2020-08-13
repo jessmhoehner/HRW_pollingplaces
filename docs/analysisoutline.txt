@@ -1,0 +1,24 @@
+# analysis outline 
+
+# import task
+
+# import data from VIP - polling_locations.txt
+
+# import data from NYT covid repo for SC and AZ
+
+# send to clean task
+
+# clean task
+
+# polling_location
+
+# pull out zip codes from address, verify that they are in range for each state
+# find a way to link zip codes with counties 
+
+# covid data 
+# calculate percentage of positive tests by county and scr by county
+
+# send to write task
+
+# write report answering the questions in questions file
+
