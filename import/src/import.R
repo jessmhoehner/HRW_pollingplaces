@@ -8,93 +8,72 @@
 #
 pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus")
 
-files <- list(
-
+inputs <- list(
   az_2016 = here::here("HRW_pollingplaces/import/input/vip_az_2016primary/polling_location.txt"),
-  az_2016_imp = here::here("HRW_pollingplaces/clean/input/az_2016_imported.rds"),
-
   az_2020 = here::here("HRW_pollingplaces/import/input/vip_az_2020primary/polling_location.txt"),
-  az_2020_imp = here::here("HRW_pollingplaces/clean/input/az_2020_imported.rds"),
-
   az_2020_maricopa = here::here("HRW_pollingplaces/import/input/vip_az_maricopa_2020primary/polling_location.txt"),
-  az_2020_imp_maricopa = here::here("HRW_pollingplaces/clean/input/az_2020_maricopa_imported.rds"),
-
   sc_2016 = here::here("HRW_pollingplaces/import/input/vip_sc_2016primary/polling_location.txt"),
-  sc_2016_imp = here::here("HRW_pollingplaces/clean/input/sc_2016_imported.rds"),
-
   sc_2020 = here::here("HRW_pollingplaces/import/input/vip_sc_2020primary/polling_location.txt"),
-  sc_2020_imp = here::here("HRW_pollingplaces/clean/input/sc_2020_imported.rds"),
+  zc1_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_032016.csv"),
+  zc2_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_062016.csv"),
+  zc3_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_092016.csv"),
+  zc4_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_122016.csv"),
+  zc1_2020 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_032020.csv"),
+  zt1_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_032016.csv"),
+  zt2_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_062016.csv"),
+  zt3_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_092016.csv"),
+  zt4_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_122016.csv"),
+  zt1_2020 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_032020.csv")
+  )
 
-  covid_imp = here::here("HRW_pollingplaces/clean/input/covid_imported.rds"), 
-  
-  az_census_imp = here::here("HRW_pollingplaces/clean/input/az_census_imp.rds"), 
-  sc_census_imp = here::here("HRW_pollingplaces/clean/input/sc_census_imp.rds"))
+outputs <- list(
+  VIPinlist_imp = here::here("HRW_pollingplaces/clean/input/VIPdata_imported.rds"),
+  covid_imp = here::here("HRW_pollingplaces/clean/input/covid_imported.rds"),
+  census_imp = here::here("HRW_pollingplaces/clean/input/census_imported.rds"),
+  usps_imp = here::here(("HRW_pollingplaces/clean/input/usps_imported.rds"))
+  )
 
 # import VIP data
+## creates a list of VIP files as connections
+inputslist <- list(inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa, 
+                  inputs$sc_2016, inputs$sc_2020)
 
-## creates a list of all files as connections
-fileslist <- list(files$az_2016, files$az_2020, files$az_2020_maricopa, 
-                  files$sc_2016, files$sc_2020)
+stopifnot(length(inputslist) == 5)
 
-stopifnot(length(fileslist) == 5)
+# verifications won't break with new data yet
 
-inlist <- lapply(fileslist, function(x) {
+inlist <- lapply(inputslist, function(x) {
   
-  expected_cols <- c("id", "name", "address_line", 
-                     "directions", "hours", "hours_open_id", 
-                     "is_drop_box", "is_early_voting", "latitude", 
-                     "longitude", "latlng_source", "photo_uri")
+  expected_cols <- c("id", "name", "address_line")
   
-  x_df <- as.data.frame(read_csv(x, col_names = TRUE, na = "NA")) %>%
+  x_df <- read_csv(x, col_names = TRUE, na = "NA", 
+                   col_types = cols_only(id = 'c', 
+                                         name = 'c', 
+                                         address_line = 'c')) %>%
     clean_names() %>%
     verify(colnames(.) == expected_cols) %>%
-    mutate_at(c("id", "name", "address_line", "hours"), as.character) %>%
-    select(-c("hours_open_id", "is_drop_box","is_early_voting", "photo_uri")) %>%
-    verify(ncol(.) == 8)
+    verify(ncol(.) == 3)
   
 })
 
 stopifnot(length(inlist) == 5)
+saveRDS(inlist, outputs$VIPinlist_imp)
 
 # verifications will break with new data
-
-az_2016_df <- as.data.frame(pluck(inlist, 1)) %>%
-  verify(ncol(.) == 8 & nrow(.) == 342) %>%
-  verify(min(id) == 401333310112 & max(id) == 4610933) %>%
-  saveRDS(files$az_2016_imp)
-
-az_2020_df <- as.data.frame(pluck(inlist, 2)) %>%
-  verify(ncol(.) == 8 & nrow(.) == 330) %>%
-  verify(min(id) == 7700104067 & max(id) == 770099999) %>%
-  saveRDS(files$az_2020_imp)
-
-az_2020_maricopa_df <- as.data.frame(pluck(inlist, 3)) %>%
-  verify(ncol(.) == 8 & nrow(.) == 151) %>%
-  verify(min(id) == 8850010055 & max(id) == 8850015622) %>%
-  saveRDS(files$az_2020_imp_maricopa)
-
-sc_2016_df <- as.data.frame(pluck(inlist, 4)) %>%
-  verify(ncol(.) == 8 & nrow(.) == 2194) %>%
-  verify(min(id) == 88801000 & max(id) == 8880999) %>%
-  saveRDS(files$sc_2016_imp)
-
-sc_2020_df <- as.data.frame(pluck(inlist, 5)) %>%
-  verify(ncol(.) == 8 & nrow(.) == 1968) %>%
-  verify(min(id) == 88801000 & max(id) == 8880999) %>%
-  saveRDS(files$sc_2020_imp)
 
 # import covid-19 related data
 # nrow will break with new data
 
 expected_cols2 <- c("date", "county", "state", "fips", "cases", "deaths")
 
-covid_data <- readr::read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv") %>%
+covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv") %>%
   clean_names() %>%
   verify(colnames(.) == expected_cols2) %>%
   rename(date_rep = date) %>%
+  select(-c(date_rep)) %>%
   filter(state == "Arizona" | state == "South Carolina") %>%
-  verify(ncol(.) == 6 & nrow(.) == 9033) %>%
-  saveRDS(files$covid_imp)
+  verify(ncol(.) == 5 & nrow(.) == 9033) %>%
+  saveRDS(outputs$covid_imp)
 
 # import census data for SC and AZ ending in 2016
 
@@ -109,15 +88,11 @@ clist <- lapply(states, function(y) {
                       "name_x", "lsad", "aland", "awater", "name_y", "value", 
                       "agegroup", "sex","race","hisp","geometry")
   
-  cen <- get_estimates(state = y, 
-                          geography = "county", 
-                          year = 2016,
-                          geometry = TRUE,
-                          product = "characteristics", 
-                          breakdown = c("AGEGROUP", "SEX", "RACE", "HISP"), 
-                          breakdown_labels = TRUE,
-                          key = jrkey, 
-                          keep_geo_vars = TRUE) %>%
+  cen <- get_estimates(state = y, geography = "county", year = 2016, 
+                       geometry = TRUE, product = "characteristics", 
+                       breakdown = c("AGEGROUP", "SEX", "RACE", "HISP"), 
+                       breakdown_labels = TRUE, key = jrkey,  
+                       keep_geo_vars = TRUE) %>%
     clean_names() %>%
     verify(colnames(.) == expected_cols3) %>%
     mutate_at(c("statefp",  "countyfp", "countyns", "affgeoid", "geoid",
@@ -128,16 +103,31 @@ clist <- lapply(states, function(y) {
   
 })
 
-# verifications will break with new data
+stopifnot(length(clist) == 2)
+saveRDS(clist, outputs$census_imp)
 
-az_census_df <- as.data.frame(pluck(clist, 1)) %>%
-  verify(ncol(.) == 16 & nrow(.) == 31365) %>%
-  verify(min(value) == 0 & max(value) == 4242997) %>%
-  saveRDS(files$az_census_imp)
+# USPS data to link counties and census tracts with zip codes
+# obtained from here https://www.huduser.gov/portal/datasets/usps_crosswalk.html
+# on 8/14/2020
 
-sc_census_df <- as.data.frame(pluck(clist, 2)) %>%
-  verify(ncol(.) == 16 & nrow(.) == 96186) %>%
-  verify(min(value) == 0 & max(value) == 498766) %>%
-  saveRDS(files$sc_census_imp)
+# make a list in case we want to change or add more
+
+uspslist <- list(inputs$zt1_2016, inputs$zt2_2016, inputs$zt3_2016, 
+                 inputs$zt4_2016, inputs$zt1_2020)
+
+ziplist <- lapply(uspslist, function(z) {
+  
+  expected_cols4 <- c("ZIP", "TRACT")
+  
+  z_df <- as.data.frame(read_csv(z, 
+                                 col_names = TRUE, na = "NA", 
+                                 col_types = cols_only(ZIP = 'c', TRACT = 'c'))) %>%
+    verify(colnames(.) == expected_cols4) %>%
+    clean_names() %>%
+    verify(ncol(.) == 2)
+})
+
+stopifnot(length(ziplist) == 2)
+saveRDS(ziplist, outputs$usps_imp)
 
 # done.
