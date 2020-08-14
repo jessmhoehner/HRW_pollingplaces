@@ -29,8 +29,7 @@ inputs <- list(
 outputs <- list(
   VIPinlist_imp = here::here("HRW_pollingplaces/clean/input/VIPdata_imported.rds"),
   covid_imp = here::here("HRW_pollingplaces/clean/input/covid_imported.rds"),
-  census_imp = here::here("HRW_pollingplaces/clean/input/census_imported.rds"),
-  usps_imp = here::here(("HRW_pollingplaces/clean/input/usps_imported.rds"))
+  census_imp = here::here("HRW_pollingplaces/clean/input/census_imported.rds")
   )
 
 # import VIP data
@@ -105,29 +104,5 @@ clist <- lapply(states, function(y) {
 
 stopifnot(length(clist) == 2)
 saveRDS(clist, outputs$census_imp)
-
-# USPS data to link counties and census tracts with zip codes
-# obtained from here https://www.huduser.gov/portal/datasets/usps_crosswalk.html
-# on 8/14/2020
-
-# make a list in case we want to change or add more
-
-uspslist <- list(inputs$zt1_2016, inputs$zt2_2016, inputs$zt3_2016, 
-                 inputs$zt4_2016, inputs$zt1_2020)
-
-ziplist <- lapply(uspslist, function(z) {
-  
-  expected_cols4 <- c("ZIP", "TRACT")
-  
-  z_df <- as.data.frame(read_csv(z, 
-                                 col_names = TRUE, na = "NA", 
-                                 col_types = cols_only(ZIP = 'c', TRACT = 'c'))) %>%
-    verify(colnames(.) == expected_cols4) %>%
-    clean_names() %>%
-    verify(ncol(.) == 2)
-})
-
-stopifnot(length(ziplist) == 2)
-saveRDS(ziplist, outputs$usps_imp)
 
 # done.
