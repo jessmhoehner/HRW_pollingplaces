@@ -13,10 +13,18 @@
 # polling_location
 
 # pull out zip codes from address, verify that they are in range for each state
-# find a way to link zip codes with counties 
-
+# join maricopa 2020 data with other 2020 data
+# 
+# census data
+# link demographic data by county to polling_location data by zip/ztca
+# recall to aggregate on own
+#
 # covid data 
-# calculate percentage of positive tests by county and scr by county
+# group by county, summarize n cases
+# link COVID data by county to rest of data 
+#
+# create dfs for az and sc each for 2016 and 2020 
+# with zipcode, county, ncovid cases by county, and "AGEGROUP", "SEX", "RACE", "HISP" by county
 
 # send to write task
 
