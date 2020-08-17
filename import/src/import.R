@@ -36,8 +36,20 @@ outputs <- list(
 ## creates a list of VIP files as connections
 inputslist <- list(inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa, 
                   inputs$sc_2016, inputs$sc_2020)
+names(inputslist) <- c("az_2016", "az_2020", "az_2020_maricopa", 
+                       "sc_2016", "sc_2020")
 
 stopifnot(length(inputslist) == 5)
+
+readRDS(inputslist[[1]])
+
+x_df <- read_csv(, col_names = TRUE, na = "NA", 
+                 col_types = cols_only(id = 'c', 
+                                       name = 'c', 
+                                       address_line = 'c')) %>%
+  clean_names() %>%
+  verify(colnames(.) == expected_cols) %>%
+  verify(ncol(.) == 3)
 
 # verifications won't break with new data yet
 
@@ -78,28 +90,41 @@ covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/
 
 jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c", install = TRUE)
 
-# make states a list in case we want to change or add more
-states <- (c("AZ", "SC"))
+years <- c(2016, 2018)
 
-clist <- lapply(states, function(y) {
+clist <- lapply(years, function(x) {
   
-  expected_cols3 <- c("statefp",  "countyfp", "countyns", "affgeoid", "geoid",
-                      "name_x", "lsad", "aland", "awater", "name_y", "value", 
-                      "agegroup", "sex","race","hisp","geometry")
-  
-  cen <- get_estimates(state = y, geography = "county", year = 2016, 
-                       geometry = TRUE, product = "characteristics", 
-                       breakdown = c("AGEGROUP", "SEX", "RACE", "HISP"), 
-                       breakdown_labels = TRUE, key = jrkey,  
-                       keep_geo_vars = TRUE) %>%
-    clean_names() %>%
-    verify(colnames(.) == expected_cols3) %>%
-    mutate_at(c("statefp",  "countyfp", "countyns", "affgeoid", "geoid",
-                "name_x", "lsad", "aland", "awater", "name_y",
-                "agegroup", "sex","race","hisp"), as.factor) %>%
-    mutate_at(c("value"), as.double) %>%
-    verify(ncol(.) == 16)
-  
+  expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe", "geometry")
+
+demo_2016 <- get_acs(geography = "zcta", 
+                     variables = c(total = "B03001_001", 
+                                   no_h_l = "B03001_002", 
+                                   white_alone = "B03001_003", 
+                                   black_alone = "B03001_004", 
+                                   ai_an_alone = "B03001_005", 
+                                   asian_alone = "B03001_006", 
+                                   hi_pi_alone = "B03001_007", 
+                                   other_alone = "B03001_008",
+                                   two_ormore = "B03001_009",
+                                   twoormore_plus_other = "B03001_010", 
+                                   twoormore_minus_other_3more = "B03001_011",
+                                   yes_h_l = "B03001_012",
+                                   h_l_white = "B03001_013", 
+                                   h_l_black = "B03001_014", 
+                                   h_l_ai_an = "B03001_015",
+                                   h_l_asian = "B03001_016",
+                                   h_l_hi_pi = "B03001_017", 
+                                   h_l_other = "B03001_018", 
+                                   h_l_two_ormore = "B03001_019", 
+                                   h_l_twoormore_plus_other = "B03001_020", 
+                                   h_l_twoormore_minus_other_3more = "B03001_021"
+                     ), 
+                     year = x, 
+                     geometry = TRUE, 
+                     key = jrkey) %>%
+  janitor::clean_names() %>%
+  verify(colnames(.) == expected_cols3)
+
 })
 
 stopifnot(length(clist) == 2)
