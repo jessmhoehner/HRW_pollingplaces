@@ -1,0 +1,54 @@
+---
+title: 'Comparitive Report on Polling Places in Arizona and South Carolina: 2016 vs
+  2020'
+author: "Jessica Randall"
+date: "8/17/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## First Question (a)
+
+How many polling places in each county were open in 2016 as compared to 2020? 
+
+```{r nplacesa}
+
+n_diff_az <- as.numeric(abs(sum(nrow(sc_2020_df) - nrow(sc_2016_df))))
+
+pct_delta_az <- round(sum((n_diff_sc/as.numeric(nrow(sc_2016_df))*100)),2)
+
+n_diff_sc <- as.numeric(abs(sum(nrow(sc_2020_df) - nrow(sc_2016_df))))
+
+pct_delta_sc <- round(sum((n_diff_sc/as.numeric(nrow(sc_2016_df))*100)),2)
+
+# there were n_diff_sc (226) fewer polling places 
+
+```
+
+## First Question (b)
+
+Which and how many zip codes lost, gained, or maintained numbers of polling places?
+
+```{r nplacesb}
+
+az_table <- table(n_places_az$delta_n_places)
+
+sc_table <- table(n_places_sc$delta_n_places)
+
+```
+
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
