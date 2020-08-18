@@ -41,16 +41,6 @@ names(inputslist) <- c("az_2016", "az_2020", "az_2020_maricopa",
 
 stopifnot(length(inputslist) == 5)
 
-readRDS(inputslist[[1]])
-
-x_df <- read_csv(, col_names = TRUE, na = "NA", 
-                 col_types = cols_only(id = 'c', 
-                                       name = 'c', 
-                                       address_line = 'c')) %>%
-  clean_names() %>%
-  verify(colnames(.) == expected_cols) %>%
-  verify(ncol(.) == 3)
-
 # verifications won't break with new data yet
 
 inlist <- lapply(inputslist, function(x) {
@@ -83,51 +73,26 @@ covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/
   rename(date_rep = date) %>%
   select(-c(date_rep)) %>%
   filter(state == "Arizona" | state == "South Carolina") %>%
-  verify(ncol(.) == 5 & nrow(.) == 9033) %>%
+  verify(ncol(.) == 5 & nrow(.) == 9277) %>%
   saveRDS(outputs$covid_imp)
 
-# import census data for SC and AZ ending in 2016
+# import census data for SC and AZ ending in 2018
+# data come from 2014-2018 5 year ACS
 
 jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c", install = TRUE)
 
-years <- c(2016, 2018)
-
-clist <- lapply(years, function(x) {
-  
-  expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe", "geometry")
+expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
 demo_2016 <- get_acs(geography = "zcta", 
                      variables = c(total = "B03001_001", 
                                    no_h_l = "B03001_002", 
-                                   white_alone = "B03001_003", 
-                                   black_alone = "B03001_004", 
-                                   ai_an_alone = "B03001_005", 
-                                   asian_alone = "B03001_006", 
-                                   hi_pi_alone = "B03001_007", 
-                                   other_alone = "B03001_008",
-                                   two_ormore = "B03001_009",
-                                   twoormore_plus_other = "B03001_010", 
-                                   twoormore_minus_other_3more = "B03001_011",
-                                   yes_h_l = "B03001_012",
-                                   h_l_white = "B03001_013", 
-                                   h_l_black = "B03001_014", 
-                                   h_l_ai_an = "B03001_015",
-                                   h_l_asian = "B03001_016",
-                                   h_l_hi_pi = "B03001_017", 
-                                   h_l_other = "B03001_018", 
-                                   h_l_two_ormore = "B03001_019", 
-                                   h_l_twoormore_plus_other = "B03001_020", 
-                                   h_l_twoormore_minus_other_3more = "B03001_021"
-                     ), 
-                     year = x, 
-                     geometry = TRUE, 
+                                   yes_h_l = "B03001_012"), 
+                     year = 2018, 
+                     geometry = FALSE, 
                      key = jrkey) %>%
   janitor::clean_names() %>%
-  verify(colnames(.) == expected_cols3)
-
-})
-
-stopifnot(length(clist) == 2)
-saveRDS(clist, outputs$census_imp)
+  verify(colnames(.) == expected_cols3) %>%
+  select(geoid, name, variable, estimate) %>%
+  saveRDS(outputs$census_imp)
 
 # done.
