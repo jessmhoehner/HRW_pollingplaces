@@ -34,9 +34,38 @@ Which and how many zip codes lost, gained, or maintained numbers of polling plac
 
 ```{r nplacesb}
 
-az_table <- table(n_places_az$delta_n_places)
+# which zipcodes saw an increase, decrease, or maintenance in polling places?
 
-sc_table <- table(n_places_sc$delta_n_places)
+n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
+  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
+  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
+         delta_cat = as.factor(if_else(delta_n_places < 0, 
+                                       "Fewer Polling Places", 
+                                       "The Same or More Polling Places"))) %>%
+  arrange(delta_n_places) %>%
+  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
+
+# how many lost, and how many gained/maintained?
+az_table <- table(n_places_az$delta_cat)
+
+# SC
+
+# which zipcodes saw an increase, decrease, or maitenence in polling places?
+n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
+  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
+  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
+         delta_cat = as.factor(if_else(delta_n_places < 0, 
+                                       "Fewer Polling Places", 
+                                       "The Same or More Polling Places"))) %>%
+  filter(zipcode != "SC") %>%
+  arrange(delta_n_places) %>%
+  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
+
+# how many lost, and how many gained/maintained?
+sc_table <- table(n_places_sc$delta_cat)
+
+# how many gained and how many maintained specifically?
+sc_table2 <- table(n_places_sc$delta_n_places)
 
 ```
 
