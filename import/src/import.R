@@ -9,33 +9,23 @@
 pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus")
 
 inputs <- list(
-  az_2016 = here::here("HRW_pollingplaces/import/input/vip_az_2016primary/polling_location.txt"),
-  az_2020 = here::here("HRW_pollingplaces/import/input/vip_az_2020primary/polling_location.txt"),
-  az_2020_maricopa = here::here("HRW_pollingplaces/import/input/vip_az_maricopa_2020primary/polling_location.txt"),
-  sc_2016 = here::here("HRW_pollingplaces/import/input/vip_sc_2016primary/polling_location.txt"),
-  sc_2020 = here::here("HRW_pollingplaces/import/input/vip_sc_2020primary/polling_location.txt"),
-  zc1_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_032016.csv"),
-  zc2_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_062016.csv"),
-  zc3_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_092016.csv"),
-  zc4_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_122016.csv"),
-  zc1_2020 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_COUNTY_032020.csv"),
-  zt1_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_032016.csv"),
-  zt2_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_062016.csv"),
-  zt3_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_092016.csv"),
-  zt4_2016 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_122016.csv"),
-  zt1_2020 = here::here("HRW_pollingplaces/import/input/usps_api/ZIP_TRACT_032020.csv")
-  )
+  az_2016 = here::here("import/input/vip_az_2016primary/polling_location.txt"),
+  az_2020 = here::here("import/input/vip_az_2020primary/polling_location.txt"),
+  az_2020_maricopa = here::here("import/input/vip_az_maricopa_2020primary/polling_location.txt"),
+  sc_2016 = here::here("import/input/vip_sc_2016primary/polling_location.txt"),
+  sc_2020 = here::here("import/input/vip_sc_2020primary/polling_location.txt"))
 
 outputs <- list(
-  VIPinlist_imp = here::here("HRW_pollingplaces/clean/input/VIPdata_imported.rds"),
-  covid_imp = here::here("HRW_pollingplaces/clean/input/covid_imported.rds"),
-  census_imp = here::here("HRW_pollingplaces/clean/input/census_imported.rds")
+  VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
+  covid_imp = here::here("clean/input/covid_imported.rds"),
+  census_imp = here::here("clean/input/census_imported.rds")
   )
 
 # import VIP data
 ## creates a list of VIP files as connections
 inputslist <- list(inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa, 
                   inputs$sc_2016, inputs$sc_2020)
+
 names(inputslist) <- c("az_2016", "az_2020", "az_2020_maricopa", 
                        "sc_2016", "sc_2020")
 
