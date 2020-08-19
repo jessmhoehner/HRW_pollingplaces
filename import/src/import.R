@@ -22,7 +22,8 @@ inputs <- list(
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
   covid_az_imp = here::here("write/input/covid_az_imported.rds"),
-  census_imp = here::here("clean/input/census_imported.rds")
+  census_imp = here::here("clean/input/census_imported.rds"), 
+  geo_df = here::here("write/input/census_geometry_imported.rds")
   )
 
 # import VIP data
@@ -66,8 +67,7 @@ az_covid_data <- read_csv(inputs$az_covid_zip, col_names = TRUE) %>%
   verify(colnames(.) == expected_cols2) %>%
   rename(zipcode = postcode) %>%
   mutate_at(c("confirmed_case_category","confirmed_case_count"), as.factor) %>%
-  verify(ncol(.) == 3 & nrow(.) == 410) %>%
-  saveRDS(outputs$covid_az_imp)
+  verify(ncol(.) == 3 & nrow(.) == 410)
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
@@ -83,9 +83,25 @@ demo_2016 <- get_acs(geography = "zcta",
                      year = 2018, 
                      geometry = FALSE, 
                      key = jrkey) %>%
-  janitor::clean_names() %>%
+  clean_names() %>%
   verify(colnames(.) == expected_cols3) %>%
   select(geoid, name, variable, estimate) %>%
   saveRDS(outputs$census_imp)
+
+geometry <- get_acs(geography = "zcta", 
+                    variables = c(total = "B03001_001"),
+                    year = 2018, 
+                    geometry = TRUE, 
+                    key = jrkey) %>%
+  clean_names() %>%
+  filter(geoid %in% az_covid_data$zipcode) %>%
+  verify(nrow(.) == 369) %>%
+  select(c(geoid, geometry)) %>%
+  group_by(geoid) %>%
+  verify(nrow(.) == 369 & ncol(.) == 2) %>%
+  saveRDS(outputs$geo_df)
+
+az_covid_data <- az_covid_data %>%
+  saveRDS(outputs$covid_az_imp)
 
 # done.
