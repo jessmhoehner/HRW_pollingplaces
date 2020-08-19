@@ -231,7 +231,7 @@ az_zips_freq_2016 <- az_zips_freq_2016 %>%
 az_zips_freq_2020 <- az_zips_freq_2020 %>%
   saveRDS(outputs$az_2020_freq_clean)
 
-sc_zips_freq_2020 <- sc_zips_freq_2020 %>%
+sc_zips_freq_2016 <- sc_zips_freq_2016 %>%
   saveRDS(outputs$sc_2016_freq_clean)
 
 sc_zips_freq_2020 <- sc_zips_freq_2020 %>%
