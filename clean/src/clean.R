@@ -66,7 +66,8 @@ az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
          zipcode = if_else(id == "460036", "86044", zipcode),
          zipcode = if_else(id == "46002412", "85941", zipcode),
          zipcode = if_else(id == "46003325", "85637", zipcode),
-         zipcode = if_else(id == "46002737", "85346", zipcode)) %>%
+         zipcode = if_else(id == "46002737", "85346", zipcode),
+         zipcode = if_else(id == "460043" | id == "460034", "86001", zipcode)) %>%
   filter(!id %in% invalid_info) %>%
   verify(is.na(zipcode) == FALSE) %>%
   filter(unique(id) != FALSE)  %>%
@@ -76,7 +77,7 @@ az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
 az_zips_freq_2016 <- as.data.frame(table(az_2016_df$zipcode)) %>%
   mutate(zipcode = Var1, 
          n_pp_2016 = as.numeric(Freq)) %>%
-  verify(ncol(.) == 4 & nrow(.) == 198)
+  verify(ncol(.) == 4 & nrow(.) == 197)
 
 # 2020 data
 az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
@@ -105,8 +106,14 @@ az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
   verify(ncol(.) == 4 & nrow(.) == 480) %>%
   verify(min(id) == 7700104067 & max(id) == 8850015622)  %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
-  mutate(zipcode = as.factor(substr(address_line, nchar(address_line) - n_last + 1, 
-                          nchar(address_line)))) %>%
+  mutate(zipcode = as.character(substr(address_line, 
+                                       nchar(address_line) - n_last + 1, 
+                                       nchar(address_line))), 
+         zipcode = if_else(id == "770039622" | id == "770039624", "85941", zipcode), 
+         zipcode = if_else(id == "770039781", "86336", zipcode),
+         zipcode = if_else(id == "770039481", "85925", zipcode),
+         zipcode = if_else(id == "4600928", "85925", zipcode), 
+         zipcode = if_else(id == "770039899" | id == "770039783", "86001", zipcode)) %>%
   verify(is.na(zipcode) == FALSE) %>%
   filter(unique(id) != FALSE) %>%
   verify(nrow(.) == 480 & ncol(.) == 4)
@@ -115,7 +122,7 @@ az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
 az_zips_freq_2020 <- as.data.frame(table(az_2020_df_full$zipcode)) %>%
   mutate(zipcode = Var1, 
          n_pp_2020 = as.numeric(Freq)) %>%
-  verify(ncol(.) == 4 & nrow(.) == 278)
+  verify(ncol(.) == 4 & nrow(.) == 275)
 
 # which zipcodes saw an increase, decrease, or maitenence in polling places?
 n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
@@ -126,7 +133,7 @@ n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %
                                        "Gained or Maintained Polling Places"))) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
-  verify(ncol(.) == 5 & nrow(.) == 291)
+  verify(ncol(.) == 5 & nrow(.) == 287)
 
 ### south carolina ###
 #nrows = how many unique polling places were open in 2016?
@@ -191,9 +198,10 @@ az_demo <- read_rds(inputs$census_imp) %>%
                                  digits = 2),
          zip_pct_not_hl = as.numeric(round(signif_half_up((no_h_l/total)*100), 1), 
                                      digits = 2)) %>%
+  replace_na(list(zip_pct_not_hl = 0, zip_pct_hl = 0)) %>%
   group_by(geoid) %>%
   full_join(n_places_az, by = c("geoid" = "zipcode")) %>%
-  verify(ncol(.) == 10 & nrow(.) == 291) %>%
+  verify(ncol(.) == 10 & nrow(.) == 287) %>%
   saveRDS(outputs$az_demo_clean)
 
 sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
@@ -247,7 +255,8 @@ covid_data <- readRDS(inputs$covid_imp) %>%
   verify(colnames(.) == expected_cols2) %>%
   filter(state == "Arizona" | state == "South Carolina") %>%
   group_by(state, county) %>%
-  summarize(cases_by_county = n()) %>%
+  summarize(.groups = "keep",
+            cases_by_county = n()) %>%
   verify(ncol(.) == 3 & nrow(.) == 63) %>%
   saveRDS(outputs$covid_clean)
 
