@@ -122,8 +122,8 @@ n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
          delta_cat = as.factor(if_else(delta_n_places < 0, 
-                                       "Fewer Polling Places", 
-                                       "The Same or More Polling Places"))) %>%
+                                       "Lost Polling Places", 
+                                       "Gained or Maintained Polling Places"))) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
   verify(ncol(.) == 5 & nrow(.) == 291)
@@ -140,15 +140,16 @@ sc_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 4) %>%
   mutate(
     zipcode = as.character(if_else(zipcode == "23222", "29532", zipcode)),
     zipcode = as.factor(if_else(zipcode == "40 SC", "29840", zipcode))) %>%
-  filter(zipcode != "	SC") %>%
+  filter(zipcode != "SC") %>%
   filter(unique(id) != FALSE) %>%
-  verify(ncol(.) == 4 & nrow(.) == 2194) 
+  verify(ncol(.) == 4 & nrow(.) == 2179) 
 
 # nrows = number of unique zip codes in 2016 = 382
 sc_zips_freq_2016 <- as.data.frame(table(sc_2016_df$zipcode)) %>%
   mutate(zipcode = Var1, 
          n_pp_2016 = as.numeric(Freq)) %>%
-  verify(ncol(.) == 4 & nrow(.) == 382)
+  filter(zipcode != "SC") %>%
+  verify(ncol(.) == 4 & nrow(.) == 381)
 
 #nrows = how many unique polling places were open in 2016? 1968
 sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
@@ -167,6 +168,7 @@ sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
 sc_zips_freq_2020 <- as.data.frame(table(sc_2020_df$zipcode)) %>%
   mutate(zipcode = Var1, 
          n_pp_2020 = as.numeric(Freq)) %>%
+  filter(zipcode != "SC") %>%
   verify(ncol(.) == 4 & nrow(.) == 383)
 
 # which zipcodes saw an increase, decrease, or maitenence in polling places?
@@ -174,11 +176,11 @@ n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
          delta_cat = as.factor(if_else(delta_n_places < 0, 
-                                       "Fewer Polling Places", 
-                                       "The Same or More Polling Places"))) %>%
+                                       "Lost Polling Places", 
+                                       "Gained or Maintained Polling Places"))) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
-  verify(ncol(.) == 5 & nrow(.) == 387)
+  verify(ncol(.) == 5 & nrow(.) == 386)
 
 # add in census race data and link to each state/year dataset grouped by zip
 az_demo <- read_rds(inputs$census_imp) %>% 
@@ -204,7 +206,7 @@ sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
                                      digits = 2)) %>%
   group_by(geoid) %>%
   full_join(n_places_sc, by = c("geoid" = "zipcode")) %>%
-  verify(ncol(.) == 10 & nrow(.) == 387) %>%
+  verify(ncol(.) == 10 & nrow(.) == 386) %>%
   saveRDS(outputs$sc_demo_clean)
 
 # export all objects for write task here so as not to have null objects for 
