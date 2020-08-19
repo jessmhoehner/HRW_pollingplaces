@@ -10,9 +10,18 @@
 HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')
 
 clean_data = \
-				# add files to be added to write task here # 
-
-				
+				 $(HERE)/write/input/az_2016_clean.rds \
+				 $(HERE)/write/input/az_2016_freq_clean.rds \
+				 $(HERE)/write/input/az_2020_clean.rds \
+				 $(HERE)/write/input/az_2020_freq_clean.rds \
+				 $(HERE)/write/input/az_demo_clean.rds \
+				 $(HERE)/write/input/sc_2016_clean.rds \
+				 $(HERE)/write/input/sc_2016_freq_clean.rds \
+				 $(HERE)/write/input/sc_2020_clean.rds \
+				 $(HERE)/write/input/sc_2020_freq_clean.rds \
+				 $(HERE)/write/input/sc_demo_clean.rds \
+				 $(HERE)/write/input/covid_clean.rds
+				 
 .PHONY:	all clean
 
 all: $(clean_data)
@@ -22,9 +31,9 @@ clean:
 		
 $(clean_data): \
 				src/clean.R \
-				$(HERE)/write/input/VIPdata_imported.rds \
-				$(HERE)/write/input/covid_imported.rds \
-				$(HERE)/write/input/census_imported.rds
+				$(HERE)/clean/input/VIPdata_imported.rds \
+				$(HERE)/clean/input/covid_imported.rds \
+				$(HERE)/clean/input/census_imported.rds
 			Rscript --vanilla $<
 			
 # done.
