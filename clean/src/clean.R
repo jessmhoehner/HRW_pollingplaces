@@ -10,7 +10,6 @@ pacman::p_load("tidyverse", "assertr", "janitor")
 
 inputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
-  covid_imp = here::here("clean/input/covid_imported.rds"),
   census_imp = here::here("clean/input/census_imported.rds")
 )
 
@@ -24,8 +23,7 @@ outputs <- list(
   sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
-  sc_demo_clean = here::here("write/input/sc_demo_clean.rds"), 
-  covid_clean = here::here("write/input/covid_clean.rds") 
+  sc_demo_clean = here::here("write/input/sc_demo_clean.rds")
 )
 
 # VIP data
@@ -261,18 +259,5 @@ sc_zips_freq_2016 <- sc_zips_freq_2016 %>%
 
 sc_zips_freq_2020 <- sc_zips_freq_2020 %>%
   saveRDS(outputs$sc_2020_freq_clean)
-
-# import covid-19 related data
-expected_cols2 <- c("county", "state", "fips", "cases", "deaths")
-
-covid_data <- readRDS(inputs$covid_imp) %>%
-  clean_names() %>%
-  verify(colnames(.) == expected_cols2) %>%
-  filter(state == "Arizona" | state == "South Carolina") %>%
-  group_by(state, county) %>%
-  summarize(.groups = "keep",
-            cases_by_county = n()) %>%
-  verify(ncol(.) == 3 & nrow(.) == 63) %>%
-  saveRDS(outputs$covid_clean)
 
 # done.

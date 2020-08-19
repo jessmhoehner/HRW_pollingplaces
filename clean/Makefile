@@ -19,8 +19,7 @@ clean_data = \
 				 $(HERE)/write/input/sc_2016_freq_clean.rds \
 				 $(HERE)/write/input/sc_2020_clean.rds \
 				 $(HERE)/write/input/sc_2020_freq_clean.rds \
-				 $(HERE)/write/input/sc_demo_clean.rds \
-				 $(HERE)/write/input/covid_clean.rds
+				 $(HERE)/write/input/sc_demo_clean.rds
 				 
 .PHONY:	all clean
 
@@ -32,7 +31,6 @@ clean:
 $(clean_data): \
 				src/clean.R \
 				$(HERE)/clean/input/VIPdata_imported.rds \
-				$(HERE)/clean/input/covid_imported.rds \
 				$(HERE)/clean/input/census_imported.rds
 			Rscript --vanilla $<
 			
