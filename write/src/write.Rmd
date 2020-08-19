@@ -1,83 +1,223 @@
 ---
-title: 'Comparitive Report on Polling Places in Arizona and South Carolina: 2016 vs
+title: 'Comparative Report on Polling Places in Arizona and South Carolina: 2016 vs
   2020'
 author: "Jessica Randall"
 date: "8/17/2020"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r setup, message = FALSE, include= FALSE, echo=FALSE}
+
+pacman::p_load(tidyverse, readr, knitr, tinytex, janitor, maps)
+
+files <- list(
+  az_2016_clean = here::here("write/input/az_2016_clean.rds"),
+  az_2016_freq_clean = here::here("write/input/az_2016_freq_clean.rds"),
+  az_2020_clean = here::here("write/input/az_2020_clean.rds"),
+  az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
+  az_demo_clean = here::here("write/input/az_demo_clean.rds"),
+  sc_2016_clean = here::here("write/input/sc_2016_clean.rds"),
+  sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
+  sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
+  sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
+  sc_demo_clean = here::here("write/input/sc_demo_clean.rds"), 
+  az_covid_data = here::here("write/input/covid_az_imported.rds"), 
+  census_geometry = here::here("write/input/census_geometry_imported.rds")
+)
+
 ```
 
-## First Question (a)
+## How many polling places were open in 2016 as compared to 2020? 
 
-How many polling places in each county were open in 2016 as compared to 2020? 
+```{r nplacesa, message=FALSE, echo=FALSE}
 
-```{r nplacesa}
+az_2016_df <- read_rds(files$az_2016_clean)
+az_2020_df <- read_rds(files$az_2020_clean)
 
-n_diff_az <- as.numeric(abs(sum(nrow(sc_2020_df) - nrow(sc_2016_df))))
+n_diff_az <- as.numeric(sum(nrow(az_2020_df) - nrow(az_2016_df)))
+pct_delta_az <- round(sum((n_diff_az/as.numeric(nrow(az_2016_df))*100)),1)
 
-pct_delta_az <- round(sum((n_diff_sc/as.numeric(nrow(sc_2016_df))*100)),2)
+# want to be able to change line 56 to say increase or decrease if data changes?
+
+sc_2016_df <- read_rds(files$sc_2016_clean)
+sc_2020_df <- read_rds(files$sc_2020_clean)
 
 n_diff_sc <- as.numeric(abs(sum(nrow(sc_2020_df) - nrow(sc_2016_df))))
-
-pct_delta_sc <- round(sum((n_diff_sc/as.numeric(nrow(sc_2016_df))*100)),2)
-
-# there were n_diff_sc (226) fewer polling places 
+pct_delta_sc <- round(sum((n_diff_sc/as.numeric(nrow(sc_2016_df))*100)),1)
 
 ```
 
-## First Question (b)
+### Arizona
+ In 2016, Arizona had `r nrow(az_2016_df)` open polling locations statewide. In
+ 2020 it had `r nrow(az_2020_df)` open polling locations. This is a difference 
+ of `r n_diff_az` more or a `r pct_delta_az`% increase in polling locations.
 
-Which and how many zip codes lost, gained, or maintained numbers of polling places?
+### South Carolina
+ In 2016, South Carolina had `r nrow(sc_2016_df)` open polling locations statewide. 
+ In 2020 it had `r nrow(sc_2020_df)` open polling locations. This is a difference 
+ of `r n_diff_sc` fewer or a `r pct_delta_sc`% decrease in polling locations.
 
-```{r nplacesb}
+## How many zip codes lost, gained, or maintained numbers of polling places?
 
-# which zipcodes saw an increase, decrease, or maintenance in polling places?
+```{r nplacesb, message=FALSE, echo=FALSE}
+# AZ
+az_zips_freq_2016 <- read_rds(files$az_2016_freq_clean)
+az_zips_freq_2020 <- read_rds(files$az_2020_freq_clean)
 
 n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
          delta_cat = as.factor(if_else(delta_n_places < 0, 
-                                       "Fewer Polling Places", 
-                                       "The Same or More Polling Places"))) %>%
+                                       "Lost Polling Places", 
+                                       "Gained or Maintained Polling Places"))) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
 
-# how many lost, and how many gained/maintained?
-az_table <- table(n_places_az$delta_cat)
+# how many lost, and how many gained, maintained?
+az_table <- n_places_az %>%
+  group_by(delta_cat) %>%
+  summarise(.groups = "keep", 
+            count = n(),
+            percent_of_zips = round((count/nrow(n_places_az)*100)),1) %>%
+  select(-c(`1`))
 
 # SC
+sc_zips_freq_2016 <- read_rds(files$sc_2016_freq_clean)
+sc_zips_freq_2020 <- read_rds(files$sc_2020_freq_clean)
 
 # which zipcodes saw an increase, decrease, or maitenence in polling places?
 n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
          delta_cat = as.factor(if_else(delta_n_places < 0, 
-                                       "Fewer Polling Places", 
-                                       "The Same or More Polling Places"))) %>%
+                                       "Lost Polling Places", 
+                                       "Gained or Maintained Polling Places"))) %>%
   filter(zipcode != "SC") %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
 
-# how many lost, and how many gained/maintained?
-sc_table <- table(n_places_sc$delta_cat)
-
-# how many gained and how many maintained specifically?
-sc_table2 <- table(n_places_sc$delta_n_places)
+# how many lost, and how many gained, maintained?
+sc_table <- n_places_sc %>%
+  group_by(delta_cat) %>%
+  summarise(.groups = "keep", 
+            count = n(),
+            percent_of_zips = round((count/nrow(n_places_sc)*100)),1) %>%
+  select(-c(`1`))
 
 ```
 
+### Arizona
+ Between 2016 and 2020, `r az_table$count[1]` zip codes, or `r az_table$percent_of_zips[1]`% 
+ of zip codes in Arizona with open polling locations in 2016 gained or maintained 
+ the same number of open polling locations in 2020 while `r az_table$count[2]` 
+ zip codes, or `r az_table$percent_of_zips[2]`%, lost polling places in 2020.
 
+### South Carolina
+ Between 2016 and 2020, `r sc_table$count[1]` zip codes, or `r sc_table$percent_of_zips[1]`% 
+ of zip codes in South Carolina with open polling locations in 2016 gained or 
+ maintained the same number of polling locations while `r sc_table$count[2]` 
+ zip codes with open polling places in 2016, or `r sc_table$percent_of_zips[2]`%, 
+ lost polling places in 2020.
+ 
+# What are the demographics of Hispanic and Latino people in each zip code?
 
+```{r demographics, message=FALSE, echo=FALSE}
 
-## Including Plots
+az_demo <- read_rds(files$az_demo_clean)
 
-You can also embed plots, for example:
+az_demo_lost <- az_demo %>%
+  filter(delta_cat == "Lost Polling Places") %>%
+  group_by(geoid, no_h_l, yes_h_l, total) %>%
+  summarise(.groups = "keep", 
+            percent_hl = round((yes_h_l/total*100),1),
+            percent_not_hl = round((no_h_l/total*100),1))
+
+az_demo_gm <- az_demo %>%
+  filter(delta_cat == "Gained or Maintained Polling Places") %>%
+  group_by(geoid, no_h_l, yes_h_l, total) %>%
+  summarise(.groups = "keep", 
+            percent_hl = round((yes_h_l/total*100),1),
+            percent_not_hl = round((no_h_l/total*100),1))
+
+sc_demo <- read_rds(files$sc_demo_clean)
+
+sc_demo_lost <- sc_demo %>%
+  filter(delta_cat == "Lost Polling Places") %>%
+  group_by(geoid, no_h_l, yes_h_l, total) %>%
+  summarise(.groups = "keep", 
+            percent_hl = round((yes_h_l/total*100),1),
+            percent_not_hl = round((no_h_l/total*100),1))
+
+sc_demo_gm <- sc_demo %>%
+  filter(delta_cat == "Gained or Maintained Polling Places") %>%
+  group_by(geoid, no_h_l, yes_h_l, total) %>%
+  summarise(.groups = "keep", 
+            percent_hl = round((yes_h_l/total*100),1),
+            percent_not_hl = round((no_h_l/total*100),1))
+
+```
+ 
+### Arizona
+ In zip codes which lost polling places in 2020,the average percentage of 
+ people who considered themselves Hispanic or Latino as of the 2014-2018 
+ American Community Survey was `r round_half_up(mean(az_demo_lost$percent_hl),2)`% with 
+ a median of `r round_half_up(median(az_demo_lost$percent_hl),3)`% while the average 
+ percentage of people who did not who consider themselves Hispanic or Latino was 
+ `r round_half_up(mean(az_demo_lost$percent_not_hl),1)`% with a median of 
+ `r round_half_up(median(az_demo_lost$percent_not_hl),2)`%.
+ 
+  In zip codes which gained or maintained the same number polling locations in 
+  2020, the average percentage of people who considered themselves Hispanic 
+  or Latino was `r round_half_up(mean(az_demo_gm$percent_hl),2)`% with a median 
+  of `r round_half_up(median(az_demo_gm$percent_hl),3)`% while the average 
+  percentage of people who did not who consider themselves Hispanic or Latino was 
+ `r round_half_up(mean(az_demo_gm$percent_not_hl),2)`% with a median of 
+ `r round_half_up(median(az_demo_gm$percent_not_hl),3)` %.
+
+### South Carolina
+
+ The average percentage of people living in each zipcode which lost polling 
+ places in 2020 who considered themselves Hispanic or Latino as of the 2014-2018 
+ American Community Survey was `r round_half_up(mean(sc_demo_lost$percent_hl),2)`% with 
+ a median of `r round_half_up(median(sc_demo_lost$percent_hl),2)`% while the average 
+ percentage of people who did not who consider themselves Hispanic or Latino was 
+ `r round_half_up(mean(sc_demo_lost$percent_not_hl),2)`% with a median of 
+ `r round_half_up(median(sc_demo_lost$percent_not_hl),2)`%.
+ 
+  The average percentage of people living in each zip code which gained or 
+  maintained the same number polling locations in 2020 who considered themselves 
+  Hispanic or Latino was `r round_half_up(mean(sc_demo_gm$percent_hl),2)`% with a median 
+  of `r round_half_up(median(sc_demo_gm$percent_hl),2)`% while the average percentage of 
+  people who did not who consider themselves Hispanic or Latino was 
+ `r round_half_up(mean(sc_demo_gm$percent_not_hl),2)`% with a median of 
+ `r round_half_up(median(sc_demo_gm$percent_not_hl),2)`%.
+
+## Map of Polling Location Changes and COVID-19 cases per 100k
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+az_covid_df <- read_rds(files$az_covid_data) %>%
+  mutate(zipcode = gsub(' [A-z ]*', " ", zipcode))
+
+az_demo_covid_df <- full_join(az_demo, az_covid_df, by = c("geoid" = "zipcode")) %>%
+  mutate(delta_cat = as.character(delta_cat),
+         confirmed_case_category = as.character(confirmed_case_category),
+         delta_cat = if_else(confirmed_case_category == "Data Suppressed",
+                             "COVID-19 Data Suppressed pending Tribal Approval", 
+                             delta_cat)) %>%
+  replace_na(list(delta_cat = "No Polling Location Data Available", 
+                  confirmed_case_category = "No COVID-19 Data Available"))
+
+az_demo_covid_df_lost <- az_demo_covid_df %>%
+  filter(delta_cat == "Lost Polling Places") %>%
+  group_by(geoid, no_h_l, yes_h_l, total) %>%
+  summarise(.groups = "keep", 
+            percent_hl = round((yes_h_l/total*100),1),
+            percent_not_hl = round((no_h_l/total*100),1))
+
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
