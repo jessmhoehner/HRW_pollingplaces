@@ -8,16 +8,20 @@
 #
 pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus")
 
+# AZ covid-19 data by zip obtained on 8/19/20
+# https://azdhs.gov/preparedness/epidemiology-disease-control/infectious-disease-epidemiology/covid-19/dashboards/index.php
+
 inputs <- list(
   az_2016 = here::here("import/input/vip_az_2016primary/polling_location.txt"),
   az_2020 = here::here("import/input/vip_az_2020primary/polling_location.txt"),
   az_2020_maricopa = here::here("import/input/vip_az_maricopa_2020primary/polling_location.txt"),
   sc_2016 = here::here("import/input/vip_sc_2016primary/polling_location.txt"),
-  sc_2020 = here::here("import/input/vip_sc_2020primary/polling_location.txt"))
+  sc_2020 = here::here("import/input/vip_sc_2020primary/polling_location.txt"), 
+  az_covid_zip = here::here("import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv"))
 
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
-  covid_imp = here::here("clean/input/covid_imported.rds"),
+  covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
   census_imp = here::here("clean/input/census_imported.rds")
   )
 
@@ -55,21 +59,20 @@ saveRDS(inlist, outputs$VIPinlist_imp)
 # import covid-19 related data
 # nrow will break with new data
 
-expected_cols2 <- c("date", "county", "state", "fips", "cases", "deaths")
+expected_cols2 <- c("postcode","confirmed_case_category","confirmed_case_count")
 
-covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv") %>%
+az_covid_data <- read_csv(inputs$az_covid_zip, col_names = TRUE) %>%
   clean_names() %>%
   verify(colnames(.) == expected_cols2) %>%
-  rename(date_rep = date) %>%
-  select(-c(date_rep)) %>%
-  filter(state == "Arizona" | state == "South Carolina") %>%
-  verify(ncol(.) == 5 & nrow(.) == 9277) %>%
-  saveRDS(outputs$covid_imp)
+  rename(zipcode = postcode) %>%
+  mutate_at(c("confirmed_case_category","confirmed_case_count"), as.factor) %>%
+  verify(ncol(.) == 3 & nrow(.) == 410) %>%
+  saveRDS(outputs$covid_az_imp)
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
 
-jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c", install = TRUE)
+jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c")
 
 expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
