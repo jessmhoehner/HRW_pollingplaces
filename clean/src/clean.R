@@ -6,7 +6,7 @@
 # ============================================
 # HRW_pollingplaces/clean/src/clean.R
 #
-pacman::p_load("tidyverse", "assertr", "tidycensus", "janitor")
+pacman::p_load("tidyverse", "assertr", "janitor")
 
 inputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
