@@ -112,7 +112,7 @@ az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
                                        nchar(address_line))), 
          zipcode = if_else(id == "770039622" | id == "770039624", "85941", zipcode), 
          zipcode = if_else(id == "770039781", "86336", zipcode),
-         zipcode = if_else(id == "770039481", "85925", zipcode),
+         zipcode = if_else(id == "770039481" | id == "770040157", "85925", zipcode),
          zipcode = if_else(id == "770039899" | id == "770039783", "86001", zipcode)) %>%
   verify(is.na(zipcode) == FALSE) %>%
   filter(unique(id) != FALSE) %>%
@@ -122,7 +122,7 @@ az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
 az_zips_freq_2020 <- as.data.frame(table(az_2020_df_full$zipcode)) %>%
   mutate(zipcode = Var1, 
          n_pp_2020 = as.numeric(Freq)) %>%
-  verify(ncol(.) == 4 & nrow(.) == 275)
+  verify(ncol(.) == 4 & nrow(.) == 274)
 
 # which zipcodes saw an increase, decrease, or maitenence in polling places?
 n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
@@ -133,7 +133,7 @@ n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %
                                        "Gained or Maintained Polling Places"))) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
-  verify(ncol(.) == 5 & nrow(.) == 287)
+  verify(ncol(.) == 5 & nrow(.) == 286)
 
 ### south carolina ###
 #nrows = how many unique polling places were open in 2016?
@@ -214,7 +214,7 @@ az_demo <- read_rds(inputs$census_imp) %>%
   replace_na(list(zip_pct_not_hl = 0, zip_pct_hl = 0)) %>%
   group_by(geoid) %>%
   full_join(n_places_az, by = c("geoid" = "zipcode")) %>%
-  verify(ncol(.) == 10 & nrow(.) == 287) %>%
+  verify(ncol(.) == 10 & nrow(.) == 286) %>%
   verify(is.na(zip_pct_hl) == FALSE) %>%
   saveRDS(outputs$az_demo_clean)
 
