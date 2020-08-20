@@ -4,14 +4,15 @@ title: 'Comparative Report on Polling Places in Arizona and South Carolina: 2016
 author: "Jessica Randall"
 date: "8/17/2020"
 output: pdf_document
-editor_options: 
-  chunk_output_type: console
+
 ---
 
 
 ```{r setup, message = FALSE, include= FALSE, echo=FALSE}
 
-pacman::p_load(tidyverse, readr, knitr, tinytex, janitor, maps)
+pacman::p_load(tidyverse, knitr, janitor, tinytex)
+
+.libpaths()
 
 files <- list(
   az_2016_clean = here::here("write/input/az_2016_clean.rds"),
@@ -19,13 +20,13 @@ files <- list(
   az_2020_clean = here::here("write/input/az_2020_clean.rds"),
   az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
   az_demo_clean = here::here("write/input/az_demo_clean.rds"),
+  az_demo_covid_clean = here::here("write/input/az_demo_covid_clean.rds"),
   sc_2016_clean = here::here("write/input/sc_2016_clean.rds"),
   sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
   sc_demo_clean = here::here("write/input/sc_demo_clean.rds"), 
-  az_covid_data = here::here("write/input/covid_az_imported.rds"), 
-  census_geometry = here::here("write/input/census_geometry_imported.rds")
+  az_covid_data = here::here("write/input/covid_az_imported.rds")
 )
 
 ```
@@ -197,27 +198,56 @@ sc_demo_gm <- sc_demo %>%
 
 ## Map of Polling Location Changes and COVID-19 cases per 100k
 
-```{r pressure, echo=FALSE}
-az_covid_df <- read_rds(files$az_covid_data) %>%
-  mutate(zipcode = gsub(' [A-z ]*', " ", zipcode))
+```{r pressure, echo=FALSE, message=FALSE}
 
-az_demo_covid_df <- full_join(az_demo, az_covid_df, by = c("geoid" = "zipcode")) %>%
-  mutate(delta_cat = as.character(delta_cat),
-         confirmed_case_category = as.character(confirmed_case_category),
-         delta_cat = if_else(confirmed_case_category == "Data Suppressed",
-                             "COVID-19 Data Suppressed pending Tribal Approval", 
-                             delta_cat)) %>%
-  replace_na(list(delta_cat = "No Polling Location Data Available", 
-                  confirmed_case_category = "No COVID-19 Data Available"))
+az_demo_covid_df <- read_rds(files$az_demo_covid_clean) %>%
+  mutate_at(vars(covid_cat, polling_cat), as.factor) %>%
+  select(zipcode, covid_cat, polling_cat, 
+         confirmed_case_category, zip_pct_hl, zip_pct_not_hl)
 
-az_demo_covid_df_lost <- az_demo_covid_df %>%
-  filter(delta_cat == "Lost Polling Places") %>%
-  group_by(geoid, no_h_l, yes_h_l, total) %>%
+az_l <- az_demo_covid_df %>%
+  filter(covid_cat == "Lost Polling Places") %>%
+  group_by(zipcode, confirmed_case_category,
+           zip_pct_hl, zip_pct_not_hl) %>%
   summarise(.groups = "keep", 
-            percent_hl = round((yes_h_l/total*100),1),
-            percent_not_hl = round((no_h_l/total*100),1))
+            con_case_cat = confirmed_case_category)
+
+ct_l <- gmodels::CrossTable(az_l$con_case_cat, az_l$zip_pct_hl)
+
+kable(ct_l, "latex", booktabs = T) %>%
+  kableExtra::kable_styling(latex_options = "striped")
+
+# of the 31 zip codes with complete COVID-19 data which lost polling places, 
+# 25/31 considered themselves to not be of hispanic or latino origin. 
+# Of those 3 zip codes which consider themselves to be 0.1% hispanic or latino, 
+# 2 have between 501-1000 COVID-19 cases and 1 has Greater than 1000 COVID-19 cases
+# 1 zip codes which considers itself to be 0.2% hispanic or latino, 
+# has between 11-100 COVID-19 cases
+# 1 zip codes which considers itself to be 0.3% hispanic or latino, 
+# has Greater than 1000 COVID-19 cases
+# 1 zip codes which considers itself to be 0.4% hispanic or latino, 
+# has between 181-500 COVID-19 cases
+
+az_gm <- az_demo_covid_df %>%
+  filter(covid_cat == "Gained or Maintained Polling Places") %>%
+    group_by(zipcode, confirmed_case_category,
+           zip_pct_hl, zip_pct_not_hl) %>%
+  summarise(.groups = "keep", 
+            con_case_cat = confirmed_case_category)
+
+ct_gm <- gmodels::CrossTable(az_gm$con_case_cat, az_gm$zip_pct_hl)
+
+kable(ct_gm, "latex", booktabs = T) %>%
+kableExtra::kable_styling(latex_options = "striped")
+
+# az_demo_covid_df$covid_cat
 
 
 ```
 
+### Arizona
+
+Out of the 
+
+### South Carolina
 
