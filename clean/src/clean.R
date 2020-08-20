@@ -10,7 +10,8 @@ pacman::p_load("tidyverse", "assertr", "janitor")
 
 inputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
-  census_imp = here::here("clean/input/census_imported.rds")
+  census_imp = here::here("clean/input/census_imported.rds"), 
+  az_covid_data = here::here("clean/input/covid_az_imported.rds")
 )
 
 outputs <- list(
@@ -19,6 +20,8 @@ outputs <- list(
   az_2020_clean = here::here("write/input/az_2020_clean.rds"),
   az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
   az_demo_clean = here::here("write/input/az_demo_clean.rds"),
+  az_demo_covid_clean = here::here("write/input/az_demo_covid_clean.rds"),
+  
   sc_2016_clean = here::here("write/input/sc_2016_clean.rds"),
   sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
@@ -213,8 +216,7 @@ az_demo <- read_rds(inputs$census_imp) %>%
   group_by(geoid) %>%
   full_join(n_places_az, by = c("geoid" = "zipcode")) %>%
   verify(ncol(.) == 10 & nrow(.) == 286) %>%
-  verify(is.na(zip_pct_hl) == FALSE) %>%
-  saveRDS(outputs$az_demo_clean)
+  verify(is.na(zip_pct_hl) == FALSE)
 
 sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
   select(geoid, variable, estimate) %>% 
@@ -259,5 +261,28 @@ sc_zips_freq_2016 <- sc_zips_freq_2016 %>%
 
 sc_zips_freq_2020 <- sc_zips_freq_2020 %>%
   saveRDS(outputs$sc_2020_freq_clean)
+
+# combine covid data and demographic/polling data
+
+az_covid__demo_df <- read_rds(inputs$az_covid_data) %>%
+  mutate(zipcode = gsub(' [A-z ]*', " ", zipcode)) %>%
+  full_join(az_demo, by = c("zipcode" = "geoid")) %>%
+  mutate(
+    polling_cat = as.character(delta_cat),
+    covid_cat = case_when(
+      is.na(total) == TRUE & is.na(polling_cat) == TRUE ~ "Missing Polling Data",
+      is.na(total) == FALSE & is.na(polling_cat) == FALSE & 
+        confirmed_case_count == 0  ~ "COVID Data Suppressed Pending Tribal Approval", 
+      is.na(total) == FALSE & is.na(polling_cat) == FALSE & 
+        confirmed_case_count != 0 ~ polling_cat,
+      is.na(total) == FALSE & is.na(polling_cat) == FALSE & 
+        confirmed_case_count == 0  ~ "COVID Data Suppressed Pending Tribal Approval", 
+      is.na(confirmed_case_count) == TRUE & is.na(polling_cat) == FALSE 
+      ~ "No COVID Data Reported")) %>%
+  saveRDS(outputs$az_demo_covid_clean)
+  
+
+az_demo <- az_demo %>%
+  saveRDS(outputs$az_demo_clean)
 
 # done.

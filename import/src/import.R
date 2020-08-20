@@ -21,7 +21,7 @@ inputs <- list(
 
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
-  covid_az_imp = here::here("write/input/covid_az_imported.rds"),
+  covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
   census_imp = here::here("clean/input/census_imported.rds"), 
   geo_df = here::here("write/input/census_geometry_imported.rds")
   )

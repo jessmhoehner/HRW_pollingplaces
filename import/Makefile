@@ -11,9 +11,8 @@ HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')
 
 import_data = \
 				$(HERE)/clean/input/VIPdata_imported.rds \
-				$(HERE)/write/input/covid_az_imported.rds \
-				$(HERE)/clean/input/census_imported.rds \
-				$(HERE)/write/input/census_geometry_imported.rds
+				$(HERE)/clean/input/covid_az_imported.rds \
+				$(HERE)/clean/input/census_imported.rds
 
 				
 .PHONY:	all clean

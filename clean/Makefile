@@ -15,6 +15,7 @@ clean_data = \
 				 $(HERE)/write/input/az_2020_clean.rds \
 				 $(HERE)/write/input/az_2020_freq_clean.rds \
 				 $(HERE)/write/input/az_demo_clean.rds \
+				 $(HERE)/write/input/az_demo_covid_clean.rds \
 				 $(HERE)/write/input/sc_2016_clean.rds \
 				 $(HERE)/write/input/sc_2016_freq_clean.rds \
 				 $(HERE)/write/input/sc_2020_clean.rds \
@@ -31,7 +32,8 @@ clean:
 $(clean_data): \
 				src/clean.R \
 				$(HERE)/clean/input/VIPdata_imported.rds \
-				$(HERE)/clean/input/census_imported.rds
+				$(HERE)/clean/input/census_imported.rds \
+				$(HERE)/clean/input/covid_az_imported.rds
 			Rscript --vanilla $<
 			
 # done.
