@@ -279,6 +279,9 @@ az_covid__demo_df <- read_rds(inputs$az_covid_data) %>%
         confirmed_case_count == 0  ~ "COVID Data Suppressed Pending Tribal Approval", 
       is.na(confirmed_case_count) == TRUE & is.na(polling_cat) == FALSE 
       ~ "No COVID Data Reported")) %>%
+  filter(covid_cat != "Missing Polling Data") %>%
+  verify(ncol(.) == 14 & nrow(.) == 286) %>%
+  verify(covid_cat != "Missing Polling Data") %>%
   saveRDS(outputs$az_demo_covid_clean)
   
 
