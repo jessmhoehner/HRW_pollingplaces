@@ -1,18 +1,17 @@
 ---
-title: 'Comparative Report on Polling Places in Arizona and South Carolina: 2016 vs
-  2020'
+title: 'Polling Places in Arizona and South Carolina: 2016 vs 2020'
 author: "Jessica Randall"
-date: "8/17/2020"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
-
+citation_package: biblatex
+biblio-style: apa
+bibliography: packages.bib  
+nocite: '@*'
 ---
-
 
 ```{r setup, message = FALSE, include= FALSE, echo=FALSE}
 
 pacman::p_load(tidyverse, knitr, janitor, tinytex)
-
-.libpaths()
 
 files <- list(
   az_2016_clean = here::here("write/input/az_2016_clean.rds"),
@@ -31,37 +30,31 @@ files <- list(
 
 ```
 
-## How many polling places were open in 2016 as compared to 2020? 
+## Numbers of polling places open in 2016 and 2020 {-} 
 
 ```{r nplacesa, message=FALSE, echo=FALSE}
 
 az_2016_df <- read_rds(files$az_2016_clean)
 az_2020_df <- read_rds(files$az_2020_clean)
-
-n_diff_az <- as.numeric(sum(nrow(az_2020_df) - nrow(az_2016_df)))
-pct_delta_az <- round(sum((n_diff_az/as.numeric(nrow(az_2016_df))*100)),1)
-
-# want to be able to change line 56 to say increase or decrease if data changes?
-
+# want to be able to change line 50 to say increase or decrease if data changes?
 sc_2016_df <- read_rds(files$sc_2016_clean)
 sc_2020_df <- read_rds(files$sc_2020_clean)
-
-n_diff_sc <- as.numeric(abs(sum(nrow(sc_2020_df) - nrow(sc_2016_df))))
-pct_delta_sc <- round(sum((n_diff_sc/as.numeric(nrow(sc_2016_df))*100)),1)
 
 ```
 
 ### Arizona
- In 2016, Arizona had `r nrow(az_2016_df)` open polling locations statewide. In
- 2020 it had `r nrow(az_2020_df)` open polling locations. This is a difference 
- of `r n_diff_az` more or a `r pct_delta_az`% increase in polling locations.
+In 2016, Arizona had `r nrow(az_2016_df)` open polling locations statewide. In
+2020 there were `r nrow(az_2020_df)` open polling locations. This is a difference 
+of `r sum((nrow(az_2020_df) - nrow(az_2016_df)))` more or a 
+`r round_half_up((sum((nrow(az_2020_df) - nrow(az_2016_df)))/as.numeric(nrow(az_2016_df))*100),1)`% increase in polling locations.
 
 ### South Carolina
- In 2016, South Carolina had `r nrow(sc_2016_df)` open polling locations statewide. 
- In 2020 it had `r nrow(sc_2020_df)` open polling locations. This is a difference 
- of `r n_diff_sc` fewer or a `r pct_delta_sc`% decrease in polling locations.
+In 2016, South Carolina had `r nrow(sc_2016_df)` open polling locations statewide. 
+In 2020 there were `r nrow(sc_2020_df)` open polling locations. This is a 
+difference of `r abs(sum(nrow(sc_2020_df) - nrow(sc_2016_df)))` fewer 
+or a `r round_half_up((abs(sum(nrow(sc_2020_df) -   nrow(sc_2016_df)))/as.numeric(nrow(sc_2016_df))*100),1)`% decrease in polling locations.
 
-## How many zip codes lost, gained, or maintained numbers of polling places?
+## Change in number of polling places between 2016 and 2020 {-} 
 
 ```{r nplacesb, message=FALSE, echo=FALSE}
 # AZ
@@ -82,14 +75,13 @@ az_table <- n_places_az %>%
   group_by(delta_cat) %>%
   summarise(.groups = "keep", 
             count = n(),
-            percent_of_zips = round((count/nrow(n_places_az)*100)),1) %>%
-  select(-c(`1`))
+            percent_of_zips = ((count/nrow(n_places_az))*100))
 
 # SC
 sc_zips_freq_2016 <- read_rds(files$sc_2016_freq_clean)
 sc_zips_freq_2020 <- read_rds(files$sc_2020_freq_clean)
 
-# which zipcodes saw an increase, decrease, or maitenence in polling places?
+# which zip codes saw an increase, decrease, or maintenance in polling places?
 n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
@@ -105,98 +97,88 @@ sc_table <- n_places_sc %>%
   group_by(delta_cat) %>%
   summarise(.groups = "keep", 
             count = n(),
-            percent_of_zips = round((count/nrow(n_places_sc)*100)),1) %>%
-  select(-c(`1`))
+            percent_of_zips = (count/nrow(n_places_sc)*100))
 
 ```
 
-### Arizona
- Between 2016 and 2020, `r az_table$count[1]` zip codes, or `r az_table$percent_of_zips[1]`% 
- of zip codes in Arizona with open polling locations in 2016 gained or maintained 
- the same number of open polling locations in 2020 while `r az_table$count[2]` 
- zip codes, or `r az_table$percent_of_zips[2]`%, lost polling places in 2020.
+### Arizona 
 
-### South Carolina
- Between 2016 and 2020, `r sc_table$count[1]` zip codes, or `r sc_table$percent_of_zips[1]`% 
- of zip codes in South Carolina with open polling locations in 2016 gained or 
- maintained the same number of polling locations while `r sc_table$count[2]` 
- zip codes with open polling places in 2016, or `r sc_table$percent_of_zips[2]`%, 
- lost polling places in 2020.
+  Between 2016 and 2020, `r az_table$count[1]` zip codes, or 
+  `r round_half_up(az_table$percent_of_zips[1],1)`% 
+  of zip codes in Arizona with open polling locations in 2016 gained or maintained 
+  the same number of open polling locations in 2020 while `r az_table$count[2]` 
+  zip codes, or `r round_half_up(az_table$percent_of_zips[2],1)`%, lost polling 
+  places in 2020.
+
+### South Carolina 
+
+  Between 2016 and 2020, `r sc_table$count[1]` zip codes, or 
+  `r round_half_up(sc_table$percent_of_zips[1],1)`% 
+  of zip codes in South Carolina with open polling locations in 2016 gained or 
+  maintained the same number of polling locations while `r sc_table$count[2]` 
+  zip codes with open polling places in 2016, or 
+  `r round_half_up(sc_table$percent_of_zips[2],1)`%, 
+  lost polling places in 2020.
  
-# What are the demographics of Hispanic and Latino people in each zip code?
+## Demographics of Hispanic and Latino People {-} 
 
 ```{r demographics, message=FALSE, echo=FALSE}
 
 az_demo <- read_rds(files$az_demo_clean)
 
 az_demo_lost <- az_demo %>%
-  filter(delta_cat == "Lost Polling Places") %>%
-  group_by(geoid, no_h_l, yes_h_l, total) %>%
-  summarise(.groups = "keep", 
-            percent_hl = round((yes_h_l/total*100),1),
-            percent_not_hl = round((no_h_l/total*100),1))
+  filter(delta_cat == "Lost Polling Places")
 
 az_demo_gm <- az_demo %>%
-  filter(delta_cat == "Gained or Maintained Polling Places") %>%
-  group_by(geoid, no_h_l, yes_h_l, total) %>%
-  summarise(.groups = "keep", 
-            percent_hl = round((yes_h_l/total*100),1),
-            percent_not_hl = round((no_h_l/total*100),1))
+  filter(delta_cat == "Gained or Maintained Polling Places")
 
 sc_demo <- read_rds(files$sc_demo_clean)
 
 sc_demo_lost <- sc_demo %>%
-  filter(delta_cat == "Lost Polling Places") %>%
-  group_by(geoid, no_h_l, yes_h_l, total) %>%
-  summarise(.groups = "keep", 
-            percent_hl = round((yes_h_l/total*100),1),
-            percent_not_hl = round((no_h_l/total*100),1))
+  filter(delta_cat == "Lost Polling Places")
 
 sc_demo_gm <- sc_demo %>%
-  filter(delta_cat == "Gained or Maintained Polling Places") %>%
-  group_by(geoid, no_h_l, yes_h_l, total) %>%
-  summarise(.groups = "keep", 
-            percent_hl = round((yes_h_l/total*100),1),
-            percent_not_hl = round((no_h_l/total*100),1))
+  filter(delta_cat == "Gained or Maintained Polling Places")
 
 ```
  
 ### Arizona
- In zip codes which lost polling places in 2020,the average percentage of 
- people who considered themselves Hispanic or Latino as of the 2014-2018 
- American Community Survey was `r round_half_up(mean(az_demo_lost$percent_hl),2)`% with 
- a median of `r round_half_up(median(az_demo_lost$percent_hl),3)`% while the average 
- percentage of people who did not who consider themselves Hispanic or Latino was 
- `r round_half_up(mean(az_demo_lost$percent_not_hl),1)`% with a median of 
- `r round_half_up(median(az_demo_lost$percent_not_hl),2)`%.
+
+  An average of `r round_half_up(mean(az_demo_lost$zip_pct_hl),0)`% (median = 
+ `r round_half_up(median(az_demo_lost$zip_pct_hl),0)`%) of people living in zip 
+ codes which lost polling locations in 2020 considered themselves Hispanic or 
+ Latino as of the 2014-2018 American Community Survey and an average of 
+ `r round_half_up(mean(az_demo_lost$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_demo_lost$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
  
-  In zip codes which gained or maintained the same number polling locations in 
-  2020, the average percentage of people who considered themselves Hispanic 
-  or Latino was `r round_half_up(mean(az_demo_gm$percent_hl),2)`% with a median 
-  of `r round_half_up(median(az_demo_gm$percent_hl),3)`% while the average 
-  percentage of people who did not who consider themselves Hispanic or Latino was 
- `r round_half_up(mean(az_demo_gm$percent_not_hl),2)`% with a median of 
- `r round_half_up(median(az_demo_gm$percent_not_hl),3)` %.
+   An average of `r round_half_up(mean(az_demo_gm$zip_pct_hl),0)`% (median = 
+ `r round_half_up(median(az_demo_gm$zip_pct_hl),0)`%) of people living in zip 
+ codes which gained or maintained the same number polling locations in 2020 
+ considered themselves Hispanic or Latino and an average of 
+  `r round_half_up(mean(az_demo_gm$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_demo_gm$zip_pct_not_hl),0)`%) of people did not 
+ consider themselves Hispanic or Latino.
 
 ### South Carolina
 
- The average percentage of people living in each zipcode which lost polling 
- places in 2020 who considered themselves Hispanic or Latino as of the 2014-2018 
- American Community Survey was `r round_half_up(mean(sc_demo_lost$percent_hl),2)`% with 
- a median of `r round_half_up(median(sc_demo_lost$percent_hl),2)`% while the average 
- percentage of people who did not who consider themselves Hispanic or Latino was 
- `r round_half_up(mean(sc_demo_lost$percent_not_hl),2)`% with a median of 
- `r round_half_up(median(sc_demo_lost$percent_not_hl),2)`%.
+ An average of `r round_half_up(mean(sc_demo_lost$zip_pct_hl),0)`% (median = 
+ `r round_half_up(median(sc_demo_lost$zip_pct_hl),0)`%) of people living in zip 
+ codes which lost polling locations in 2020 considered themselves Hispanic or 
+ Latino as of the 2014-2018 American Community Survey and an average of 
+ `r round_half_up(mean(sc_demo_lost$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(sc_demo_lost$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
  
-  The average percentage of people living in each zip code which gained or 
-  maintained the same number polling locations in 2020 who considered themselves 
-  Hispanic or Latino was `r round_half_up(mean(sc_demo_gm$percent_hl),2)`% with a median 
-  of `r round_half_up(median(sc_demo_gm$percent_hl),2)`% while the average percentage of 
-  people who did not who consider themselves Hispanic or Latino was 
- `r round_half_up(mean(sc_demo_gm$percent_not_hl),2)`% with a median of 
- `r round_half_up(median(sc_demo_gm$percent_not_hl),2)`%.
+  An average of `r round_half_up(mean(sc_demo_gm$zip_pct_hl),0)`% (median = 
+ `r round_half_up(median(sc_demo_gm$zip_pct_hl),0)`%) of people living in zip 
+ codes which gained or maintained the same number polling locations in 2020 
+ considered themselves Hispanic or Latino and an average of 
+  `r round_half_up(mean(sc_demo_gm$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(sc_demo_gm$zip_pct_not_hl),0)`%) of people did not 
+ consider themselves Hispanic or Latino.
 
-## Map of Polling Location Changes and COVID-19 cases per 100k
+## Polling Location Changes, Demographics, and COVID-19 cases {-} 
 
 ```{r pressure, echo=FALSE, message=FALSE}
 
@@ -205,49 +187,142 @@ az_demo_covid_df <- read_rds(files$az_demo_covid_clean) %>%
   select(zipcode, covid_cat, polling_cat, 
          confirmed_case_category, zip_pct_hl, zip_pct_not_hl)
 
-az_l <- az_demo_covid_df %>%
-  filter(covid_cat == "Lost Polling Places") %>%
-  group_by(zipcode, confirmed_case_category,
-           zip_pct_hl, zip_pct_not_hl) %>%
-  summarise(.groups = "keep", 
-            con_case_cat = confirmed_case_category)
+# no zip codes
+#az_l1 <- az_demo_covid_df %>%
+#  filter(covid_cat == "Lost Polling Places" & confirmed_case_category == "0")
 
-ct_l <- gmodels::CrossTable(az_l$con_case_cat, az_l$zip_pct_hl)
+# no zip codes
+#az_l2 <- az_demo_covid_df %>%
+#  filter(covid_cat == "Lost Polling Places" & confirmed_case_category == "1-10")
 
-kable(ct_l, "latex", booktabs = T) %>%
-  kableExtra::kable_styling(latex_options = "striped")
+az_l3 <- az_demo_covid_df %>%
+  filter(covid_cat == "Lost Polling Places" & confirmed_case_category == "11-100")
+az_l4 <- az_demo_covid_df %>%
+  filter(covid_cat == "Lost Polling Places" & confirmed_case_category == "101-500")
+az_l5 <- az_demo_covid_df %>%
+  filter(covid_cat == "Lost Polling Places" & confirmed_case_category == "501-1000")
+az_l6 <- az_demo_covid_df %>%
+  filter(covid_cat == "Lost Polling Places" & confirmed_case_category == "Greater Than 1000")
+az_gm1 <- az_demo_covid_df %>%
+  filter(covid_cat == "Lost Polling Places" & confirmed_case_category == "0")
+az_gm2 <- az_demo_covid_df %>%
+  filter(covid_cat == "Gained or Maintained Polling Places" & confirmed_case_category == "1-10")
+az_gm3 <- az_demo_covid_df %>%
+  filter(covid_cat == "Gained or Maintained Polling Places" & confirmed_case_category == "11-100")
+az_gm4 <- az_demo_covid_df %>%
+  filter(covid_cat == "Gained or Maintained Polling Places" & confirmed_case_category == "101-500")
+az_gm5 <- az_demo_covid_df %>%
+  filter(covid_cat == "Gained or Maintained Polling Places" & confirmed_case_category == "501-1000")
+az_gm6 <- az_demo_covid_df %>%
+  filter(covid_cat == "Gained or Maintained Polling Places" & confirmed_case_category == "Greater Than 1000")
+az_7 <- az_demo_covid_df %>%
+  filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval")
+az_8 <- az_demo_covid_df %>%
+  filter(covid_cat == "No COVID Data Reported")
 
-# of the 31 zip codes with complete COVID-19 data which lost polling places, 
-# 25/31 considered themselves to not be of hispanic or latino origin. 
-# Of those 3 zip codes which consider themselves to be 0.1% hispanic or latino, 
-# 2 have between 501-1000 COVID-19 cases and 1 has Greater than 1000 COVID-19 cases
-# 1 zip codes which considers itself to be 0.2% hispanic or latino, 
-# has between 11-100 COVID-19 cases
-# 1 zip codes which considers itself to be 0.3% hispanic or latino, 
-# has Greater than 1000 COVID-19 cases
-# 1 zip codes which considers itself to be 0.4% hispanic or latino, 
-# has between 181-500 COVID-19 cases
-
-az_gm <- az_demo_covid_df %>%
-  filter(covid_cat == "Gained or Maintained Polling Places") %>%
-    group_by(zipcode, confirmed_case_category,
-           zip_pct_hl, zip_pct_not_hl) %>%
-  summarise(.groups = "keep", 
-            con_case_cat = confirmed_case_category)
-
-ct_gm <- gmodels::CrossTable(az_gm$con_case_cat, az_gm$zip_pct_hl)
-
-kable(ct_gm, "latex", booktabs = T) %>%
-kableExtra::kable_styling(latex_options = "striped")
-
-# az_demo_covid_df$covid_cat
-
-
+# done.
 ```
 
 ### Arizona
 
-Out of the 
+* Lost Polling Locations
+  + 11-100 COVID-19 cases
+      - An average of `r round_half_up(mean(az_l3$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_l3$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_l3$zip_pct_not_hl),0)`% (median =
+ `r round_half_up(median(az_l3$zip_pct_not_hl),0)`%) of people did not consider 
+ themselves Hispanic or Latino.
+ 
+ Of the `r nrow(az_l4)` zip codes which lost polling places and had between 
+101-500 COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_l4$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_l4$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_l4$zip_pct_not_hl),0)`% (median of 
+ `r round_half_up(median(az_l4$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+  Of the `r nrow(az_l5)` zip codes which lost polling places and had between 
+501-1000 COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_l5$zip_pct_hl),0)`% 
+(median =`r round_half_up(median(az_l5$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_l5$zip_pct_not_hl),0)`% (median =
+ `r round_half_up(median(az_l5$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+   Of the `r nrow(az_l6)` zip codes which lost polling places and had more than
+1000 COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_l6$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_l6$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_l6$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_l6$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+ There were no zip codes which had lost polling places and reported 0 cases or 
+ between 1-10 cases of COVID-19 as of reporting.
+ 
+  Of the `r nrow(az_gm2)` zip codes which lost polling places and had between 1-10 
+COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_gm2$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_gm2$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_gm2$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_gm2$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+ Of the `r nrow(az_gm3)` zip codes which lost polling places and had between 11-100 
+COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_gm3$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_gm3$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_gm3$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_gm3$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+ Of the `r nrow(az_gm4)` zip codes which lost polling places and had between 
+101-500 COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_gm4$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_gm4$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_gm4$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_gm4$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+  Of the `r nrow(az_gm5)` zip codes which lost polling places and had between 
+501-1000 COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_gm5$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_gm5$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_gm5$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_gm5$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+   Of the `r nrow(az_gm6)` zip codes which lost polling places and had more than
+1000 COVID-19 cases as of reporting, an average of
+`r round_half_up(mean(az_gm6$zip_pct_hl),0)`% 
+(median = `r round_half_up(median(az_gm6$zip_pct_hl),0)`%) 
+considered themselves Hispanic or Latino as of the 2014-2018 American Community 
+Survey and an average of 
+ `r round_half_up(mean(az_gm6$zip_pct_not_hl),0)`% (median = 
+ `r round_half_up(median(az_gm6$zip_pct_not_hl),0)`%) of people did not who 
+ consider themselves Hispanic or Latino.
+ 
+There were no zip codes which gained or maintained polling places and reported 
+0 cases of COVID-19 as of reporting.
 
 ### South Carolina
 
+## References {-} 
+```
+```
