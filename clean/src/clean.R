@@ -192,7 +192,7 @@ sc_zips_freq_2020 <- as.data.frame(table(sc_2020_df$zipcode)) %>%
   filter(zipcode != "SC") %>%
   verify(ncol(.) == 4 & nrow(.) == 378)
 
-# which zipcodes saw an increase, decrease, or maitenence in polling places?
+# which zip codes saw an increase, decrease, or maintenance in polling places?
 n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
@@ -203,7 +203,7 @@ n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
   verify(ncol(.) == 5 & nrow(.) == 381)
 
-# add in census race data and link to each state/year dataset grouped by zip
+# add in census race data and link to each state/year data set grouped by zip
 az_demo <- read_rds(inputs$census_imp) %>%
   select(geoid, variable, estimate) %>%
   filter(geoid %in% n_places_az$zipcode) %>%
