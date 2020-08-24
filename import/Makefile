@@ -12,6 +12,7 @@ HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')
 import_data = \
 				$(HERE)/clean/input/VIPdata_imported.rds \
 				$(HERE)/clean/input/covid_az_imported.rds \
+				$(HERE)/clean/input/covid_sc_imported.rds \
 				$(HERE)/clean/input/census_imported.rds
 
 				
@@ -29,7 +30,8 @@ $(import_data): \
 				$(HERE)/import/input/vip_az_maricopa_2020primary/polling_location.txt \
 				$(HERE)/import/input/vip_sc_2016primary/polling_location.txt \
 				$(HERE)/import/input/vip_sc_2020primary/polling_location.txt \
-				$(HERE)/import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv
+				$(HERE)/import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv \
+				$(HERE)/import/input/covid/TableOption2.pdf
 			Rscript --vanilla $<
 			
 # done.

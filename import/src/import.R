@@ -6,10 +6,13 @@
 # ============================================
 # HRW_pollingplaces/import/src/import.R
 #
-pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus")
+pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus", "textreadr")
 
-# AZ covid-19 data by zip obtained on 8/19/20
+# AZ covid-19 data by zip obtained here
 # https://azdhs.gov/preparedness/epidemiology-disease-control/infectious-disease-epidemiology/covid-19/dashboards/index.php
+
+# SC covid-19 data by zip obtained here
+# https://www.scdhec.gov/infectious-diseases/viruses/coronavirus-disease-2019-covid-19/sc-cases-county-zip-code-covid-19
 
 inputs <- list(
   az_2016 = here::here("import/input/vip_az_2016primary/polling_location.txt"),
@@ -17,14 +20,14 @@ inputs <- list(
   az_2020_maricopa = here::here("import/input/vip_az_maricopa_2020primary/polling_location.txt"),
   sc_2016 = here::here("import/input/vip_sc_2016primary/polling_location.txt"),
   sc_2020 = here::here("import/input/vip_sc_2020primary/polling_location.txt"),
-  az_covid_zip = here::here("import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv"))
+  az_covid_zip = here::here("import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv"),
+  sc_covid_zip = here::here("import/input/covid/TableOption2.pdf"))
 
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
   covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
   census_imp = here::here("clean/input/census_imported.rds"),
-  geo_df = here::here("write/input/census_geometry_imported.rds")
-  )
+  covid_sc_imp = here::here("clean/input/covid_sc_imported.rds"))
 
 # import VIP data
 ## creates a list of VIP files as connections
@@ -69,6 +72,13 @@ az_covid_data <- read_csv(inputs$az_covid_zip, col_names = TRUE) %>%
   mutate_at(c("confirmed_case_category","confirmed_case_count"), as.factor) %>%
   verify(ncol(.) == 3 & nrow(.) == 410)
 
+expected_cols2 <- c("postcode","confirmed_case_category","confirmed_case_count")
+
+sc_covid_data <- read_pdf(inputs$sc_covid_zip, skip = 1,
+                          trim = TRUE, remove.empty = TRUE) %>%
+  clean_names() %>%
+  select(text)
+
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
 
@@ -90,5 +100,8 @@ demo_1418 <- get_acs(geography = "zcta",
 
 az_covid_data <- az_covid_data %>%
   saveRDS(outputs$covid_az_imp)
+
+sc_covid_data <- sc_covid_data %>%
+  saveRDS(outputs$covid_sc_imp)
 
 # done.
