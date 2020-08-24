@@ -10,9 +10,10 @@ pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus", "textreadr")
 
 # AZ covid-19 data by zip obtained here
 # https://azdhs.gov/preparedness/epidemiology-disease-control/infectious-disease-epidemiology/covid-19/dashboards/index.php
-
 # SC covid-19 data by zip obtained here
 # https://www.scdhec.gov/infectious-diseases/viruses/coronavirus-disease-2019-covid-19/sc-cases-county-zip-code-covid-19
+# AZ and SC zipcode and county data obtained here
+# https://www.unitedstateszipcodes.org/az/#zips-list and https://www.unitedstateszipcodes.org/sc/#zips-list
 
 inputs <- list(
   az_2016 = here::here("import/input/vip_az_2016primary/polling_location.txt"),
@@ -21,13 +22,17 @@ inputs <- list(
   sc_2016 = here::here("import/input/vip_sc_2016primary/polling_location.txt"),
   sc_2020 = here::here("import/input/vip_sc_2020primary/polling_location.txt"),
   az_covid_zip = here::here("import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv"),
-  sc_covid_zip = here::here("import/input/covid/TableOption2.pdf"))
+  sc_covid_zip = here::here("import/input/covid/TableOption2.pdf"),
+  zip_counties = here::here("import/input/zips/zip_code_database.csv")
+  )
 
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
   covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
   census_imp = here::here("clean/input/census_imported.rds"),
-  covid_sc_imp = here::here("clean/input/covid_sc_imported.rds"))
+  covid_sc_imp = here::here("clean/input/covid_sc_imported.rds"),
+  counnzip_azsc_imp = here::here("clean/input/counzip_azsc_imported.rds")
+  )
 
 # import VIP data
 ## creates a list of VIP files as connections
@@ -39,7 +44,7 @@ names(inputslist) <- c("az_2016", "az_2020", "az_2020_maricopa",
 
 stopifnot(length(inputslist) == 5)
 
-# verifications won't break with new data yet
+# verification won't break with new data yet
 
 inlist <- lapply(inputslist, function(x) {
 
@@ -58,7 +63,7 @@ inlist <- lapply(inputslist, function(x) {
 stopifnot(length(inlist) == 5)
 saveRDS(inlist, outputs$VIPinlist_imp)
 
-# verifications will break with new data
+# verification will break with new data
 
 # import covid-19 related data
 # nrow will break with new data
@@ -77,7 +82,8 @@ expected_cols2 <- c("postcode","confirmed_case_category","confirmed_case_count")
 sc_covid_data <- read_pdf(inputs$sc_covid_zip, skip = 1,
                           trim = TRUE, remove.empty = TRUE) %>%
   clean_names() %>%
-  select(text)
+  select(text) %>%
+  saveRDS(outputs$covid_sc_imp)
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
@@ -86,10 +92,29 @@ jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c")
 
 expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
+# change the table B0002
 demo_1418 <- get_acs(geography = "zcta",
-                     variables = c(total = "B03003_001",
-                                   not_h_l = "B03003_002",
-                                   h_l = "B03003_003"),
+                     variables = c(total = "B03002_001",
+                                   total_nhl = "B03002_002",
+                                   nhl_white = "B03002_003",
+                                   nhl_black = "B03002_004",
+                                   nhl_ai_an = "B03002_005",
+                                   nhl_asian = "B03002_006",
+                                   nhl_nhi_pi = "B03002_007",
+                                   nhl_sor = "B03002_008",
+                                   nhl_tom = "B03002_009",
+                                   nhl_tom_incl = "B03002_010",
+                                   nhl_tom_excl = "B03002_011",
+                                   total_hl = "B03002_012",
+                                   hl_white = "B03002_013",
+                                   hl_black = "B03002_014",
+                                   hl_ai_an = "B03002_015",
+                                   hl_asian = "B03002_016",
+                                   hl_nhi_pi = "B03002_017",
+                                   hl_sor = "B03002_018",
+                                   hl_tom = "B03002_019",
+                                   hl_tom_incl = "B03002_020",
+                                   hl_tom_excl = "B03002_021"),
                      year = 2018,
                      geometry = FALSE,
                      key = jrkey) %>%
@@ -101,7 +126,17 @@ demo_1418 <- get_acs(geography = "zcta",
 az_covid_data <- az_covid_data %>%
   saveRDS(outputs$covid_az_imp)
 
-sc_covid_data <- sc_covid_data %>%
-  saveRDS(outputs$covid_sc_imp)
+# zips in Richland and Maricopa
+zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
+               col_types = cols_only(zip = 'n',
+                                     state = 'c',
+                                     county = 'c')) %>%
+  clean_names() %>%
+  filter(state == "AZ" | state == "SC") %>%
+  filter(county == "Richland County" | county == "Maricopa County") %>%
+  filter(is.na(county) != TRUE) %>%
+  verify(ncol(.) == 3 & nrow(.) == 249) %>%
+  verify(min(zip) == 29002 & max(zip) == 85396) %>%
+  saveRDS(outputs$counnzip_azsc_imp)
 
 # done.
