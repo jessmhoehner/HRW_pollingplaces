@@ -87,7 +87,8 @@ sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "South Carolina") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "South Carolina") %>%
-  verify(ncol(.) == 3 & nrow(.) == 7203)
+  verify(ncol(.) == 3 & nrow(.) == 7249) %>%
+  saveRDS(outputs$covid_sc_imp)
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS

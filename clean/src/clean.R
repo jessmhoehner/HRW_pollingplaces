@@ -15,7 +15,6 @@ inputs <- list(
   sc_covid_data = here::here("clean/input/covid_sc_imported.rds"),
   az_sc_counzips = here::here("/clean/input/counzip_azsc_imported.rds")
 )
-
 outputs <- list(
   az_2016_clean = here::here("write/input/az_2016_clean.rds"),
   az_2016_freq_clean = here::here("write/input/az_2016_freq_clean.rds"),
@@ -29,7 +28,7 @@ outputs <- list(
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
   sc_demo_clean = here::here("write/input/sc_demo_clean.rds"),
-  sc_covid_data_clean = here::here("clean/input/covid_sc_clean.rds")
+  sc_covid_data_clean = here::here("write/input/covid_sc_clean.rds")
 )
 
 # VIP data
@@ -217,6 +216,7 @@ sc_cos <- read_rds(inputs$az_sc_counzips) %>%
   filter(state == "SC") %>%
   mutate(zip = as.character(zip)) %>%
   filter(zip %in% n_places_sc$zipcode) %>%
+  mutate(county = gsub(' [A-z ]*', '' , county)) %>%
   verify(ncol(.) == 3 & nrow(.) == 380)
 
 # add in census race data and link to each state/year data set grouped by zip
@@ -323,60 +323,24 @@ az_covid_demo_df <- read_rds(inputs$az_covid_data) %>%
 az_demo <- az_demo %>%
   saveRDS(outputs$az_demo_clean)
 
-# south carolina covid data
+# south carolina covid data, by county, join with zip code and demo data
 
 sc_covid_demo_df <- read_rds(inputs$sc_covid_data) %>%
-  filter(text != "COVID-19 Confirmed Cases, by Zip Code") %>%
-  filter(text != "Zip        Rep. Cases           Est. Cases Total Cases") %>%
-  separate(text, into = c("zipcode", "reported_cases", "est_cases_total_cases"),
-           sep = "      ",
-           extra = "merge",
-           fill = "left") %>%
-  separate(est_cases_total_cases, into = c("est_cases", "total_cases"),
-           sep = "
-           ",
-           extra = "merge",
-           fill = "left") %>%
-  mutate(est_cases = str_extract(total_cases, regex("\\d{1,}\\d{1,}\\d{1,}")),
-         total_cases = gsub(".*        ", "", total_cases),
-         total_cases = gsub(".*      ", "", total_cases)) %>%
-  filter(est_cases != c("29170", "29169",
-                        "29369"))
+  select(c(county, cases)) %>%
+  group_by(county, cases) %>%
+  summarize_if(is.numeric, list(count = sum)) %>%
+  summarize(cases = sum(cases)) %>%
+  filter(county != "Unknown") %>%
+  full_join(sc_cos, by = c("county" = "county")) %>%
+  select(-c(state)) %>%
+  full_join(sc_demo, by = c("zip" = "geoid")) %>%
+  rename(county = county.y,
+         zipcode = zip) %>%
+  select(-c(county.x, state)) %>%
+  verify(ncol(.) == 26 & nrow(.) == 380) %>%
+  saveRDS(outputs$sc_covid_data_clean)
 
-%>%
-  separate(total_cases, into = c("total_cases2", "total_cases"),
-           extra = "merge",
-           fill = "left") %>%
-  mutate(estimated_cases = case_when(
-    est_cases == 1 & is.na(est_cases2) == FALSE ~ est_cases2,
-    est_cases == 2 & is.na(est_cases2) == FALSE  ~ est_cases2,
-    est_cases == 3 & is.na(est_cases2) == FALSE  ~ est_cases2,
-    est_cases == 4 & is.na(est_cases2) == FALSE ~ est_cases2,
-    est_cases == 5 & is.na(est_cases2) == FALSE ~ est_cases2,
-    est_cases == 1 & is.na(est_cases2) == TRUE ~ est_cases,
-    est_cases == 2 & is.na(est_cases2) == TRUE  ~ est_cases,
-    est_cases == 3 & is.na(est_cases2) == TRUE  ~ est_cases,
-    est_cases == 4 & is.na(est_cases2) == TRUE ~ est_cases,
-    est_cases == 5 & is.na(est_cases2) == TRUE ~ est_cases))
-
-
-  full_join(sc_demo, by = c("zipcode" = "geoid")) %>%
-
-%>%
-  filter(text != "COVID-19 Confirmed Cases, by Zip Code") %>%
-  filter(text != "Zip        Rep. Cases           Est. Cases Total Cases") %>%
-  separate(text, into = c("zipcode", "reported_cases", "est_cases", "total_cases"),
-           extra = "merge",
-           fill = "left") %>%
-  separate(total_cases, into = c("est_cases_2", "total_cases"),
-           extra = "merge",
-           fill = "left") %>%
-
-  mutate_at(c("reported_cases", "est_cases", "total_cases"), as.numeric) %>%
-  filter(is.na(reported_cases) == FALSE) %>%
-  verify((sum(sc_covid_data$reported_cases) + sum(sc_covid_data$est_cases)) == sum(sc_covid_data$total_cases))
-
-  sc_demo <- sc_demo %>%
+sc_demo <- sc_demo %>%
   saveRDS(outputs$sc_demo_clean)
 
 # done.
