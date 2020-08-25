@@ -33,7 +33,8 @@ $(clean_data): \
 				src/clean.R \
 				$(HERE)/clean/input/VIPdata_imported.rds \
 				$(HERE)/clean/input/census_imported.rds \
-				$(HERE)/clean/input/covid_az_imported.rds
+				$(HERE)/clean/input/covid_az_imported.rds \
+				$(HERE)/clean/input/counzip_azsc_imported.rds
 			Rscript --vanilla $<
 			
 # done.

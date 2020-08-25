@@ -11,7 +11,9 @@ pacman::p_load("tidyverse", "assertr", "janitor")
 inputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
   census_imp = here::here("clean/input/census_imported.rds"),
-  az_covid_data = here::here("clean/input/covid_az_imported.rds")
+  az_covid_data = here::here("clean/input/covid_az_imported.rds"),
+  sc_covid_data = here::here("clean/input/covid_sc_imported.rds"),
+  az_sc_counzips = here::here("/clean/input/counzip_azsc_imported.rds")
 )
 
 outputs <- list(
@@ -26,7 +28,8 @@ outputs <- list(
   sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
-  sc_demo_clean = here::here("write/input/sc_demo_clean.rds")
+  sc_demo_clean = here::here("write/input/sc_demo_clean.rds"),
+  sc_covid_data_clean = here::here("clean/input/covid_sc_clean.rds")
 )
 
 # VIP data
@@ -203,29 +206,67 @@ n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
   verify(ncol(.) == 5 & nrow(.) == 381)
 
+# add in county information
+az_cos <- read_rds(inputs$az_sc_counzips) %>%
+  filter(state == "AZ") %>%
+  mutate(zip = as.character(zip)) %>%
+  filter(zip %in% n_places_az$zipcode) %>%
+  verify(ncol(.) == 3 & nrow(.) == 285)
+
+sc_cos <- read_rds(inputs$az_sc_counzips) %>%
+  filter(state == "SC") %>%
+  mutate(zip = as.character(zip)) %>%
+  filter(zip %in% n_places_sc$zipcode) %>%
+  verify(ncol(.) == 3 & nrow(.) == 380)
+
 # add in census race data and link to each state/year data set grouped by zip
 az_demo <- read_rds(inputs$census_imp) %>%
   select(geoid, variable, estimate) %>%
   filter(geoid %in% n_places_az$zipcode) %>%
   spread(key = "variable", value = "estimate") %>%
-  mutate(zip_pct_hl = as.numeric((h_l/total)*100),
-         zip_pct_not_hl = as.numeric((not_h_l/total)*100)) %>%
+  verify(sum(total) == sum(total_nhl) + sum(total_hl)) %>%
+  mutate(nhl_ao = as.numeric(nhl_sor + nhl_tom),
+         pct_hl = as.numeric((total_hl/total)*100),
+         pct_nhl = as.numeric((total_nhl/total)*100),
+         pct_nhl_white = as.numeric((nhl_white/total)*100),
+         pct_nhl_black = as.numeric((nhl_black/total)*100),
+         pct_nhl_ai_an = as.numeric((nhl_ai_an/total)*100),
+         pct_nhl_asian = as.numeric((nhl_asian/total)*100),
+         pct_nhl_nhi_pi = as.numeric((nhl_nhi_pi/total)*100),
+         pct_nhl_ao = as.numeric((nhl_ao/total)*100)) %>%
   group_by(geoid) %>%
+  verify(sum(nhl_ao) == sum(nhl_sor + nhl_tom)) %>%
+  verify(is.na(pct_nhl_ao) == FALSE) %>%
   full_join(n_places_az, by = c("geoid" = "zipcode")) %>%
-  verify(ncol(.) == 10 & nrow(.) == 286) %>%
-  verify(is.na(zip_pct_hl) == FALSE)
+  full_join(az_cos, by = c("geoid" = "zip")) %>%
+  mutate(county = if_else(is.na(county) == TRUE, "Missing County", county)) %>%
+  filter(county != "Missing County") %>%
+  mutate(county = if_else(county == "McKinley County", "Apache County", county),
+         county = if_else(county == "San Juan County", "Coconino County", county)) %>%
+  verify(ncol(.) == 26 & nrow(.) == 285)
 
 sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
   select(geoid, variable, estimate) %>%
   filter(geoid %in% n_places_sc$zipcode) %>%
   spread(key = "variable", value = "estimate") %>%
-  mutate(zip_pct_hl = as.numeric((h_l/total)*100),
-         zip_pct_not_hl = as.numeric((not_h_l/total)*100)) %>%
+  verify(sum(total) == sum(total_nhl) + sum(total_hl)) %>%
+  mutate(nhl_ao = as.numeric(nhl_sor + nhl_tom),
+         pct_hl = as.numeric((total_hl/total)*100),
+         pct_nhl = as.numeric((total_nhl/total)*100),
+         pct_nhl_white = as.numeric((nhl_white/total)*100),
+         pct_nhl_black = as.numeric((nhl_black/total)*100),
+         pct_nhl_ai_an = as.numeric((nhl_ai_an/total)*100),
+         pct_nhl_asian = as.numeric((nhl_asian/total)*100),
+         pct_nhl_nhi_pi = as.numeric((nhl_nhi_pi/total)*100),
+         pct_nhl_ao = as.numeric((nhl_ao/total)*100)) %>%
   group_by(geoid) %>%
+  verify(sum(nhl_ao) == sum(nhl_sor + nhl_tom)) %>%
+  verify(is.na(pct_nhl_ao) == FALSE) %>%
   full_join(n_places_sc, by = c("geoid" = "zipcode")) %>%
-  verify(ncol(.) == 10 & nrow(.) == 381) %>%
-  verify(is.na(zip_pct_hl) == FALSE) %>%
-  saveRDS(outputs$sc_demo_clean)
+  full_join(sc_cos, by = c("geoid" = "zip")) %>%
+  mutate(county = if_else(is.na(county) == TRUE, "Missing County", county)) %>%
+  filter(county != "Missing County") %>%
+  verify(ncol(.) == 26 & nrow(.) == 380)
 
 # export all objects for write task here so as not to have null objects for
 # demography data
@@ -275,12 +316,67 @@ az_covid_demo_df <- read_rds(inputs$az_covid_data) %>%
       is.na(confirmed_case_count) == TRUE & is.na(polling_cat) == FALSE
       ~ "No COVID Data Reported")) %>%
   filter(covid_cat != "Missing Polling Data") %>%
-  verify(ncol(.) == 14 & nrow(.) == 286) %>%
+  verify(ncol(.) == 30 & nrow(.) == 285) %>%
   verify(covid_cat != "Missing Polling Data") %>%
   saveRDS(outputs$az_demo_covid_clean)
 
-
 az_demo <- az_demo %>%
   saveRDS(outputs$az_demo_clean)
+
+# south carolina covid data
+
+sc_covid_demo_df <- read_rds(inputs$sc_covid_data) %>%
+  filter(text != "COVID-19 Confirmed Cases, by Zip Code") %>%
+  filter(text != "Zip        Rep. Cases           Est. Cases Total Cases") %>%
+  separate(text, into = c("zipcode", "reported_cases", "est_cases_total_cases"),
+           sep = "      ",
+           extra = "merge",
+           fill = "left") %>%
+  separate(est_cases_total_cases, into = c("est_cases", "total_cases"),
+           sep = "
+           ",
+           extra = "merge",
+           fill = "left") %>%
+  mutate(est_cases = str_extract(total_cases, regex("\\d{1,}\\d{1,}\\d{1,}")),
+         total_cases = gsub(".*        ", "", total_cases),
+         total_cases = gsub(".*      ", "", total_cases)) %>%
+  filter(est_cases != c("29170", "29169",
+                        "29369"))
+
+%>%
+  separate(total_cases, into = c("total_cases2", "total_cases"),
+           extra = "merge",
+           fill = "left") %>%
+  mutate(estimated_cases = case_when(
+    est_cases == 1 & is.na(est_cases2) == FALSE ~ est_cases2,
+    est_cases == 2 & is.na(est_cases2) == FALSE  ~ est_cases2,
+    est_cases == 3 & is.na(est_cases2) == FALSE  ~ est_cases2,
+    est_cases == 4 & is.na(est_cases2) == FALSE ~ est_cases2,
+    est_cases == 5 & is.na(est_cases2) == FALSE ~ est_cases2,
+    est_cases == 1 & is.na(est_cases2) == TRUE ~ est_cases,
+    est_cases == 2 & is.na(est_cases2) == TRUE  ~ est_cases,
+    est_cases == 3 & is.na(est_cases2) == TRUE  ~ est_cases,
+    est_cases == 4 & is.na(est_cases2) == TRUE ~ est_cases,
+    est_cases == 5 & is.na(est_cases2) == TRUE ~ est_cases))
+
+
+  full_join(sc_demo, by = c("zipcode" = "geoid")) %>%
+
+%>%
+  filter(text != "COVID-19 Confirmed Cases, by Zip Code") %>%
+  filter(text != "Zip        Rep. Cases           Est. Cases Total Cases") %>%
+  separate(text, into = c("zipcode", "reported_cases", "est_cases", "total_cases"),
+           extra = "merge",
+           fill = "left") %>%
+  separate(total_cases, into = c("est_cases_2", "total_cases"),
+           extra = "merge",
+           fill = "left") %>%
+
+  mutate_at(c("reported_cases", "est_cases", "total_cases"), as.numeric) %>%
+  filter(is.na(reported_cases) == FALSE) %>%
+  verify((sum(sc_covid_data$reported_cases) + sum(sc_covid_data$est_cases)) == sum(sc_covid_data$total_cases))
+
+  sc_demo <- sc_demo %>%
+  saveRDS(outputs$sc_demo_clean)
 
 # done.

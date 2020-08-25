@@ -103,7 +103,6 @@ demo_1418 <- get_acs(geography = "zcta",
                                    nhl_nhi_pi = "B03002_007",
                                    nhl_sor = "B03002_008",
                                    nhl_tom = "B03002_009",
-                                   nhl_tom_incl = "B03002_010",
                                    total_hl = "B03002_012"),
                      year = 2018,
                      geometry = FALSE,
@@ -123,10 +122,9 @@ zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
                                      county = 'c')) %>%
   clean_names() %>%
   filter(state == "AZ" | state == "SC") %>%
-  filter(county == "Richland County" | county == "Maricopa County") %>%
   filter(is.na(county) != TRUE) %>%
-  verify(ncol(.) == 3 & nrow(.) == 249) %>%
-  verify(min(zip) == 29002 & max(zip) == 85396) %>%
+  verify(ncol(.) == 3 & nrow(.) == 1108) %>%
+  verify(min(zip) == 29001 & max(zip) == 86556) %>%
   saveRDS(outputs$counnzip_azsc_imp)
 
 # done.
