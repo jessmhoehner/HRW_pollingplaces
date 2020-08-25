@@ -28,7 +28,7 @@ outputs <- list(
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
   sc_demo_clean = here::here("write/input/sc_demo_clean.rds"),
-  sc_covid_data_clean = here::here("write/input/covid_sc_clean.rds")
+  sc_demo_covid_clean = here::here("write/input/sc_demo_covid_clean.rds")
 )
 
 # VIP data
@@ -338,7 +338,7 @@ sc_covid_demo_df <- read_rds(inputs$sc_covid_data) %>%
          zipcode = zip) %>%
   select(-c(county.x, state)) %>%
   verify(ncol(.) == 26 & nrow(.) == 380) %>%
-  saveRDS(outputs$sc_covid_data_clean)
+  saveRDS(outputs$sc_demo_covid_clean)
 
 sc_demo <- sc_demo %>%
   saveRDS(outputs$sc_demo_clean)
