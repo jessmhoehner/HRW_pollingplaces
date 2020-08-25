@@ -1,0 +1,384 @@
+---
+title: 'Polling locations in Arizona: 2016 vs 2020'
+author: "Jessica Randall"
+date: "Last compiled `r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+citation_package: biblatex
+biblio-style: apa
+bibliography: packages.bib  
+nocite: '@*'
+---
+
+```{r setup, message = FALSE, include= FALSE, echo=FALSE}
+
+pacman::p_load(tidyverse, knitr, janitor, tinytex)
+
+files <- list(
+  az_2016_clean = here::here("write/input/az_2016_clean.rds"),
+  az_2016_freq_clean = here::here("write/input/az_2016_freq_clean.rds"),
+  az_2020_clean = here::here("write/input/az_2020_clean.rds"),
+  az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
+  az_demo_clean = here::here("write/input/az_demo_clean.rds"),
+  az_demo_covid_clean = here::here("write/input/az_demo_covid_clean.rds"),
+  az_covid_data = here::here("write/input/covid_az_imported.rds")
+)
+
+```
+
+## Numbers of polling locations open in 2016 and 2020 {-} 
+
+```{r nlocationsa, message=FALSE, echo=FALSE}
+
+az_2016_df <- read_rds(files$az_2016_clean)
+az_2020_df <- read_rds(files$az_2020_clean)
+
+```
+
+### Statewide
+Overall, Arizona had `r nrow(az_2016_df)` open polling locations statewide at the 2016
+primary Presidential election (PPE). 
+During the 2020 PPE there were `r nrow(az_2020_df)` open polling locations. 
+This is a difference of `r sum((nrow(az_2020_df) - nrow(az_2016_df)))` more or a 
+`r round_half_up((sum((nrow(az_2020_df) - nrow(az_2016_df)))/as.numeric(nrow(az_2016_df))*100),1)`% increase in polling locations.
+
+## Changes in numbers of polling locations between 2016 and 2020 {-} 
+
+```{r nlocationsb, message=FALSE, echo=FALSE}
+# AZ
+az_zips_freq_2016 <- read_rds(files$az_2016_freq_clean)
+az_zips_freq_2020 <- read_rds(files$az_2020_freq_clean)
+
+n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
+  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
+  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
+         delta_cat = as.factor(if_else(delta_n_places < 0, 
+                                       "Lost Polling Places", 
+                                       "Gained or Maintained Polling Places"))) %>%
+  arrange(delta_n_places) %>%
+  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
+
+# how many lost, and how many gained, maintained?
+az_table <- n_places_az %>%
+  group_by(delta_cat) %>%
+  summarise(.groups = "keep", 
+            count = n(),
+            percent_of_zips = ((count/nrow(n_places_az))*100))
+
+```
+
+### Statewide 
+
+  Between the 2016 and 2020 PPEs, `r az_table$count[1]` zip codes, or 
+  `r round_half_up(az_table$percent_of_zips[1],1)`% 
+  of zip codes in Arizona with open polling locations during the 2016 PPE gained 
+  or maintained the same number of polling locations in 2020 while `r az_table$count[2]` 
+  zip codes, or `r round_half_up(az_table$percent_of_zips[2],1)`%, lost polling 
+  locations in 2020.
+
+## Demographics {-} 
+
+```{r demographics, message=FALSE, echo=FALSE}
+
+az_demo <- read_rds(files$az_demo_clean)
+az_demo_lost <- az_demo %>%
+  filter(delta_cat == "Lost Polling Places")
+az_l_maricopa <- az_demo_lost %>%
+  filter(county == "Maricopa County")
+az_demo_gm <- az_demo %>%
+  filter(delta_cat == "Gained or Maintained Polling Places")
+az_l_maricopa <- az_demo_lost %>%
+  filter(county == "Maricopa County")
+az_gm_maricopa <- az_demo_gm %>%
+  filter(county == "Maricopa County")
+
+ncounties <- az_demo %>%
+  group_by(county) %>%
+  distinct(county) %>%
+  arrange(county)
+
+```
+ 
+### Statewide
+
+In those zip codes which lost polling locations (n = `r nrow(az_demo_lost)`), 
+an average of `r round_half_up(mean(az_demo_lost$pct_hl),0)`% (median = 
+`r round_half_up(median(az_demo_lost$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, an average of  `r round_half_up(mean(az_demo_lost$pct_nhl_black),0)`% 
+(median = `r round_half_up(median(az_demo_lost$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of `r round_half_up(mean(az_demo_lost$pct_nhl_ai_an),0)`% 
+(median = `r round_half_up(median(az_demo_lost$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_demo_lost$pct_nhl_asian),0)`% 
+(median = `r round_half_up(median(az_demo_lost$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of of people considered themselves Native 
+Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_demo_lost$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_demo_lost$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races.
+
+In those zip codes which gained or maintained polling locations (n = `r nrow(az_demo_gm)`), 
+an average of `r round_half_up(mean(az_demo_gm$pct_hl),0)`% (median = `r round_half_up(median(az_demo_gm$pct_hl),0)`%) 
+of people considered themselves Hispanic or Latino,an average of  `r round_half_up(mean(az_demo_gm$pct_nhl_black),0)`% (median = `r round_half_up(median(az_demo_gm$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of  `r round_half_up(mean(az_demo_gm$pct_nhl_ai_an),0)`% 
+(median = `r round_half_up(median(az_demo_gm$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_demo_gm$pct_nhl_asian),0)`% 
+(median = `r round_half_up(median(az_demo_gm$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered themselves Native Hawaiian 
+or Pacific Islander, and an average of `r round_half_up(mean(az_demo_gm$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_demo_gm$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races.
+
+### Maricopa County
+
+In those zip codes which lost polling locations within Maricopa County 
+(n = `r nrow(az_l_maricopa)`), 
+an average of `r round_half_up(mean(az_l_maricopa$pct_hl),0)`% (median = 
+`r round_half_up(median(az_l_maricopa$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, an average of  
+`r round_half_up(mean(az_l_maricopa$pct_nhl_black),0)`% (median = 
+`r round_half_up(median(az_l_maricopa$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of  
+`r round_half_up(mean(az_l_maricopa$pct_nhl_ai_an),0)`% (median = 
+`r round_half_up(median(az_l_maricopa$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of  
+`r round_half_up(mean(az_l_maricopa$pct_nhl_asian),0)`% (median = 
+`r round_half_up(median(az_l_maricopa$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered
+themselves Native Hawaiian or Pacific Islander, and an average of 
+`r round_half_up(mean(az_l_maricopa$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_l_maricopa$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races.
+
+In those zip codes which gained or maintained polling locations within 
+Maricopa County (n = `r nrow(az_gm_maricopa)`), an average of 
+`r round_half_up(mean(az_gm_maricopa$pct_hl),0)`% (median = 
+`r round_half_up(median(az_gm_maricopa$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, 
+an average of  `r round_half_up(mean(az_gm_maricopa$pct_nhl_black),0)`% (median = 
+`r round_half_up(median(az_gm_maricopa$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of  
+`r round_half_up(mean(az_gm_maricopa$pct_nhl_ai_an),0)`% (median = 
+`r round_half_up(median(az_gm_maricopa$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of  
+`r round_half_up(mean(az_gm_maricopa$pct_nhl_asian),0)`% (median = 
+`r round_half_up(median(az_gm_maricopa$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered
+themselves Native Hawaiian or Pacific Islander, and an average of 
+`r round_half_up(mean(az_gm_maricopa$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_gm_maricopa$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races.
+
+## Polling Location Changes, Demographics, and COVID-19 cases {-} 
+
+```{r pressure, echo=FALSE, message=FALSE}
+
+az_demo_covid_df <- read_rds(files$az_demo_covid_clean) %>%
+  mutate_at(vars(covid_cat, polling_cat), as.factor) %>%
+  select(zipcode, covid_cat, polling_cat, 
+         confirmed_case_count, pct_hl, pct_nhl, pct_nhl_white, 
+         pct_nhl_black, pct_nhl_ai_an, pct_nhl_asian, pct_nhl_nhi_pi,
+         pct_nhl_ao, county) %>%
+  mutate(confirmed_case_count = as.numeric(confirmed_case_count))
+
+az_dc_lost <- az_demo_covid_df %>%
+  filter(covid_cat == "Lost Polling Places")
+
+az_dc_gm <- az_demo_covid_df %>%
+  filter(covid_cat == "Gained or Maintained Polling Places")
+
+az_dc_s <- az_demo_covid_df %>%
+  filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval")
+
+az_dc_sgm <- az_demo_covid_df %>%
+  filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
+           polling_cat == "Gained or Maintained Polling Places")
+
+az_dc_sl  <- az_demo_covid_df %>%
+  filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
+           polling_cat == "Lost Polling Places")
+
+az_dc_nd <- az_demo_covid_df %>%
+  filter(covid_cat == "No COVID Data Reported")
+
+# maricopa county
+
+az_dc_ml <- az_demo_covid_df %>%
+  filter(county == "Maricopa County" & covid_cat == "Lost Polling Places")
+
+az_dc_mgm <- az_demo_covid_df %>%
+  filter(county == "Maricopa County" & 
+           covid_cat == "Gained or Maintained Polling Places")
+
+az_dc_ms <- az_demo_covid_df %>%
+  filter(county == "Maricopa County" & 
+           covid_cat == "COVID Data Suppressed Pending Tribal Approval")
+
+az_dc_msg <- az_demo_covid_df %>%
+  filter(county == "Maricopa County" &
+           covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
+           polling_cat == "Gained or Maintained Polling Places")
+
+az_dc_msl  <- az_demo_covid_df %>%
+  filter(county == "Maricopa County" &
+           covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
+           polling_cat == "Lost Polling Places")
+
+az_dc_mnd <- az_demo_covid_df %>%
+  filter(county == "Maricopa County" & 
+           covid_cat == "No COVID Data Reported")
+
+# done.
+```
+
+### Statewide
+
+In those zip codes with complete COVID-19 data by zip code which lost polling 
+locations in the 2020 PPE (n = `r nrow(az_dc_lost)`), an average of 
+`r round_half_up(mean(az_dc_lost$pct_hl),0)`% (median = 
+`r round_half_up(median(az_dc_lost$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, an average of  
+`r round_half_up(mean(az_dc_lost$pct_nhl_black),0)`% (median = 
+`r round_half_up(median(az_dc_lost$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of  
+`r round_half_up(mean(az_dc_lost$pct_nhl_ai_an),0)`% (median = 
+`r round_half_up(median(az_dc_lost$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of  
+`r round_half_up(mean(az_dc_lost$pct_nhl_asian),0)`% (median = 
+`r round_half_up(median(az_dc_lost$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered themselves Native Hawaiian 
+or Pacific Islander, and an average of `r round_half_up(mean(az_dc_lost$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_dc_lost$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races. These zip codes had between
+`r min(az_dc_lost$confirmed_case_count)` - `r max(az_dc_lost$confirmed_case_count)`
+cases of COVID-19 as of `r format(Sys.time(), '%d %B, %Y')`.
+
+In those zip codes with complete COVID-19 data by zip code which gained or 
+maintained polling locations in the 2020 PPE (n = `r nrow(az_dc_gm)`), an average of 
+`r round_half_up(mean(az_dc_gm$pct_hl),0)`% (median = 
+`r round_half_up(median(az_dc_gm$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_gm$pct_nhl_black),0)`% 
+(median = `r round_half_up(median(az_dc_gm$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of  `r round_half_up(mean(az_dc_gm$pct_nhl_ai_an),0)`% 
+(median = `r round_half_up(median(az_dc_gm$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_dc_gm$pct_nhl_asian),0)`% 
+(median = `r round_half_up(median(az_dc_gm$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered themselves Native Hawaiian 
+or Pacific Islander, and an average of `r round_half_up(mean(az_dc_gm$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_dc_gm$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races. These zip codes had between 
+`r min(az_dc_gm$confirmed_case_count)` - `r max(az_dc_gm$confirmed_case_count)`
+cases of COVID-19 as of `r format(Sys.time(), '%d %B, %Y')`.
+
+In those zip codes with COVID-19 data pending tribal approval which lost polling 
+locations in the 2020 PPE (n = `r nrow(az_dc_sl)`), an average of 
+`r round_half_up(mean(az_dc_sl$pct_hl),0)`% (median = 
+`r round_half_up(median(az_dc_sl$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, fewer than 1% of people considered themselves 
+Black or African-American, an average of 
+`r round_half_up(mean(az_dc_sl$pct_nhl_ai_an),0)`% (median = 
+`r round_half_up(median(az_dc_sl$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, fewer than 1% of people considered
+themselves Asian or Native Hawaiian or Pacific Islander, and an average of 
+`r round_half_up(mean(az_dc_sl$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_dc_sl$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races. These zip codes had an 
+average of `r mean(az_dc_sl$confirmed_case_count)` case of COVID-19 as of 
+`r format(Sys.time(), '%d %B, %Y')`.
+
+In those zip codes with COVID-19 data pending tribal approval which gained or 
+maintained polling locations in the 2020 PPE (n = `r nrow(az_dc_sgm)`), an average of 
+`r round_half_up(mean(az_dc_sgm$pct_hl),0)`% (median = 
+`r round_half_up(median(az_dc_sgm$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, fewer than 1% of people considered
+themselves Black or African-American, an average of  
+`r round_half_up(mean(az_dc_sgm$pct_nhl_ai_an),0)`% (median = 
+`r round_half_up(median(az_dc_sgm$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, fewer than 1% of people considered
+themselves Asian, Native Hawaiian or Pacific Islander, some other race
+or two or three or more races. These zip codes had an 
+average of `r mean(az_dc_sgm$confirmed_case_count)` case of COVID-19 as of 
+`r format(Sys.time(), '%d %B, %Y')`.
+
+All zip codes without complete COVID-19 data as of  `r format(Sys.time(), '%d %B, %Y')` 
+(n = `r nrow(az_dc_nd)`), gained or maintained polling locations in the 2020 PPE. 
+An average of  `r round_half_up(mean(az_dc_nd$pct_hl),0)`% (median = 
+`r round_half_up(median(az_dc_nd$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, an average of  `r round_half_up(mean(az_dc_nd$pct_nhl_black),0)`% 
+(median = `r round_half_up(median(az_dc_nd$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of `r round_half_up(mean(az_dc_nd$pct_nhl_ai_an),0)`% 
+(median = `r round_half_up(median(az_dc_nd$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_dc_nd$pct_nhl_asian),0)`% 
+(median = `r round_half_up(median(az_dc_nd$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered themselves Native Hawaiian 
+or Pacific Islander, and an average of `r round_half_up(mean(az_dc_nd$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_dc_nd$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races.
+
+### Maricopa County
+
+In those zip codes within Maricopa County with complete COVID-19 data by zip code 
+which lost polling locations in the 2020 PPE (n = `r nrow(az_dc_ml)`), an average 
+of `r round_half_up(mean(az_dc_ml$pct_hl),0)`% (median = `r round_half_up(median(az_dc_ml$pct_hl),0)`%) 
+of people considered themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_ml$pct_nhl_black),0)`% 
+(median = `r round_half_up(median(az_dc_ml$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of `r round_half_up(mean(az_dc_ml$pct_nhl_ai_an),0)`% 
+(median = `r round_half_up(median(az_dc_ml$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_dc_ml$pct_nhl_asian),0)`% 
+(median = `r round_half_up(median(az_dc_ml$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered themselves Native Hawaiian 
+or Pacific Islander, and an average of `r round_half_up(mean(az_dc_ml$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_dc_ml$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races. These zip codes had 
+between `r min(az_dc_ml$confirmed_case_count)` - `r max(az_dc_ml$confirmed_case_count)`
+cases of COVID-19 as of `r format(Sys.time(), '%d %B, %Y')`.
+
+In those zip codes within Maricopa County with complete COVID-19 data by zip code 
+which gained or maintained polling locations in the 2020 PPE (n = `r nrow(az_dc_mgm)`), 
+an average of `r round_half_up(mean(az_dc_mgm$pct_hl),0)`% (median = 
+`r round_half_up(median(az_dc_mgm$pct_hl),0)`%) of people considered 
+themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_mgm$pct_nhl_black),0)`% 
+(median = `r round_half_up(median(az_dc_mgm$pct_nhl_black),0)`%) of people considered
+themselves Black or African-American, an average of  `r round_half_up(mean(az_dc_mgm$pct_nhl_ai_an),0)`% 
+(median = `r round_half_up(median(az_dc_mgm$pct_nhl_ai_an),0)`%) of people considered
+themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_dc_mgm$pct_nhl_asian),0)`% 
+(median = `r round_half_up(median(az_dc_mgm$pct_nhl_asian),0)`%) of people considered
+themselves Asian, fewer than 1% of people considered themselves Native Hawaiian 
+or Pacific Islander, and an average of  `r round_half_up(mean(az_dc_mgm$pct_nhl_ao),0)`% 
+(median = `r round_half_up(median(az_dc_mgm$pct_nhl_ao),0)`%) of people considered
+themselves some other race or two or three or more races. These zip codes had between
+`r min(az_dc_mgm$confirmed_case_count)` - `r max(az_dc_mgm$confirmed_case_count)`
+cases of COVID-19 as of `r format(Sys.time(), '%d %B, %Y')`.
+
+There were no zip codes within within Maricopa County which had any COVID-19 
+data pending tribal approval nor were there any zip codes for which COVID-19
+data were unavailable.
+
+## Methodology
+
+This report examines polling location data from `r nrow(ncounties)`
+or `r round_half_up(sum((nrow(ncounties)/15)*100),0)`% of the counties in Arizona. 
+Pima County has not been included since the data come from the Voter Information Project
+and Pima County does not participate in its activities. Data were reviewed for 
+uniqueness, completeness and accuracy of information on zip codes, county, 
+and number of polling locations. Polling locations are known to change frequently 
+so this data should not be viewed as a definitive list of the actual polling 
+locations used on election day.
+
+Demographic data were obtained from the 2014-2018 American Community Survey's 
+B03002 table and groups were categorized as either Hispanic or Latino, 
+White alone, Black or African American Alone, American Indian and Alaska Native 
+alone, Asian alone,Native Hawaiian and Other Pacific Islander alone, and 
+All other races alone (Including Some other race alone and Two or more races alone)
+
+Data on COVID-19 cases was obtained from the Arizona Department 
+of Health Services. Data on COVID-19 cases was only kept for those zip codes
+for which we also had polling location data and was categorized to denote 
+where data were Missing or suppressed pending Tribal approval as noted in the original
+data.
+
+## Acknowledgements {-} 
+
+We are grateful to Sarah Berlin at Democracy Works for collecting data from the 
+Voter Information Project.
+
+## References {-} 
+```
+```
