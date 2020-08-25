@@ -10,8 +10,6 @@ pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus", "textreadr")
 
 # AZ covid-19 data by zip obtained here
 # https://azdhs.gov/preparedness/epidemiology-disease-control/infectious-disease-epidemiology/covid-19/dashboards/index.php
-# SC covid-19 data by zip obtained here
-# https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
 # AZ and SC zipcode and county data obtained here
 # https://www.unitedstateszipcodes.org/az/#zips-list and https://www.unitedstateszipcodes.org/sc/#zips-list
 
@@ -25,7 +23,6 @@ inputs <- list(
   sc_covid_zip = here::here("import/input/covid/TableOption2.pdf"),
   zip_counties = here::here("import/input/zips/zip_code_database.csv")
   )
-
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
   covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
@@ -66,8 +63,6 @@ saveRDS(inlist, outputs$VIPinlist_imp)
 # verification will break with new data
 
 # import covid-19 related data
-# nrow will break with new data
-
 expected_cols2 <- c("postcode","confirmed_case_category","confirmed_case_count")
 
 az_covid_data <- read_csv(inputs$az_covid_zip, col_names = TRUE) %>%
@@ -92,12 +87,9 @@ sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
-
 jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c")
-
 expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
-# change the table B0002
 demo_1418 <- get_acs(geography = "zcta",
                      variables = c(total = "B03002_001",
                                    total_nhl = "B03002_002",
