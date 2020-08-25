@@ -11,7 +11,7 @@ pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus", "textreadr")
 # AZ covid-19 data by zip obtained here
 # https://azdhs.gov/preparedness/epidemiology-disease-control/infectious-disease-epidemiology/covid-19/dashboards/index.php
 # SC covid-19 data by zip obtained here
-# https://www.scdhec.gov/infectious-diseases/viruses/coronavirus-disease-2019-covid-19/sc-cases-county-zip-code-covid-19
+# https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
 # AZ and SC zipcode and county data obtained here
 # https://www.unitedstateszipcodes.org/az/#zips-list and https://www.unitedstateszipcodes.org/sc/#zips-list
 
@@ -77,13 +77,17 @@ az_covid_data <- read_csv(inputs$az_covid_zip, col_names = TRUE) %>%
   mutate_at(c("confirmed_case_category","confirmed_case_count"), as.factor) %>%
   verify(ncol(.) == 3 & nrow(.) == 410)
 
-expected_cols2 <- c("postcode","confirmed_case_category","confirmed_case_count")
+expected_cols25 <- c("county", "state", "cases")
 
-sc_covid_data <- read_pdf(inputs$sc_covid_zip, skip = 1,
-                          trim = TRUE, remove.empty = TRUE) %>%
+sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv",
+                          col_types = cols_only(county = 'c',
+                                                state = 'c',
+                                                cases = 'd')) %>%
   clean_names() %>%
-  select(text) %>%
-  saveRDS(outputs$covid_sc_imp)
+  filter(state == "South Carolina") %>%
+  verify(colnames(.) == expected_cols25) %>%
+  verify(state == "South Carolina") %>%
+  verify(ncol(.) == 3 & nrow(.) == 7203)
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
@@ -115,7 +119,7 @@ demo_1418 <- get_acs(geography = "zcta",
 az_covid_data <- az_covid_data %>%
   saveRDS(outputs$covid_az_imp)
 
-# zips in Richland and Maricopa
+# zips in SC and AZ
 zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
                col_types = cols_only(zip = 'n',
                                      state = 'c',
