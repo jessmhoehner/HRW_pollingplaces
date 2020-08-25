@@ -21,7 +21,7 @@ clean_data = \
 				 $(HERE)/write/input/sc_2020_clean.rds \
 				 $(HERE)/write/input/sc_2020_freq_clean.rds \
 				 $(HERE)/write/input/sc_demo_clean.rds \
-				 $(HERE)/write/input/covid_sc_clean.rds
+				 $(HERE)/write/input/sc_demo_covid_clean.rds
 				 
 .PHONY:	all clean
 
