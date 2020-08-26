@@ -70,9 +70,10 @@ az_zips_freq_2020 <- read_rds(files$az_2020_freq_clean)
 n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
-         delta_cat = as.factor(if_else(delta_n_places < 0, 
-                                       "Lost Polling Places", 
-                                       "Gained or Maintained Polling Places"))) %>%
+         delta_cat = case_when(
+           delta_n_places == 0 ~ "Maintained Polling Locations",
+           delta_n_places < 0 ~ "Lost Polling Places",
+           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
 
@@ -91,9 +92,10 @@ sc_zips_freq_2020 <- read_rds(files$sc_2020_freq_clean)
 n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
-         delta_cat = as.factor(if_else(delta_n_places < 0, 
-                                       "Lost Polling Places", 
-                                       "Gained or Maintained Polling Places"))) %>%
+         delta_cat = case_when(
+           delta_n_places == 0 ~ "Maintained Polling Locations",
+           delta_n_places < 0 ~ "Lost Polling Places",
+           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
   filter(zipcode != "SC") %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
@@ -111,52 +113,66 @@ sc_table <- n_places_sc %>%
 
 Between the 2016 and 2020 PPEs, `r az_table$count[1]` zip codes, or 
 `r round_half_up(az_table$percent_of_zips[1],1)`% of zip codes in Arizona with 
-open polling locations during the 2016 PPE gained or maintained the same number 
-of polling locations during the 2020 PPE while `r az_table$count[2]` zip codes, 
-or `r round_half_up(az_table$percent_of_zips[2],1)`%, lost polling locations 
+open polling locations during the 2016 PPE gained polling locations during the 
+2020 PPE while `r az_table$count[2]` zip codes, 
+or `r round_half_up(az_table$percent_of_zips[2],1)`%, maintained the same
+number of polling locations, and `r az_table$count[3]` zip codes, 
+or `r round_half_up(az_table$percent_of_zips[3],1)`% lost polling locations
 during the 2020 PPE.
 
 ### South Carolina 
   
 Between the 2016 and 2020 PPEs, `r sc_table$count[1]` zip codes, or 
-`r round_half_up(sc_table$percent_of_zips[1],1)`% of zip codes in South Carolina 
-with open polling locations during the 2016 PPE gained or maintained the same 
-number of polling locations during the 2020 PPE while `r sc_table$count[2]` zip 
-codes, or `r round_half_up(sc_table$percent_of_zips[2],1)`%, lost polling 
-locations during the 2020 PPE.
+`r round_half_up(sc_table$percent_of_zips[1],1)`% of zip codes in Arizona with 
+open polling locations during the 2016 PPE gained polling locations during the 
+2020 PPE while `r sc_table$count[2]` zip codes, 
+or `r round_half_up(sc_table$percent_of_zips[2],1)`%, maintained the same
+number of polling locations, and `r sc_table$count[3]` zip codes, 
+or `r round_half_up(sc_table$percent_of_zips[3],1)`% lost polling locations
+during the 2020 PPE.
  
 ## Polling location changes and demographics {-} 
 
 ```{r demographics, message=FALSE, echo=FALSE}
 
-az_demo <- read_rds(files$az_demo_clean)
-az_demo_lost <- az_demo %>%
-  filter(delta_cat == "Lost Polling Places")
-az_l_maricopa <- az_demo_lost %>%
+az <- read_rds(files$az_demo_clean)
+
+az_lost <- az %>%
+  filter(delta_cat == "Lost Polling Locations")
+az_g <- az %>%
+  filter(delta_cat == "Gained Polling Locations")
+az_m <- az %>%
+  filter(delta_cat == "Maintained Polling Locations")
+
+az_lost_maricopa <- az_lost %>%
   filter(county == "Maricopa County")
-az_demo_gm <- az_demo %>%
-  filter(delta_cat == "Gained or Maintained Polling Places")
-az_l_maricopa <- az_demo_lost %>%
+az_g_maricopa <- az_g %>%
   filter(county == "Maricopa County")
-az_gm_maricopa <- az_demo_gm %>%
+az_m_maricopa <- az_m %>%
   filter(county == "Maricopa County")
 
-ncountiesaz <- az_demo %>%
+ncountiesaz <- az %>%
   group_by(county) %>%
   distinct(county) %>%
   arrange(county)
 
-sc_demo <- read_rds(files$sc_demo_clean)
-sc_demo_lost <- sc_demo %>%
-  filter(delta_cat == "Lost Polling Places")
-sc_demo_gm <- sc_demo %>%
-  filter(delta_cat == "Gained or Maintained Polling Places")
-sc_l_rland <- sc_demo_lost %>%
+sc <- read_rds(files$sc_demo_clean)
+
+sc_lost <- sc %>%
+  filter(delta_cat == "Lost Polling Locations")
+sc_g <- sc %>%
+  filter(delta_cat == "Gained Polling Locations")
+sc_m <- sc %>%
+  filter(delta_cat == "Maintained Polling Locations")
+
+sc_lost_rland <- sc_lost %>%
   filter(county == "Richland")
-sc_gm_rland <- sc_demo_gm %>%
+sc_g_rland <- sc_g %>%
+  filter(county == "Richland")
+sc_m_rland <- sc_m %>%
   filter(county == "Richland")
 
-ncountiessc <- sc_demo %>%
+ncountiessc <- sc %>%
   group_by(county) %>%
   distinct(county) %>%
   arrange(county)
@@ -165,141 +181,137 @@ ncountiessc <- sc_demo %>%
 
 ### Arizona
 
-In those zip codes which lost polling locations (n = `r nrow(az_demo_lost)`), 
-an average of `r round_half_up(mean(az_demo_lost$pct_hl),0)`% (median = 
-`r round_half_up(median(az_demo_lost$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(az_demo_lost$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_demo_lost$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(az_demo_lost$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(az_demo_lost$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, an average of `r round_half_up(mean(az_demo_lost$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_demo_lost$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_demo_lost$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_demo_lost$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_demo_lost$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_demo_lost$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which gained polling locations (n = `r nrow(az_g)`),
+`r comma(sum(az_g$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_g$nhl_white))` people considered themselves White, 
+`r comma(sum(az_g$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_g$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_g$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_g$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_g$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
-In those zip codes which gained or maintained polling locations (n = `r nrow(az_demo_gm)`), 
-an average of `r round_half_up(mean(az_demo_gm$pct_hl),0)`% (median = `r round_half_up(median(az_demo_gm$pct_hl),0)`%) 
-of people considered themselves Hispanic or Latino, an average of `r round_half_up(mean(az_demo_gm$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_demo_gm$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(az_demo_gm$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(az_demo_gm$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, an average of `r round_half_up(mean(az_demo_gm$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_demo_gm$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_demo_gm$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_demo_gm$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_demo_gm$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_demo_gm$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which maintained polling locations (n = `r nrow(az_m)`),
+`r comma(sum(az_m$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_m$nhl_white))` people considered themselves White, 
+`r comma(sum(az_m$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_m$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_m$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_m$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_m$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
+
+In those zip codes which maintained polling locations (n = `r nrow(az_lost)`),
+`r comma(sum(az_lost$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_lost$nhl_white))` people considered themselves White, 
+`r comma(sum(az_lost$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_lost$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_lost$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_lost$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_lost$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
 *Maricopa County*
 
-In those zip codes which lost polling locations within Maricopa County 
-(n = `r nrow(az_l_maricopa)`), an average of `r round_half_up(mean(az_l_maricopa$pct_hl),0)`% 
-(median = `r round_half_up(median(az_l_maricopa$pct_hl),0)`%) of people 
-considered themselves Hispanic or Latino, an average of `r round_half_up(mean(az_l_maricopa$pct_nhl_white),0)`% (median = 
-`r round_half_up(median(az_l_maricopa$pct_nhl_white),0)`%) of people considered 
-themselves White, an average of `r round_half_up(mean(az_l_maricopa$pct_nhl_black),0)`% (median = 
-`r round_half_up(median(az_l_maricopa$pct_nhl_black),0)`%) of people considered
-themselves Black or African-American, an average of `r round_half_up(mean(az_l_maricopa$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_l_maricopa$pct_nhl_ai_an),0)`%) of people considered
-themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_l_maricopa$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_l_maricopa$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_l_maricopa$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_l_maricopa$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which gained polling locations (n = `r nrow(az_g_maricopa)`),
+`r comma(sum(az_g_maricopa$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_g_maricopa$nhl_white))` people considered themselves White, 
+`r comma(sum(az_g_maricopa$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_g_maricopa$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_g_maricopa$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_g_maricopa$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_g_maricopa$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
-In those zip codes which gained or maintained polling locations within 
-Maricopa County (n = `r nrow(az_gm_maricopa)`), an average of `r round_half_up(mean(az_gm_maricopa$pct_hl),0)`% 
-(median = `r round_half_up(median(az_gm_maricopa$pct_hl),0)`%) of people 
-considered themselves Hispanic or Latino, an average of `r round_half_up(mean(az_gm_maricopa$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_gm_maricopa$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(az_gm_maricopa$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(az_gm_maricopa$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, an average of  `r round_half_up(mean(az_gm_maricopa$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_gm_maricopa$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_gm_maricopa$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_gm_maricopa$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_gm_maricopa$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_gm_maricopa$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which maintained polling locations (n = `r nrow(az_m_maricopa)`),
+`r comma(sum(az_m_maricopa$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_m_maricopa$nhl_white))` people considered themselves White, 
+`r comma(sum(az_m_maricopa$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_m_maricopa$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_m_maricopa$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_m_maricopa$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_m_maricopa$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
+
+In those zip codes which maintained polling locations (n = `r nrow(az_lost_maricopa)`),
+`r comma(sum(az_lost_maricopa$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_lost_maricopa$nhl_white))` people considered themselves White, 
+`r comma(sum(az_lost_maricopa$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_lost_maricopa$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_lost_maricopa$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_lost_maricopa$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_lost_maricopa$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
 ### South Carolina
 
-In those zip codes which lost polling locations (n = `r nrow(sc_demo_lost)`), 
-an average of `r round_half_up(mean(sc_demo_lost$pct_hl),0)`% (median = 
-`r round_half_up(median(sc_demo_lost$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(sc_demo_lost$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(sc_demo_lost$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of  `r round_half_up(mean(sc_demo_lost$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_demo_lost$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of `r round_half_up(mean(sc_demo_lost$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_demo_lost$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_demo_lost$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_demo_lost$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which gained polling locations (n = `r nrow(sc_g)`),
+`r comma(sum(sc_g$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(sc_g$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_g$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_g$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_g$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_g$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_g$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
-In those zip codes which gained or maintained polling locations (n = `r nrow(sc_demo_gm)`), 
-an average of `r round_half_up(mean(sc_demo_gm$pct_hl),0)`% (median = `r round_half_up(median(sc_demo_gm$pct_hl),0)`%) 
-of people considered themselves Hispanic or Latino, an average of `r round_half_up(mean(sc_demo_gm$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(sc_demo_gm$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(sc_demo_gm$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_demo_gm$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of `r round_half_up(mean(sc_demo_gm$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_demo_gm$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_demo_gm$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_demo_gm$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which maintained polling locations (n = `r nrow(sc_m)`),
+`r comma(sum(sc_m$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(sc_m$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_m$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_m$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_m$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_m$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_m$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
+
+In those zip codes which maintained polling locations (n = `r nrow(sc_lost)`),
+`r comma(sum(sc_lost$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(sc_lost$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_lost$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_lost$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_lost$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_lost$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_lost$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
 *Richland County*
 
-In those zip codes which lost polling locations within Richland County 
-(n = `r nrow(sc_l_rland)`), an average of `r round_half_up(mean(sc_l_rland$pct_hl),0)`% 
-(median = `r round_half_up(median(sc_l_rland$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(sc_l_rland$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(sc_l_rland$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(sc_l_rland$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_l_rland$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of `r round_half_up(mean(sc_l_rland$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_l_rland$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_l_rland$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_l_rland$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which gained polling locations (n = `r nrow(sc_g_rland)`),
+`r comma(sum(sc_g_rland$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(sc_g_rland$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_g_rland$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_g_rland$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_g_rland$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_g_rland$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_g_rland$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
-\newpage
+In those zip codes which maintained polling locations (n = `r nrow(sc_m_rland)`),
+`r comma(sum(sc_m_rland$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(sc_m_rland$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_m_rland$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_m_rland$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_m_rland$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_m_rland$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_m_rland$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
-In those zip codes which gained or maintained polling locations within 
-Richland County (n = `r nrow(sc_gm_rland)`), an average of `r round_half_up(mean(sc_gm_rland$pct_hl),0)`% 
-(median = `r round_half_up(median(sc_gm_rland$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(sc_gm_rland$pct_nhl_white),0)`% (median = 
-`r round_half_up(median(sc_gm_rland$pct_nhl_white),0)`%) of people considered 
-themselves White, an average of `r round_half_up(mean(sc_gm_rland$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_gm_rland$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of `r round_half_up(mean(sc_gm_rland$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_gm_rland$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_gm_rland$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_gm_rland$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes which maintained polling locations (n = `r nrow(sc_lost_rland)`),
+`r comma(sum(sc_lost_rland$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(sc_lost_rland$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_lost_rland$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_lost_rland$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_lost_rland$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_lost_rland$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_lost_rland$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
 ## Polling location changes, demographics, and COVID-19 {-} 
 
 ```{r covid, echo=FALSE, message=FALSE}
 
-az_demo_covid_df <- read_rds(files$az_demo_covid_clean) %>%
+az_covid_df <- read_rds(files$az_demo_covid_clean) %>%
   mutate_at(vars(covid_cat, polling_cat), as.factor) %>%
   select(zipcode, covid_cat, polling_cat, 
          confirmed_case_count, pct_hl, pct_nhl, pct_nhl_white, 
@@ -307,280 +319,281 @@ az_demo_covid_df <- read_rds(files$az_demo_covid_clean) %>%
          pct_nhl_ao, county) %>%
   mutate(confirmed_case_count = as.numeric(confirmed_case_count))
 
-az_dc_lost <- az_demo_covid_df %>%
-  filter(covid_cat == "Lost Polling Places")
+az_dc_lost <- az_covid_df %>%
+  filter(covid_cat == "Lost Polling Locations")
+az_dc_g <- az_covid_df %>%
+  filter(covid_cat == "Gained Polling Locations")
+az_dc_m <- az_covid_df %>%
+  filter(covid_cat == "Maintained Polling Locations")
 
-az_dc_gm <- az_demo_covid_df %>%
-  filter(covid_cat == "Gained or Maintained Polling Places")
-
-az_dc_s <- az_demo_covid_df %>%
+az_dc_s <- az_covid_df %>%
   filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval")
+az_dcs_lost <- az_dc_s %>%
+  filter(polling_cat == "Lost Polling Locations")
+az_dcs_g <- az_dc_s %>%
+  filter(polling_cat == "Gained Polling Locations")
+az_dcs_m <- az_dc_s %>%
+  filter(polling_cat == "Maintained Polling Locations")
 
-az_dc_sgm <- az_demo_covid_df %>%
-  filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
-           polling_cat == "Gained or Maintained Polling Places")
-
-az_dc_sl  <- az_demo_covid_df %>%
-  filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
-           polling_cat == "Lost Polling Places")
-
-az_dc_nd <- az_demo_covid_df %>%
+az_dc_nd <- az_covid_df %>%
   filter(covid_cat == "No COVID Data Reported")
+az_dc_ndg <- az_dc_nd %>%
+  filter(polling_cat == "Gained Polling Locations")
+az_dc_ndm <- az_dc_nd %>%
+  filter(polling_cat == "Maintained Polling Locations")
 
 # maricopa county
-
-az_dc_ml <- az_demo_covid_df %>%
-  filter(county == "Maricopa County" & covid_cat == "Lost Polling Places")
-
-az_dc_mgm <- az_demo_covid_df %>%
-  filter(county == "Maricopa County" & 
-           covid_cat == "Gained or Maintained Polling Places")
-
-az_dc_ms <- az_demo_covid_df %>%
-  filter(county == "Maricopa County" & 
-           covid_cat == "COVID Data Suppressed Pending Tribal Approval")
-
-az_dc_msg <- az_demo_covid_df %>%
-  filter(county == "Maricopa County" &
-           covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
-           polling_cat == "Gained or Maintained Polling Places")
-
-az_dc_msl  <- az_demo_covid_df %>%
-  filter(county == "Maricopa County" &
-           covid_cat == "COVID Data Suppressed Pending Tribal Approval" &
-           polling_cat == "Lost Polling Places")
-
-az_dc_mnd <- az_demo_covid_df %>%
-  filter(county == "Maricopa County" & 
-           covid_cat == "No COVID Data Reported")
+az_dclost_maricopa <- az_dc_lost %>%
+  filter(county == "Maricopa County")
+az_dcg_maricopa <- az_dc_g %>%
+  filter(county == "Maricopa County")
+az_dcm_maricopa <- az_dc_m %>%
+  filter(county == "Maricopa County")
+az_dc_ndmaricopa <- az_dc_nd %>%
+  filter(covid_cat == "No COVID Data Reported")
+az_dcg_ndmaricopa <- az_dc_nd %>%
+  filter(polling_cat == "Gained Polling Locations")
+az_dcm_ndmaricopa <- az_dc_nd %>%
+  filter(polling_cat == "Maintained Polling Locations")
 
 # south carolina
 
-sc_demo_covid_df <- read_rds(files$sc_demo_covid_clean) %>%
+sc_covid_df <- read_rds(files$sc_demo_covid_clean) %>%
   mutate_at(vars(delta_cat), as.factor) %>%
   select(zipcode, cases, delta_cat, pct_hl, pct_nhl, pct_nhl_white, 
          pct_nhl_black, pct_nhl_ai_an, pct_nhl_asian, pct_nhl_nhi_pi,
          pct_nhl_ao, county)
 
-sc_dc_lost <- sc_demo_covid_df %>%
-  filter(delta_cat == "Lost Polling Places")
+sc_dc_lost <- sc_covid_df %>%
+  filter(delta_cat == "Lost Polling Locations")
+sc_dc_g <- sc_covid_df %>%
+  filter(delta_cat == "Gained Polling Locations")
+sc_dc_m <- sc_covid_df %>%
+  filter(delta_cat == "Maintained Polling Locations")
 
-sc_dc_gm <- sc_demo_covid_df %>%
-  filter(delta_cat == "Gained or Maintained Polling Places")
+# Richland county
+sc_dclost_richland <- sc_dc_lost %>%
+  filter(county == "Richland")
+sc_dcg_richland <- sc_dc_g %>%
+  filter(county == "Richland")
+sc_dcm_richland <- sc_dc_m %>%
+  filter(county == "Richland")
 
-# richland county
-
-sc_dc_rl <- sc_demo_covid_df %>%
-  filter(county == "Richland" & delta_cat == "Lost Polling Places")
-
-sc_dc_rgm <- sc_demo_covid_df %>%
-  filter(county == "Richland" & 
-           delta_cat == "Gained or Maintained Polling Places")
 # done.
 ```
 
+#FIXME: add COVID ranges
+
 ### Arizona
 
-In those zip codes with complete COVID-19 data by zip code which lost polling 
-locations in the 2020 PPE (n = `r nrow(az_dc_lost)`), an average of `r round_half_up(mean(az_dc_lost$pct_hl),0)`% 
-(median = `r round_half_up(median(az_dc_lost$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_lost$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_dc_lost$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(az_dc_lost$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(az_dc_lost$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, an average of `r round_half_up(mean(az_dc_lost$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_dc_lost$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of  `r round_half_up(mean(az_dc_lost$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_dc_lost$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_dc_lost$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_dc_lost$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races. These zip 
-codes had between `r min(az_dc_lost$confirmed_case_count)` - `r max(az_dc_lost$confirmed_case_count)`
-cases of COVID-19.
+In those zip codes with complete COVID-19 data which gained polling locations 
+(n = `r nrow(az_dc_g)`),`r comma(sum(az_dc_g$total_hl))`people considered themselves Hispanic 
+or Latino, `r comma(sum(az_dc_g$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dc_g$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dc_g$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_dc_g$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dc_g$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_dc_g$pct_nhl_ao))`people considered themselves some other race 
+or two or three or more races.
 
-In those zip codes with complete COVID-19 data by zip code which gained or 
-maintained polling locations in the 2020 PPE (n = `r nrow(az_dc_gm)`), an average of 
-`r round_half_up(mean(az_dc_gm$pct_hl),0)`% (median = `r round_half_up(median(az_dc_gm$pct_hl),0)`%) 
-of people considered themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_gm$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_dc_gm$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(az_dc_gm$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(az_dc_gm$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, an average of  `r round_half_up(mean(az_dc_gm$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_dc_gm$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of 
-`r round_half_up(mean(az_dc_gm$pct_nhl_asian),0)`% (median = `r round_half_up(median(az_dc_gm$pct_nhl_asian),0)`%) 
-of people considered themselves Asian, fewer than 1% of people considered 
-themselves Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_dc_gm$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_dc_gm$pct_nhl_ao),0)`%) of people considered 
-themselves some other race or two or three or more races. These zip codes had 
-between `r min(az_dc_gm$confirmed_case_count)` - `r max(az_dc_gm$confirmed_case_count)`
-cases of COVID-19.
+In those zip codes with complete COVID-19 data which maintained polling locations 
+(n = `r nrow(az_dc_m)`),`r comma(sum(az_dc_m$total_hl))`people considered themselves Hispanic 
+or Latino, `r comma(sum(az_dc_m$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dc_m$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dc_m$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_dc_m$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dc_m$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_dc_m$pct_nhl_ao))`people considered themselves some other race 
+or two or three or more races.
 
-In those zip codes with COVID-19 data pending tribal approval which lost polling 
-locations in the 2020 PPE (n = `r nrow(az_dc_sl)`), an average of 
-`r round_half_up(mean(az_dc_sl$pct_hl),0)`% (median = 
-`r round_half_up(median(az_dc_sl$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_sl$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_dc_sl$pct_nhl_white),0)`%) of people 
-considered themselves White, fewer than 1% of people considered themselves Black 
-or African-American, an average of `r round_half_up(mean(az_dc_sl$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_dc_sl$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, fewer than 1% of people 
-considered themselves Asian or Native Hawaiian or Pacific Islander, and an 
-average of `r round_half_up(mean(az_dc_sl$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_dc_sl$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races. These zip 
-codes had an average of `r mean(az_dc_sl$confirmed_case_count)` case of COVID-19.
+In those zip codes with complete COVID-19 data which lost polling locations 
+(n = `r nrow(az_dc_lost)`),`r comma(sum(az_dc_lost$total_hl))`people considered themselves Hispanic 
+or Latino, `r comma(sum(az_dc_lost$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dc_lost$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dc_lost$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_dc_lost$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dc_lost$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_dc_lost$pct_nhl_ao))`people considered themselves some other race 
+or two or three or more races.
 
-In those zip codes with COVID-19 data pending tribal approval which gained or 
-maintained polling locations in the 2020 PPE (n = `r nrow(az_dc_sgm)`), an 
-average of `r round_half_up(mean(az_dc_sgm$pct_hl),0)`% 
-(median = `r round_half_up(median(az_dc_sgm$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_sgm$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_dc_sgm$pct_nhl_white),0)`%) of people 
-considered themselves White, fewer than 1% of people considered themselves Black 
-or African-American, an average of  `r round_half_up(mean(az_dc_sgm$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_dc_sgm$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, fewer than 1% of people 
-considered themselves Asian, Native Hawaiian or Pacific Islander, some other 
-race or two or three or more races. These zip codes had an average of 
-`r mean(az_dc_sgm$confirmed_case_count)` case of COVID-19.
+In those zip codes in which COVID-19 data are pending tribal approval and 
+which gained polling locations (n = `r nrow(az_dcs_g)`),
+`r comma(sum(az_dcs_g$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_dcs_g$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dcs_g$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dcs_g$nhl_ai_an))` people considered themselves American Indian or 
+Alaskan Native, `r comma(sum(az_dcs_g$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dcs_g$nhl_nhi_pi))` people considered themselves Native Hawaiian or 
+Pacific Islander, and `r comma(sum(az_dcs_g$pct_nhl_ao))`people considered themselves 
+some other race or two or three or more races.
 
-All zip codes without complete COVID-19 data(n = `r nrow(az_dc_nd)`), gained or 
-maintained polling locations in the 2020 PPE. An average of  `r round_half_up(mean(az_dc_nd$pct_hl),0)`% 
-(median = `r round_half_up(median(az_dc_nd$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_nd$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_dc_nd$pct_nhl_white),0)`%) of people 
-considered themselves White, fewer than 1% of people considered themselves Black 
-or African-American, an average of `r round_half_up(mean(az_dc_nd$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_dc_nd$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_dc_nd$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_dc_nd$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_dc_nd$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_dc_nd$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races.
+In those zip codes in which COVID-19 data are pending tribal approval and 
+which gained polling locations (n = `r nrow(az_dcs_m)`),
+`r comma(sum(az_dcs_m$total_hl))`people considered themselves Hispanic or Latino, 
+`r comma(sum(az_dcs_m$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dcs_m$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dcs_m$nhl_ai_an))` people considered themselves American Indian or 
+Alaskan Native, `r comma(sum(az_dcs_m$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dcs_m$nhl_nhi_pi))` people considered themselves Native Hawaiian or 
+Pacific Islander, and `r comma(sum(az_dcs_m$pct_nhl_ao))`people considered themselves 
+some other race or two or three or more races.
 
-\newpage
+In those zip codes in which COVID-19 data are pending tribal approval and 
+which gained polling locations (n = `r nrow(az_dcs_lost)`),
+`r comma(sum(az_dcs_lost$total_hl))` people considered themselves Hispanic or Latino, 
+`r comma(sum(az_dcs_lost$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dcs_lost$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dcs_lost$nhl_ai_an))` people considered themselves American Indian or 
+Alaskan Native, `r comma(sum(az_dcs_lost$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dcs_lost$nhl_nhi_pi))` people considered themselves Native Hawaiian or 
+Pacific Islander, and `r comma(sum(az_dcs_lost$pct_nhl_ao))`people considered themselves 
+some other race or two or three or more races.
+
+In those zip codes without COVID-19 data which gained polling locations 
+(n = `r nrow(az_dc_ndg)`),`r comma(sum(az_dc_ndg$total_hl))`people considered themselves Hispanic 
+or Latino, `r comma(sum(az_dc_ndg$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dc_ndg$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dc_ndg$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_dc_ndg$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dc_ndg$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_dc_ndg$pct_nhl_ao))`people considered themselves some other race 
+or two or three or more races.
+
+In those zip codes without COVID-19 data which maintained polling 
+locations (n = `r nrow(az_dc_ndm)`),`r comma(sum(az_dc_ndm$total_hl))`people considered themselves 
+Hispanic or Latino, `r comma(sum(az_dc_ndm$nhl_white))` people considered themselves White, 
+`r comma(sum(az_dc_ndm$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(az_dc_ndm$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(az_dc_ndm$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dc_ndm$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(az_dc_ndm$pct_nhl_ao))` people considered themselves some other race 
+or two or three or more races.
+
+There were no zip codes without COVID-19 data which lost polling locations
+between the 2016 and 2020 PPE.
 
 *Maricopa County*
 
-In those zip codes within Maricopa County with complete COVID-19 data by zip code 
-which lost polling locations in the 2020 PPE (n = `r nrow(az_dc_ml)`), an average 
-of `r round_half_up(mean(az_dc_ml$pct_hl),0)`% (median = `r round_half_up(median(az_dc_ml$pct_hl),0)`%) 
-of people considered themselves Hispanic or Latino, an average of 
-`r round_half_up(mean(az_dc_ml$pct_nhl_white),0)`% (median = `r round_half_up(median(az_dc_ml$pct_nhl_white),0)`%) 
-of people considered themselves White, an average of `r round_half_up(mean(az_dc_ml$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(az_dc_ml$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, an average of `r round_half_up(mean(az_dc_ml$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_dc_ml$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_dc_ml$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_dc_ml$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of `r round_half_up(mean(az_dc_ml$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_dc_ml$pct_nhl_ao),0)`%) of people considered
-themselves some other race or two or three or more races. These zip codes had 
-between `r min(az_dc_ml$confirmed_case_count)` - `r max(az_dc_ml$confirmed_case_count)`
-cases of COVID-19.
+In those zip codes with complete COVID-19 data which gained polling locations 
+(n = `r nrow(az_dcg_maricopa)`), `r comma(sum(az_dcg_maricopa$total_hl))`people considered 
+themselves Hispanic or Latino, `r comma(sum(az_dcg_maricopa$nhl_white))` people considered 
+themselves White, `r comma(sum(az_dcg_maricopa$nhl_black))` people considered themselves 
+Black or African-American, `r comma(sum(az_dcg_maricopa$nhl_ai_an))` people considered 
+themselves American Indian or Alaskan Native, `r comma(sum(az_dcg_maricopa$nhl_asian))` people 
+considered themselves Asian, `r comma(sum(az_dcg_maricopa$nhl_nhi_pi))` people considered 
+themselves Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcg_maricopa$pct_nhl_ao))`
+people considered themselves some other race or two or three or more races.
 
-In those zip codes within Maricopa County with complete COVID-19 data by zip code 
-which gained or maintained polling locations in the 2020 PPE (n = `r nrow(az_dc_mgm)`), 
-an average of `r round_half_up(mean(az_dc_mgm$pct_hl),0)`% (median = `r round_half_up(median(az_dc_mgm$pct_hl),0)`%) 
-of people considered themselves Hispanic or Latino, an average of `r round_half_up(mean(az_dc_mgm$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(az_dc_mgm$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(az_dc_mgm$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(az_dc_mgm$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, an average of  `r round_half_up(mean(az_dc_mgm$pct_nhl_ai_an),0)`% 
-(median = `r round_half_up(median(az_dc_mgm$pct_nhl_ai_an),0)`%) of people 
-considered themselves American Indian or Alaskan Native, an average of `r round_half_up(mean(az_dc_mgm$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(az_dc_mgm$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, fewer than 1% of people considered themselves 
-Native Hawaiian or Pacific Islander, and an average of  `r round_half_up(mean(az_dc_mgm$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(az_dc_mgm$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races. These zip 
-codes had between
-`r min(az_dc_mgm$confirmed_case_count)` - `r max(az_dc_mgm$confirmed_case_count)`
-cases of COVID-19.
+In those zip codes with complete COVID-19 data which maintained polling locations 
+(n = `r nrow(az_dcm_maricopa)`),`r comma(sum(az_dcm_maricopa$total_hl))`people considered 
+themselves Hispanic or Latino, `r comma(sum(az_dcm_maricopa$nhl_white))` people considered 
+themselves White, `r comma(sum(az_dcm_maricopa$nhl_black))` people considered themselves 
+Black or African-American, `r comma(sum(az_dcm_maricopa$nhl_ai_an))` people considered 
+themselves American Indian or Alaskan Native, `r comma(sum(az_dcm_maricopa$nhl_asian))` people 
+considered themselves Asian, `r comma(sum(az_dcm_maricopa$nhl_nhi_pi))` people considered 
+themselves Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcm_maricopa$pct_nhl_ao))`
+people considered themselves some other race or two or three or more races.
 
-There were no zip codes within within Maricopa County which had any COVID-19 
-data pending tribal approval nor were there any zip codes for which COVID-19
-data were unavailable.
+In those zip codes with complete COVID-19 data which lost polling locations 
+(n = `r nrow(az_dclost_maricopa)`),`r comma(sum(az_dclost_maricopa$total_hl))`people 
+considered themselves Hispanic or Latino, `r comma(sum(az_dclost_maricopa$nhl_white))` 
+people considered themselves White, `r comma(sum(az_dclost_maricopa$nhl_black))` people 
+considered themselves Black or African-American, `r comma(sum(az_dclost_maricopa$nhl_ai_an))` 
+people considered themselves American Indian or Alaskan Native, 
+`r comma(sum(az_dclost_maricopa$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(az_dclost_maricopa$nhl_nhi_pi))` people considered themselves Native Hawaiian 
+or Pacific Islander, and `r comma(sum(az_dclost_maricopa$pct_nhl_ao))`people considered 
+themselves some other race or two or three or more races.
+
+In those zip codes without complete COVID-19 data which gained polling locations 
+(n = `r nrow(az_dcg_ndmaricopa)`), `r comma(sum(az_dcg_ndmaricopa$total_hl))`people considered 
+themselves Hispanic or Latino, `r comma(sum(az_dcg_ndmaricopa$nhl_white))` people considered 
+themselves White, `r comma(sum(az_dcg_ndmaricopa$nhl_black))` people considered themselves 
+Black or African-American, `r comma(sum(az_dcg_ndmaricopa$nhl_ai_an))` people considered 
+themselves American Indian or Alaskan Native, `r comma(sum(az_dcg_ndmaricopa$nhl_asian))` people 
+considered themselves Asian, `r comma(sum(az_dcg_ndmaricopa$nhl_nhi_pi))` people considered 
+themselves Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcg_ndmaricopa$pct_nhl_ao))`
+people considered themselves some other race or two or three or more races.
+
+In those zip codes without complete COVID-19 data which maintained polling locations 
+(n = `r nrow(az_dcm_ndmaricopa)`),`r comma(sum(az_dcm_ndmaricopa$total_hl))`people considered 
+themselves Hispanic or Latino, `r comma(sum(az_dcm_ndmaricopa$nhl_white))` people considered 
+themselves White, `r comma(sum(az_dcm_ndmaricopa$nhl_black))` people considered themselves 
+Black or African-American, `r comma(sum(az_dcm_ndmaricopa$nhl_ai_an))` people considered 
+themselves American Indian or Alaskan Native, `r comma(sum(az_dcm_ndmaricopa$nhl_asian))` people 
+considered themselves Asian, `r comma(sum(az_dcm_ndmaricopa$nhl_nhi_pi))` people considered 
+themselves Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcm_ndmaricopa$pct_nhl_ao))`
+people considered themselves some other race or two or three or more races.
+
+There were no zip codes without COVID-19 data in Maricopa which lost polling 
+locations between the 2016 and 2020 PPE.
+
+############################################################
 
 ### South Carolina
 
-In those zip codes with complete COVID-19 data by zip code which lost polling 
-locations in the 2020 PPE (n = `r nrow(sc_dc_lost)`), an average of `r round_half_up(mean(sc_dc_lost$pct_hl),0)`% 
-(median = `r round_half_up(median(sc_dc_lost$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(sc_dc_lost$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(sc_dc_lost$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(sc_dc_lost$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_dc_lost$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of  `r round_half_up(mean(sc_dc_lost$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_dc_lost$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_dc_lost$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_dc_lost$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races. These zip 
-codes had between 
-`r comma(min(sc_dc_lost$cases))` - `r comma(max(sc_dc_lost$cases))` cases of 
-COVID-19.
+In those zip codes with complete COVID-19 data which gained polling locations 
+(n = `r nrow(sc_dc_g)`),`r comma(sum(sc_dc_g$total_hl))`people considered themselves Hispanic 
+or Latino, `r comma(sum(sc_dc_g$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_dc_g$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_dc_g$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_dc_g$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_dc_g$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_dc_g$pct_nhl_ao))`people considered themselves some other race 
+or two or three or more races.
 
-In those zip codes with complete COVID-19 data by zip code which gained or 
-maintained polling locations in the 2020 PPE (n = `r nrow(sc_dc_gm)`), an 
-average of `r round_half_up(mean(sc_dc_gm$pct_hl),0)`% 
-(median = `r round_half_up(median(sc_dc_gm$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(sc_dc_gm$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(sc_dc_gm$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(sc_dc_gm$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_dc_gm$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of `r round_half_up(mean(sc_dc_gm$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_dc_gm$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_dc_gm$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_dc_gm$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races. These zip 
-codes had between `r comma(min(sc_dc_gm$cases))` - `r comma(max(sc_dc_gm$cases))` 
-cases of COVID-19.
+In those zip codes with complete COVID-19 data which maintained polling 
+locations (n = `r nrow(sc_dc_m)`),`r comma(sum(sc_dc_m$total_hl))`people considered themselves 
+Hispanic or Latino, `r comma(sum(sc_dc_m$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_dc_m$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_dc_m$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_dc_m$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_dc_m$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_dc_m$pct_nhl_ao))`people considered themselves some other race 
+or two or three or more races.
+
+In those zip codes with complete COVID-19 data which lost polling locations 
+(n = `r nrow(sc_dc_lost)`), `r comma(sum(sc_dc_lost$total_hl))`people considered themselves 
+Hispanic or Latino, `r comma(sum(sc_dc_lost$nhl_white))` people considered themselves White, 
+`r comma(sum(sc_dc_lost$nhl_black))` people considered themselves Black or African-American, 
+`r comma(sum(sc_dc_lost$nhl_ai_an))` people considered themselves American Indian or Alaskan 
+Native, `r comma(sum(sc_dc_lost$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_dc_lost$nhl_nhi_pi))` people considered themselves Native Hawaiian or Pacific 
+Islander, and `r comma(sum(sc_dc_lost$pct_nhl_ao))`people considered themselves some other 
+race or two or three or more races.
 
 *Richland County*
 
-In those zip codes within Richland County with complete COVID-19 data by zip code 
-which lost polling locations in the 2020 PPE (n = `r nrow(sc_dc_rl)`), an average 
-of `r round_half_up(mean(sc_dc_rl$pct_hl),0)`% (median = `r round_half_up(median(sc_dc_rl$pct_hl),0)`%) 
-of people considered themselves Hispanic or Latino, an average of 
-`r round_half_up(mean(sc_dc_rl$pct_nhl_white),0)`% (median = `r round_half_up(median(sc_dc_rl$pct_nhl_white),0)`%) 
-of people considered themselves White, an average of `r round_half_up(mean(sc_dc_rl$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_dc_rl$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of `r round_half_up(mean(sc_dc_rl$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_dc_rl$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_dc_rl$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_dc_rl$pct_nhl_ao),0)`%) of people considered
-themselves some other race or two or three or more races. These zip codes had an
-average of `r comma(mean(sc_dc_rl$cases))` cases of COVID-19.
+In those zip codes with complete COVID-19 data which gained polling locations 
+(n = `r nrow(sc_dcg_richland)`), `r comma(sum(sc_dcg_richland$total_hl))`people considered 
+themselves Hispanic or Latino, `r comma(sum(sc_dcg_richland$nhl_white))` people considered 
+themselves White, `r comma(sum(sc_dcg_richland$nhl_black))` people considered themselves 
+Black or African-American, `r comma(sum(sc_dcg_richland$nhl_ai_an))` people considered 
+themselves American Indian or Alaskan Native, `r comma(sum(sc_dcg_richland$nhl_asian))` people 
+considered themselves Asian, `r comma(sum(sc_dcg_richland$nhl_nhi_pi))` people considered 
+themselves Native Hawaiian or Pacific Islander, and `r comma(sum(sc_dcg_richland$pct_nhl_ao))`
+people considered themselves some other race or two or three or more races.
 
-\newpage
+In those zip codes with complete COVID-19 data which maintained polling locations 
+(n = `r nrow(sc_dcm_richland)`),`r comma(sum(sc_dcm_richland$total_hl))`people considered 
+themselves Hispanic or Latino, `r comma(sum(sc_dcm_richland$nhl_white))` people considered 
+themselves White, `r comma(sum(sc_dcm_richland$nhl_black))` people considered themselves 
+Black or African-American, `r comma(sum(sc_dcm_richland$nhl_ai_an))` people considered 
+themselves American Indian or Alaskan Native, `r comma(sum(sc_dcm_richland$nhl_asian))` people 
+considered themselves Asian, `r comma(sum(sc_dcm_richland$nhl_nhi_pi))` people considered 
+themselves Native Hawaiian or Pacific Islander, and `r comma(sum(sc_dcm_richland$pct_nhl_ao))`
+people considered themselves some other race or two or three or more races.
 
-In those zip codes within Richland County with complete COVID-19 data by zip code 
-which gained or maintained polling locations in the 2020 PPE (n = `r nrow(sc_dc_rgm)`), 
-an average of `r round_half_up(mean(sc_dc_rgm$pct_hl),0)`% 
-(median = `r round_half_up(median(sc_dc_rgm$pct_hl),0)`%) of people considered 
-themselves Hispanic or Latino, an average of `r round_half_up(mean(sc_dc_rgm$pct_nhl_white),0)`% 
-(median = `r round_half_up(median(sc_dc_rgm$pct_nhl_white),0)`%) of people 
-considered themselves White, an average of `r round_half_up(mean(sc_dc_rgm$pct_nhl_black),0)`% 
-(median = `r round_half_up(median(sc_dc_rgm$pct_nhl_black),0)`%) of people 
-considered themselves Black or African-American, fewer than 1% of people 
-considered themselves American Indian or Alaskan Native or Native Hawaiian or 
-Pacific Islander, an average of `r round_half_up(mean(sc_dc_rgm$pct_nhl_asian),0)`% 
-(median = `r round_half_up(median(sc_dc_rgm$pct_nhl_asian),0)`%) of people 
-considered themselves Asian, and an average of `r round_half_up(mean(sc_dc_rgm$pct_nhl_ao),0)`% 
-(median = `r round_half_up(median(sc_dc_rgm$pct_nhl_ao),0)`%) of people 
-considered themselves some other race or two or three or more races. These zip 
-codes had an average of `r comma(mean(sc_dc_rgm$cases))` cases of COVID-19.
+In those zip codes with complete COVID-19 data which lost polling locations 
+(n = `r nrow(sc_dclost_richland)`),`r comma(sum(sc_dclost_richland$total_hl))`people 
+considered themselves Hispanic or Latino, `r comma(sum(sc_dclost_richland$nhl_white))` 
+people considered themselves White, `r comma(sum(sc_dclost_richland$nhl_black))` people 
+considered themselves Black or African-American, `r comma(sum(sc_dclost_richland$nhl_ai_an))` 
+people considered themselves American Indian or Alaskan Native, 
+`r comma(sum(sc_dclost_richland$nhl_asian))` people considered themselves Asian, 
+`r comma(sum(sc_dclost_richland$nhl_nhi_pi))` people considered themselves Native Hawaiian 
+or Pacific Islander, and `r comma(sum(sc_dclost_richland$pct_nhl_ao))`people considered 
+themselves some other race or two or three or more races.
 
 ## Methodology
 
