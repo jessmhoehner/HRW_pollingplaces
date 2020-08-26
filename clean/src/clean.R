@@ -90,7 +90,7 @@ az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
   verify(min(id) == 7700104067 & max(id) == 770099999)  %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
   mutate(zipcode = as.factor(substr(address_line, nchar(address_line) - n_last + 1,
-                          nchar(address_line)))) %>%
+                                    nchar(address_line)))) %>%
   verify(is.na(zipcode) == FALSE) %>%
   filter(zipcode != "12345") %>%
   filter(unique(id) != FALSE) %>%
@@ -102,7 +102,7 @@ az_2020_maricopa_df <- pluck(read_rds(inputs$VIPinlist_imp), 3) %>%
   verify(min(id) == 8850010055 & max(id) == 8850015622)  %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
   mutate(zipcode = as.factor(substr(address_line, nchar(address_line) - n_last + 1,
-                          nchar(address_line)))) %>%
+                                    nchar(address_line)))) %>%
   verify(is.na(zipcode) == FALSE) %>%
   filter(unique(id) != FALSE) %>%
   verify(n_distinct(id) == 151) %>%
@@ -135,13 +135,14 @@ az_zips_freq_2020 <- as.data.frame(table(az_2020_df_full$zipcode)) %>%
   verify(ncol(.) == 4 & nrow(.) == 274) %>%
   verify(is.numeric(n_pp_2020) == TRUE)
 
-# which zipcodes saw an increase, decrease, or maitenence in polling places?
+# which zipcodes saw an increase, decrease, or maintenance in polling places?
 n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
-         delta_cat = as.factor(if_else(delta_n_places < 0,
-                                       "Lost Polling Places",
-                                       "Gained or Maintained Polling Places"))) %>%
+         delta_cat = case_when(
+           delta_n_places == 0 ~ "Maintained Polling Locations",
+           delta_n_places < 0 ~ "Lost Polling Locations",
+           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
   verify(ncol(.) == 5 & nrow(.) == 286)
@@ -186,7 +187,7 @@ sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
   verify(min(id) == 88801000 & max(id) == 8880999) %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
   mutate(zipcode = as.character(substr(address_line, nchar(address_line) - n_last + 1,
-                          nchar(address_line)))) %>%
+                                       nchar(address_line)))) %>%
   verify(is.na(zipcode) == FALSE) %>%
   mutate(zipcode = as.character(if_else(zipcode == "40 SC", "29840", zipcode)),
          zipcode = if_else(id == "88801220", "29410", zipcode),
@@ -212,9 +213,10 @@ sc_zips_freq_2020 <- as.data.frame(table(sc_2020_df$zipcode)) %>%
 n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
-         delta_cat = as.factor(if_else(delta_n_places < 0,
-                                       "Lost Polling Places",
-                                       "Gained or Maintained Polling Places"))) %>%
+         delta_cat = case_when(
+           delta_n_places == 0 ~ "Maintained Polling Locations",
+           delta_n_places < 0 ~ "Lost Polling Locations",
+           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
   verify(ncol(.) == 5 & nrow(.) == 381)
