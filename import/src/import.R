@@ -22,19 +22,19 @@ inputs <- list(
   az_covid_zip = here::here("import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv"),
   sc_covid_zip = here::here("import/input/covid/TableOption2.pdf"),
   zip_counties = here::here("import/input/zips/zip_code_database.csv")
-  )
+)
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
   covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
   census_imp = here::here("clean/input/census_imported.rds"),
   covid_sc_imp = here::here("clean/input/covid_sc_imported.rds"),
   counnzip_azsc_imp = here::here("clean/input/counzip_azsc_imported.rds")
-  )
+)
 
 # import VIP data
 ## creates a list of VIP files as connections
 inputslist <- list(inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa,
-                  inputs$sc_2016, inputs$sc_2020)
+                   inputs$sc_2016, inputs$sc_2020)
 
 names(inputslist) <- c("az_2016", "az_2020", "az_2020_maricopa",
                        "sc_2016", "sc_2020")
@@ -74,6 +74,7 @@ az_covid_data <- read_csv(inputs$az_covid_zip, col_names = TRUE) %>%
 
 expected_cols25 <- c("county", "state", "cases")
 
+# breaks with new covid data
 sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv",
                           col_types = cols_only(county = 'c',
                                                 state = 'c',
@@ -82,7 +83,7 @@ sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "South Carolina") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "South Carolina") %>%
-  verify(ncol(.) == 3 & nrow(.) == 7249) %>%
+  verify(ncol(.) == 3 & nrow(.) == 7295) %>%
   saveRDS(outputs$covid_sc_imp)
 
 # import census data for SC and AZ ending in 2018

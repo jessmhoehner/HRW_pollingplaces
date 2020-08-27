@@ -6,7 +6,7 @@
 # ============================================
 # HRW_pollingplaces/clean/src/clean.R
 #
-pacman::p_load("tidyverse", "assertr", "janitor")
+pacman::p_load("tidyverse", "assertr", "janitor", "gtools")
 
 inputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
@@ -249,7 +249,43 @@ az_demo <- read_rds(inputs$census_imp) %>%
          pct_nhl_ai_an = as.numeric((nhl_ai_an/total)*100),
          pct_nhl_asian = as.numeric((nhl_asian/total)*100),
          pct_nhl_nhi_pi = as.numeric((nhl_nhi_pi/total)*100),
-         pct_nhl_ao = as.numeric((nhl_ao/total)*100)) %>%
+         pct_nhl_ao = as.numeric((nhl_ao/total)*100),
+         gp_hl = case_when(
+           total_hl > 50001 & total_hl <= 60000 ~ "50,001-60,000",
+         total_hl > 40001 & total_hl <= 50000 ~ "40,001-50,000",
+         total_hl > 30001 & total_hl <= 40000 ~ "30,001-40,000",
+         total_hl > 20001 & total_hl <= 30000 ~ "20,001-30,000",
+         total_hl > 10001 & total_hl <= 20000 ~ "10,001-20,000",
+         total_hl <= 10000 ~ "0-10,000"),
+         gp_white = case_when(
+           nhl_white > 50001 & nhl_white <= 60000 ~ "50,001-60,000",
+           nhl_white > 40001 & nhl_white <= 50000 ~ "40,001-50,000",
+           nhl_white > 30001 & nhl_white <= 40000 ~ "30,001-40,000",
+           nhl_white > 20001 & nhl_white <= 30000 ~ "20,001-30,000",
+           nhl_white > 10001 & nhl_white <= 20000 ~ "10,001-20,000",
+           nhl_white <= 10000 ~ "0-10,000"),
+         gp_black = case_when(
+           nhl_black > 50001 & nhl_black <= 60000 ~ "50,001-60,000",
+           nhl_black > 40001 & nhl_black <= 50000 ~ "40,001-50,000",
+           nhl_black > 30001 & nhl_black <= 40000 ~ "30,001-40,000",
+           nhl_black > 20001 & nhl_black <= 30000 ~ "20,001-30,000",
+           nhl_black > 10001 & nhl_black <= 20000 ~ "10,001-20,000",
+           nhl_black <= 10000 ~ "0-10,000"),
+         gp_ai_an = case_when(
+           nhl_ai_an > 50001 & nhl_ai_an <= 60000 ~ "50,001-60,000",
+           nhl_ai_an > 40001 & nhl_ai_an <= 50000 ~ "40,001-50,000",
+           nhl_ai_an > 30001 & nhl_ai_an <= 40000 ~ "30,001-40,000",
+           nhl_ai_an > 20001 & nhl_ai_an <= 30000 ~ "20,001-30,000",
+           nhl_ai_an > 10001 & nhl_ai_an <= 20000 ~ "10,001-20,000",
+           nhl_ai_an <= 10000 ~ "0-10,000"),
+         qao = quantcut(nhl_ao),
+         qhl = quantcut(total_hl),
+         qnhl = quantcut(total_nhl),
+         qwhite = quantcut(nhl_white),
+         qblack = quantcut(nhl_black),
+         qai_an = quantcut(nhl_ai_an),
+         qasian = quantcut(nhl_asian),
+         qnhi_pi = quantcut(nhl_nhi_pi)) %>%
   group_by(geoid) %>%
   verify(sum(nhl_ao) == sum(nhl_sor + nhl_tom)) %>%
   verify(is.na(pct_nhl_ao) == FALSE) %>%
@@ -259,7 +295,7 @@ az_demo <- read_rds(inputs$census_imp) %>%
   filter(county != "Missing County") %>%
   mutate(county = if_else(county == "McKinley County", "Apache County", county),
          county = if_else(county == "San Juan County", "Coconino County", county)) %>%
-  verify(ncol(.) == 26 & nrow(.) == 285) %>%
+  verify(ncol(.) == 38 & nrow(.) == 285) %>%
   verify(county != "McKinley County" | county != "San Juan County" |
            county != "Missing County")
 
@@ -276,7 +312,36 @@ sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
          pct_nhl_ai_an = as.numeric((nhl_ai_an/total)*100),
          pct_nhl_asian = as.numeric((nhl_asian/total)*100),
          pct_nhl_nhi_pi = as.numeric((nhl_nhi_pi/total)*100),
-         pct_nhl_ao = as.numeric((nhl_ao/total)*100)) %>%
+         pct_nhl_ao = as.numeric((nhl_ao/total)*100),
+         gp_hl = case_when(
+           total_hl > 50001 & total_hl <= 60000 ~ "50,001-60,000",
+           total_hl > 40001 & total_hl <= 50000 ~ "40,001-50,000",
+           total_hl > 30001 & total_hl <= 40000 ~ "30,001-40,000",
+           total_hl > 20001 & total_hl <= 30000 ~ "20,001-30,000",
+           total_hl > 10001 & total_hl <= 20000 ~ "10,001-20,000",
+           total_hl <= 10000 ~ "0-10,000"),
+         gp_white = case_when(
+           nhl_white > 50001 & nhl_white <= 60000 ~ "50,001-60,000",
+           nhl_white > 40001 & nhl_white <= 50000 ~ "40,001-50,000",
+           nhl_white > 30001 & nhl_white <= 40000 ~ "30,001-40,000",
+           nhl_white > 20001 & nhl_white <= 30000 ~ "20,001-30,000",
+           nhl_white > 10001 & nhl_white <= 20000 ~ "10,001-20,000",
+           nhl_white <= 10000 ~ "0-10,000"),
+         gp_black = case_when(
+           nhl_black > 50001 & nhl_black <= 60000 ~ "50,001-60,000",
+           nhl_black > 40001 & nhl_black <= 50000 ~ "40,001-50,000",
+           nhl_black > 30001 & nhl_black <= 40000 ~ "30,001-40,000",
+           nhl_black > 20001 & nhl_black <= 30000 ~ "20,001-30,000",
+           nhl_black > 10001 & nhl_black <= 20000 ~ "10,001-20,000",
+           nhl_black <= 10000 ~ "0-10,000"),
+         qao = quantcut(nhl_ao),
+         qhl = quantcut(total_hl),
+         qnhl = quantcut(total_nhl),
+         qwhite = quantcut(nhl_white),
+         qblack = quantcut(nhl_black),
+         qai_an = quantcut(nhl_ai_an),
+         qasian = quantcut(nhl_asian),
+         qnhi_pi = quantcut(nhl_nhi_pi)) %>%
   group_by(geoid) %>%
   verify(sum(nhl_ao) == sum(nhl_sor + nhl_tom)) %>%
   verify(is.na(pct_nhl_ao) == FALSE) %>%
@@ -284,7 +349,7 @@ sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
   full_join(sc_cos, by = c("geoid" = "zip")) %>%
   mutate(county = if_else(is.na(county) == TRUE, "Missing County", county)) %>%
   filter(county != "Missing County") %>%
-  verify(ncol(.) == 26 & nrow(.) == 380) %>%
+  verify(ncol(.) == 37 & nrow(.) == 380) %>%
   verify(county != "Missing County")
 
 # export all objects for write task here so as not to have null objects
@@ -332,7 +397,7 @@ az_covid_demo_df <- read_rds(inputs$az_covid_data) %>%
       ~ "No COVID Data Reported")) %>%
   filter(covid_cat != "Missing Polling Data") %>%
   verify(covid_cat != "Missing Polling Data") %>%
-  verify(ncol(.) == 30 & nrow(.) == 285) %>%
+  verify(ncol(.) == 42 & nrow(.) == 285) %>%
   saveRDS(outputs$az_demo_covid_clean)
 
 az_demo <- az_demo %>%
@@ -351,7 +416,7 @@ sc_covid_demo_df <- read_rds(inputs$sc_covid_data) %>%
   rename(county = county.y,
          zipcode = zip) %>%
   select(-c(county.x, state)) %>%
-  verify(ncol(.) == 26 & nrow(.) == 380) %>%
+  verify(ncol(.) == 37 & nrow(.) == 380) %>%
   saveRDS(outputs$sc_demo_covid_clean)
 
 sc_demo <- sc_demo %>%
