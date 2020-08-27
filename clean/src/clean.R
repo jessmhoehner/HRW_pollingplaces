@@ -285,7 +285,8 @@ az_demo <- read_rds(inputs$census_imp) %>%
          qblack = quantcut(nhl_black),
          qai_an = quantcut(nhl_ai_an),
          qasian = quantcut(nhl_asian),
-         qnhi_pi = quantcut(nhl_nhi_pi)) %>%
+         qnhi_pi = quantcut(nhl_nhi_pi),
+         qtotal = quantcut(total)) %>%
   group_by(geoid) %>%
   verify(sum(nhl_ao) == sum(nhl_sor + nhl_tom)) %>%
   verify(is.na(pct_nhl_ao) == FALSE) %>%
@@ -295,7 +296,7 @@ az_demo <- read_rds(inputs$census_imp) %>%
   filter(county != "Missing County") %>%
   mutate(county = if_else(county == "McKinley County", "Apache County", county),
          county = if_else(county == "San Juan County", "Coconino County", county)) %>%
-  verify(ncol(.) == 38 & nrow(.) == 285) %>%
+  verify(ncol(.) == 39 & nrow(.) == 285) %>%
   verify(county != "McKinley County" | county != "San Juan County" |
            county != "Missing County")
 
@@ -341,7 +342,8 @@ sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
          qblack = quantcut(nhl_black),
          qai_an = quantcut(nhl_ai_an),
          qasian = quantcut(nhl_asian),
-         qnhi_pi = quantcut(nhl_nhi_pi)) %>%
+         qnhi_pi = quantcut(nhl_nhi_pi),
+         qtotal = quantcut(total)) %>%
   group_by(geoid) %>%
   verify(sum(nhl_ao) == sum(nhl_sor + nhl_tom)) %>%
   verify(is.na(pct_nhl_ao) == FALSE) %>%
@@ -349,7 +351,7 @@ sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
   full_join(sc_cos, by = c("geoid" = "zip")) %>%
   mutate(county = if_else(is.na(county) == TRUE, "Missing County", county)) %>%
   filter(county != "Missing County") %>%
-  verify(ncol(.) == 37 & nrow(.) == 380) %>%
+  verify(ncol(.) == 38 & nrow(.) == 380) %>%
   verify(county != "Missing County")
 
 # export all objects for write task here so as not to have null objects
@@ -397,7 +399,7 @@ az_covid_demo_df <- read_rds(inputs$az_covid_data) %>%
       ~ "No COVID Data Reported")) %>%
   filter(covid_cat != "Missing Polling Data") %>%
   verify(covid_cat != "Missing Polling Data") %>%
-  verify(ncol(.) == 42 & nrow(.) == 285) %>%
+  verify(ncol(.) == 43 & nrow(.) == 285) %>%
   saveRDS(outputs$az_demo_covid_clean)
 
 az_demo <- az_demo %>%
@@ -416,7 +418,7 @@ sc_covid_demo_df <- read_rds(inputs$sc_covid_data) %>%
   rename(county = county.y,
          zipcode = zip) %>%
   select(-c(county.x, state)) %>%
-  verify(ncol(.) == 37 & nrow(.) == 380) %>%
+  verify(ncol(.) == 38 & nrow(.) == 380) %>%
   saveRDS(outputs$sc_demo_covid_clean)
 
 sc_demo <- sc_demo %>%
