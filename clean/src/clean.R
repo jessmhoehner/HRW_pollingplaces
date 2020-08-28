@@ -10,11 +10,18 @@ pacman::p_load("tidyverse", "assertr", "janitor", "gtools")
 
 inputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
+  pa_2016_imp = here::here("clean/input/pa2016_imported.rds"),
+  pa_2020_imp = here::here("clean/input/pa2020_imported.rds"),
+
   census_imp = here::here("clean/input/census_imported.rds"),
+
   az_covid_data = here::here("clean/input/covid_az_imported.rds"),
   sc_covid_data = here::here("clean/input/covid_sc_imported.rds"),
-  az_sc_counzips = here::here("/clean/input/counzip_azsc_imported.rds")
+  covid_pa_imp = here::here("clean/input/covid_pa_imported.rds"),
+
+  counnzip_azscpa_imp = here::here("clean/input/counzip_azscpa_imported.rds")
 )
+
 outputs <- list(
   az_2016_clean = here::here("write/input/az_2016_clean.rds"),
   az_2016_freq_clean = here::here("write/input/az_2016_freq_clean.rds"),
@@ -28,10 +35,17 @@ outputs <- list(
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
   sc_demo_clean = here::here("write/input/sc_demo_clean.rds"),
-  sc_demo_covid_clean = here::here("write/input/sc_demo_covid_clean.rds")
+  sc_demo_covid_clean = here::here("write/input/sc_demo_covid_clean.rds"),
+
+  pa_2016_clean = here::here("write/input/pa_2016_clean.rds"),
+  pa_2016_freq_clean = here::here("write/input/pa_2016_freq_clean.rds"),
+  pa_2020_clean = here::here("write/input/pa_2020_clean.rds"),
+  pa_2020_freq_clean = here::here("write/input/pa_2020_freq_clean.rds"),
+  pa_demo_clean = here::here("write/input/pa_demo_clean.rds"),
+  pa_demo_covid_clean = here::here("write/input/pa_demo_covid_clean.rds")
 )
 
-# VIP data
+# VIP data Arizon and South Carolina ##########################################
 n_last <- 5
 invalid_info <- c("4600331", "46002736", "4600617", "4600618",
                   "4610205126","46002463", "4600178", "46003124")
@@ -73,133 +87,17 @@ az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
          zipcode = if_else(id == "46002737", "85346", zipcode),
          zipcode = if_else(id == "460043" | id == "460034", "86001", zipcode),
          zipcode = if_else(id == "4600928", "85925", zipcode),
-         address_line = tolower(address_line),
-         name = tolower(name),
-         address_line = if_else(id == "401333313481",
-                                "1  kaka village  gila bend az 85337", address_line),
-         address_line = if_else(id == "46003049",
-                                "100 sunset drive superior az 85173", address_line),
-         address_line = if_else(id == "46003071",
-                                "1084 w san tan hills dr san tan valley az 85143",
-                                address_line),
+         address_line = make_clean_names(address_line, sep_out = " ",
+                                         unique_sep = NULL),
+         address_line = sub("_.*", "", address_line),
+         name = make_clean_names(name, sep_out = " ",unique_sep = NULL),
+         name = sub("_.*", "", name),
          id = if_else(id == "4600956", "4600977", id),
-         address_line = if_else(id == "4600911",
-                                "1730 kino ave kingman az 86409", address_line),
-         address_line = if_else(id == "40133334004",
-                                "222 e javelina ave mesa az 85210",
-                                address_line),
-         address_line = if_else(id == "46003053",
-                               "2559 e combs road san tan valley az 85140",
-                               address_line),
-         address_line = if_else(id == "46003039",
-                                "28479 n main street san tan valley az 85143",
-                                address_line),
-         address_line = if_else(id == "4600205135",
-                                "302 south ash street payson az 85541",
-                                address_line),
-         address_line = if_else(id == "46003031",
-                                "31 n church street sacaton az 85147",
-                                address_line),
          id = if_else(id == "46003067", "4600205063", id),
-         address_line = if_else(id == "4600205063",
-                                "33622 n mountain vista blvd san tan valley az 85142",
-                                address_line),
-         address_line = if_else(id == "46003314",
-                                "346 duquesne ave. patagonia az 85624",
-                                address_line),
-         address_line = if_else(id == "46003082",
-                                "3496 w casa blanca rd bapchule az 85121",
-                                address_line),
-         address_line = if_else(id == "46003078",
-                                "3650 w shedd road eloy az 85131",
-                                address_line),
-         address_line = if_else(id == "46003096",
-                                "39315 n cortona dr san tan valley az 85140",
-                                address_line),
-         address_line = if_else(id == "46002423",
-                                "4039 n az hwy 87 pine az 85544",
-                                address_line),
-         address_line = if_else(id == "46002412",
-                                "4621 south 9th street canyon day az 85491",
-                                address_line),
-         address_line = if_else(id == "4600961",
-                                "4990 payroll ave chloride az 86431",
-                                address_line),
-         address_line = if_else(id == "46003324",
-                                "50 bridge road tubac az 85646",
-                                address_line),
-         address_line = if_else(id == "46003022",
-                                "501 e korsten rd casa grande az 85122",
-                                address_line),
-         address_line = if_else(id == "40133334003",
-                                "510 s 3rd ave phoenix az 85003",
-                                address_line),
-         address_line = if_else(id == "46003011",
-                                "550 s ironwood drive apache junction az 85120",
-                                address_line),
-         address_line = if_else(id == "46003047",
-                                "575 n idaho rd apache junction az 85119",
-                                address_line),
-         address_line = if_else(id == "46003056",
-                                "5782 s mountainbrook dr gold canyon az 85118",
-                                address_line),
-         address_line = if_else(id == "46003014",
-                                "615 s stanfield rd stanfield az 85172",
-                                address_line),
-         address_line = if_else(id == "46003057",
-                                "685 e american way oracle az 85623",
-                                address_line),
-         address_line = if_else(id == "46002483",
-                                "824 thorn avenue winkelman az 85192",
-                                address_line),
-         address_line = if_else(id == "46003017",
-                                "8470 n overfield rd  coolidge az 85128",
-                                address_line),
-         address_line = if_else(id == "46003315",
-                                "901 e. calle mayer nogales az 85621",
-                                address_line),
-         address_line = if_else(id == "4600205068",
-                                "912 e tilbury dr kearny az 85137",
-                                address_line),
-         address_line = if_else(id == "46003018",
-                                "962 w gila bend highway casa grande az 85122",
-                                address_line),
-         address_line = if_else(id == "46001206",
-                                "black mesa chapter house black mesa az 86033",
-                                address_line),
          id = if_else(id == "46001808", "46001809", id),
          id = if_else(id == "4600183", "4600186", id),
-         address_line = if_else(id == "46001811",
-                                "cornfields chapter house ganado az 86505",
-                                address_line),
-         address_line = if_else(id == "46001812",
-                                "cottonwood chapter house chinle az 86503",
-                                address_line),
-         address_line = if_else(id == "46003069",
-                                "federal route 15 & saint  augustine street sells az 85122",
-                                address_line),
-         address_line = if_else(id == "46001213",
-                                "forest lake chapter house forest lake az 86033",
-                                address_line),
-         address_line = if_else(id == "46001822",
-                                "kinlichee chapter house st michaels az 86511",
-                                address_line),
-         address_line = if_else(id == "46001827",
-                                "many farms chapter house many farms az 86538",
-                                address_line),
-         address_line = if_else(id == "46001828",
-                                "mexican water chapter mexican water az 86514",
-                                address_line),
-         address_line = if_else(id == "46002410",
-                                "mohave ave & yavapai st san carlos az 85550",
-                                address_line),
-         id = if_else(id == "46002737", "46002718", id),
-         address_line = if_else(id == "46001841",
-                                "st. michaels chapter house st. michaels az 85611",
-                                address_line),
-         address_line = if_else(id == "46001847",
-                                "teec nos pos road yard  teec nos pos az 86514",
-                                address_line)) %>%
+         id = if_else(id == "46002737", "46002718", id)) %>%
+  filter(address_line != "az") %>%
   filter(!id %in% invalid_info) %>%
   verify(is.na(zipcode) == FALSE) %>%
   distinct(id, .keep_all = TRUE) %>%
@@ -214,7 +112,7 @@ az_zips_freq_2016 <- as.data.frame(table(az_2016_df$zipcode)) %>%
          n_pp_2016 = as.numeric(Freq)) %>%
   verify(ncol(.) == 4 & nrow(.) == 195)
 
-# 2020 data
+# AZ 2020 data
 az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
   verify(ncol(.) == 3 & nrow(.) == 330) %>%
   verify(min(id) == 7700104067 & max(id) == 770099999)  %>%
@@ -351,11 +249,11 @@ new_addsaz_sanmar <- anti_join(az_san_mar2020, az_san_mar2016, by = "address_lin
 #221/319 locations appear only in 2020
 
 # how many polling places persisted between 2016 and 2020?
-mc_both <- semi_join(mcq2020, az_2016_df, by = "address_line")
+mc_both <- semi_join(mc2020, az_2016_df, by = "address_line")
 #27/151 locations open in maricopa in 2020 appear in both lists
 
 # how many were only active in 2020/new in 2020?
-mc_2020only <- anti_join(mcq2020, az_2016_df, by = "address_line")
+mc_2020only <- anti_join(mc2020, az_2016_df, by = "address_line")
 #124/151 locations open in maricopa in 2020 do not appear in the 2016 list
 
 ### south carolina ###
@@ -418,6 +316,8 @@ sc_zips_freq_2016 <- as.data.frame(table(sc_2016_df$zipcode)) %>%
   filter(zipcode != "SC") %>%
   verify(ncol(.) == 4 & nrow(.) == 377) %>%
   verify(zipcode != "SC")
+
+## SC 2020 data #####################################
 
 # summerville is now in zipcode 29483 not 29486
 summerville <- c("88802641", "88802496", "88802274", "88801273",
@@ -496,33 +396,109 @@ n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %
 new_addssc <- anti_join(sc_2020_df, sc_2016_df, by = "address_line",
                        suffix = c("2020", "2016"))
 
-# pennsylanvia
-
-pa2016_df <- read_csv(inputs$pa_2016, col_names = TRUE,
-                      na = "NULL", col_types =
-                        c(Comment = 'c',
-                          HouseNum = 'c',
-                          PostalCode = 'n')) %>%
+## PA 2016 data###################################################
+pa_2016_df <- read_rds(inputs$pa_2016) %>%
   clean_names() %>%
   mutate(
     street = tolower(if_else(street == "OLD ROUTE  30", "OLD ROUTE 30", street)),
-    description = tolower(description),
+    name = make_clean_names(description, sep_out = " ", unique_sep = NULL),
+    name = sub("_.*", "", name),
     comment = tolower(comment),
     prefix_direction_desc = tolower(prefix_direction_desc),
     street_type_desc = tolower(street_type_desc),
     city = tolower(city),
-    line2 = tolower(line2)) %>%
-  distinct(description, house_num, street, street_type_desc, city,
-           .keep_all = TRUE)
+    line2 = tolower(line2),
+    zipcode = as.character(postal_code),
+    county = as.character(snakecase::to_any_case(county_name, case = "big_camel"))) %>%
+  select(county, name, house_num, street, street_type_desc, city, zipcode) %>%
+  unite("address_line", house_num:zipcode, remove = FALSE, sep = " ") %>%
+  mutate(address_line = make_clean_names(address_line, sep_out = " ",
+                                         unique_sep = NULL),
+         address_line = sub("_.*", "", address_line)) %>%
+  filter(zipcode > 13235 & zipcode != 191) %>%
+  select(county, name, address_line, zipcode) %>%
+  distinct(address_line, .keep_all = TRUE) %>%
+  verify(n_distinct(address_line) == 5756) %>%
+  arrange(address_line) %>%
+  verify(nrow(.) == 5756 & ncol(.) == 4)
 
-# removed 799 locations with
-# duplicated street addresses
+# 1325 locations with no zip code, will have to either discard or only do county
+# level analysis
+no_zips_pa <- pa_2016_df %>%
+  filter(is.na(zipcode) == TRUE)
+
+# nrows = number of unique zip codes in 2016
+pa_zips_freq_2016 <- as.data.frame(table(pa_2016_df$zipcode)) %>%
+  mutate(zipcode = Var1,
+         n_pp_2016 = as.numeric(Freq)) %>%
+  verify(ncol(.) == 4 & nrow(.) == 1488)
+
+# PA 2020 data ##########
+pa_2020_df <- read_rds(inputs$pa_2020) %>%
+  clean_names() %>%
+  mutate(
+    street = tolower(if_else(street == "OLD ROUTE  30", "OLD ROUTE 30", street)),
+    name = make_clean_names(description, sep_out = " ", unique_sep = NULL),
+    name = sub("_.*", "", name),
+    comment = tolower(comment),
+    prefix_direction = tolower(prefix_direction),
+    street_type = tolower(street_type),
+    city = tolower(city),
+    line2 = tolower(line2),
+    zipcode = as.character(postal_code),
+    county = as.character(snakecase::to_any_case(county_name, case = "big_camel"))) %>%
+    select(county, name, house_num, street, street_type, city, zipcode) %>%
+    unite("address_line", house_num:zipcode, remove = FALSE, sep = " ") %>%
+  mutate(address_line = make_clean_names(address_line, sep_out = " ",
+                                         unique_sep = NULL),
+         address_line = sub("_.*", "", address_line)) %>%
+    filter(zipcode > 13235 & zipcode != 191) %>%
+    select(county, name, address_line, zipcode) %>%
+    distinct(address_line, .keep_all = TRUE) %>%
+    verify(n_distinct(address_line) == 5259) %>%
+    arrange(address_line) %>%
+    verify(nrow(.) == 5280 & ncol(.) == 4)
+
+# nrows = number of unique zip codes in 2020 = 1514
+pa_zips_freq_2020 <- as.data.frame(table(pa_2020_df$zipcode)) %>%
+  mutate(zipcode = Var1,
+         n_pp_2020 = as.numeric(Freq)) %>%
+  verify(ncol(.) == 4 & nrow(.) == 1516)
+
+# which zip codes saw an increase, decrease, or maintenance in polling places?
+n_places_pa <- full_join(pa_zips_freq_2020, pa_zips_freq_2016, by = "zipcode") %>%
+  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
+  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
+         delta_cat = case_when(
+           delta_n_places == 0 ~ "Maintained Polling Locations",
+           delta_n_places < 0 ~ "Lost Polling Locations",
+           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
+  arrange(delta_n_places) %>%
+  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
+  verify(ncol(.) == 5 & nrow(.) == 1592)
+
+# how many addresses appear only in 2020 data and not 2016 data?
+
+# 1926/1516 polling places are new in 2020
+unique_places <- full_join(pa_2020_df, pa_2016_df, by = "address_line",
+                        suffix = c("2020", "2016"))
+
+uniques2020 <- all_addspa %>%
+  distinct(name2020, county2020, zipcode2020, .keep_all = TRUE)
+
+new_addspa <- anti_join(pa_2020_df, pa_2016_df, by = "address_line",
+                        suffix = c("2020", "2016"))
 
 
-# found some zipcodes with impossible values, stashing them here
-strange_zips <- pa2016_df %>%
-  filter(postal_code < 13235)
 
+
+
+
+
+
+
+
+##########################################################################
 # add in county information
 az_cos <- read_rds(inputs$az_sc_counzips) %>%
   filter(state == "AZ") %>%
