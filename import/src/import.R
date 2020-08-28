@@ -83,7 +83,8 @@ pa2016_df <- read_csv(inputs$pa_2016, col_names = TRUE,
                           PostalCode = 'n')) %>%
   clean_names() %>%
   verify(colnames(.) == expected_colspa2016) %>%
-  verify(ncol(.) == 16 & nrow(.) == 9160)
+  verify(ncol(.) == 16 & nrow(.) == 9160) %>%
+  saveRDS(outputs$pa_2016_imp)
 
 
 expected_colspa2020 <- c("county_name","precinct_code","precinct_name",
@@ -100,7 +101,8 @@ pa2020_df <- read_csv(inputs$pa_2020, col_names = TRUE,
                           PostalCode = 'n')) %>%
   clean_names() %>%
   verify(colnames(.) == expected_colspa2020) %>%
-  verify(ncol(.) == 17 & nrow(.) == 9234)
+  verify(ncol(.) == 17 & nrow(.) == 9234) %>%
+  saveRDS(outputs$pa_2020_imp)
 
 # verification will break with new data
 
@@ -126,7 +128,7 @@ sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "South Carolina") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "South Carolina") %>%
-  verify(ncol(.) == 3 & nrow(.) == 7341) %>%
+  verify(ncol(.) == 3 & nrow(.) == 7387) %>%
   saveRDS(outputs$covid_sc_imp)
 
 # breaks with new covid data
@@ -138,7 +140,7 @@ pa_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "Pennsylvania") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "Pennsylvania") %>%
-  verify(ncol(.) == 3 & nrow(.) == 10566) %>%
+  verify(ncol(.) == 3 & nrow(.) == 10633) %>%
   saveRDS(outputs$covid_pa_imp)
 
 # zips in SC and AZ
@@ -151,7 +153,6 @@ zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
   filter(is.na(county) != TRUE) %>%
   verify(ncol(.) == 3 & nrow(.) == 3318) %>%
   verify(min(zip) == 15001 & max(zip) == 86556)
-
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
