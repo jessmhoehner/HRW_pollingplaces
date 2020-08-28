@@ -231,10 +231,16 @@ az_2020_maricopa_df <- pluck(read_rds(inputs$VIPinlist_imp), 3) %>%
   verify(ncol(.) == 3 & nrow(.) == 151) %>%
   verify(min(id) == 8850010055 & max(id) == 8850015622)  %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
-  mutate(zipcode = as.factor(substr(address_line, nchar(address_line) - n_last + 1,
-                                    nchar(address_line)))) %>%
+  mutate(address_line = tolower(address_line),
+         name = tolower(name),
+         zipcode = as.factor(substr(address_line, nchar(address_line) - n_last + 1,
+                                    nchar(address_line))),
+         address_line = if_else(id == "8850012015",
+                                "16402 n fort mcdowell rd fort mcdowell az 85264",
+                                address_line)) %>%
   verify(is.na(zipcode) == FALSE) %>%
-  filter(unique(id) != FALSE) %>%
+  distinct(id, .keep_all = TRUE) %>%
+  distinct(address_line, .keep_all = TRUE) %>%
   verify(n_distinct(id) == 151) %>%
   verify(nrow(.) == 151 & ncol(.) == 4)
 
@@ -323,6 +329,34 @@ n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %
 # 345/470 addresses in 2020 data not found in 2016 data
 new_addsaz <- anti_join(az_2020_df_full, az_2016_df, by = "address_line")
 
+# how many polling locations did maricopa have in 2016 vs 2020?
+
+# clean maricopa 2020 data
+mc2020 <- az_2020_maricopa_df %>%
+  mutate(address_line = tolower(address_line),
+         name = tolower(name)) %>%
+  filter(id %in% az_2020_df_full$id) %>%
+  filter(address_line %in% az_2020_df_full$address_line)
+#151 polling places with unique ids and addresses
+
+# how many new locations in az without maricopa?
+az_san_mar2020 <- az_2020_df_full %>%
+  filter(!id %in% mc2020$id)
+
+# how many new locations in az without maricopa?
+az_san_mar2016 <- az_2016_df %>%
+  filter(!id %in% mc2020$id)
+
+new_addsaz_sanmar <- anti_join(az_san_mar2020, az_san_mar2016, by = "address_line")
+#221/319 locations appear only in 2020
+
+# how many polling places persisted between 2016 and 2020?
+mc_both <- semi_join(mcq2020, az_2016_df, by = "address_line")
+#27/151 locations open in maricopa in 2020 appear in both lists
+
+# how many were only active in 2020/new in 2020?
+mc_2020only <- anti_join(mcq2020, az_2016_df, by = "address_line")
+#124/151 locations open in maricopa in 2020 do not appear in the 2016 list
 
 ### south carolina ###
 #nrows = unique polling places were open in 2016
@@ -462,12 +496,39 @@ n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %
 new_addssc <- anti_join(sc_2020_df, sc_2016_df, by = "address_line",
                        suffix = c("2020", "2016"))
 
+# pennsylanvia
+
+pa2016_df <- read_csv(inputs$pa_2016, col_names = TRUE,
+                      na = "NULL", col_types =
+                        c(Comment = 'c',
+                          HouseNum = 'c',
+                          PostalCode = 'n')) %>%
+  clean_names() %>%
+  mutate(
+    street = tolower(if_else(street == "OLD ROUTE  30", "OLD ROUTE 30", street)),
+    description = tolower(description),
+    comment = tolower(comment),
+    prefix_direction_desc = tolower(prefix_direction_desc),
+    street_type_desc = tolower(street_type_desc),
+    city = tolower(city),
+    line2 = tolower(line2)) %>%
+  distinct(description, house_num, street, street_type_desc, city,
+           .keep_all = TRUE)
+
+# removed 799 locations with
+# duplicated street addresses
+
+
+# found some zipcodes with impossible values, stashing them here
+strange_zips <- pa2016_df %>%
+  filter(postal_code < 13235)
+
 # add in county information
 az_cos <- read_rds(inputs$az_sc_counzips) %>%
   filter(state == "AZ") %>%
   mutate(zip = as.character(zip)) %>%
   filter(zip %in% n_places_az$zipcode) %>%
-  verify(ncol(.) == 3 & nrow(.) == 285)
+  verify(ncol(.) == 3 & nrow(.) == 284)
 
 sc_cos <- read_rds(inputs$az_sc_counzips) %>%
   filter(state == "SC") %>%
@@ -537,7 +598,7 @@ az_demo <- read_rds(inputs$census_imp) %>%
   filter(county != "Missing County") %>%
   mutate(county = if_else(county == "McKinley County", "Apache County", county),
          county = if_else(county == "San Juan County", "Coconino County", county)) %>%
-  verify(ncol(.) == 39 & nrow(.) == 285) %>%
+  verify(ncol(.) == 39 & nrow(.) == 284) %>%
   verify(county != "McKinley County" | county != "San Juan County" |
            county != "Missing County")
 
@@ -640,7 +701,7 @@ az_covid_demo_df <- read_rds(inputs$az_covid_data) %>%
       ~ "No COVID Data Reported")) %>%
   filter(covid_cat != "Missing Polling Data") %>%
   verify(covid_cat != "Missing Polling Data") %>%
-  verify(ncol(.) == 43 & nrow(.) == 285) %>%
+  verify(ncol(.) == 43 & nrow(.) == 284) %>%
   saveRDS(outputs$az_demo_covid_clean)
 
 az_demo <- az_demo %>%
