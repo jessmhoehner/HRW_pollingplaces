@@ -128,7 +128,7 @@ sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "South Carolina") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "South Carolina") %>%
-  verify(ncol(.) == 3 & nrow(.) == 7387) %>%
+  verify(ncol(.) == 3 & nrow(.) == 7433) %>%
   saveRDS(outputs$covid_sc_imp)
 
 # breaks with new covid data
@@ -140,7 +140,7 @@ pa_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "Pennsylvania") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "Pennsylvania") %>%
-  verify(ncol(.) == 3 & nrow(.) == 10633) %>%
+  verify(ncol(.) == 3 & nrow(.) == 10700) %>%
   saveRDS(outputs$covid_pa_imp)
 
 # zips in SC and AZ
@@ -156,8 +156,10 @@ zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
+# bring in the geometry data with write task, it's messing up
+# the clean task
 jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c")
-expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe", "geometry")
+expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
 demo_1418 <- get_acs(geography = "zcta",
                      variables = c(total = "B03002_001",
@@ -171,13 +173,13 @@ demo_1418 <- get_acs(geography = "zcta",
                                    nhl_tom = "B03002_009",
                                    total_hl = "B03002_012"),
                      year = 2018,
-                     geometry = TRUE,
+                     geometry = FALSE,
                      key = jrkey) %>%
   clean_names() %>%
   verify(colnames(.) == expected_cols3) %>%
   select(geoid, name, variable, estimate) %>%
   filter(geoid %in% zc$zip) %>%
-  verify(ncol(.) == 5 & nrow(.) == 26270) %>%
+  verify(ncol(.) == 4 & nrow(.) == 26270) %>%
   saveRDS(outputs$census_imp)
 
 zc <- zc %>%
