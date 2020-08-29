@@ -21,7 +21,13 @@ clean_data = \
 				 $(HERE)/write/input/sc_2020_clean.rds \
 				 $(HERE)/write/input/sc_2020_freq_clean.rds \
 				 $(HERE)/write/input/sc_demo_clean.rds \
-				 $(HERE)/write/input/sc_demo_covid_clean.rds
+				 $(HERE)/write/input/sc_demo_covid_clean.rds \
+				 $(HERE)/write/input/pa_2016_clean.rds \
+				 $(HERE)/write/input/pa_2016_freq_clean.rds \
+				 $(HERE)/write/input/pa_2020_clean.rds \
+				 $(HERE)/write/input/pa_2020_freq_clean.rds \
+				 $(HERE)/write/input/pa_demo_clean.rds \
+				 $(HERE)/write/input/pa_demo_covid_clean.rds
 				 
 .PHONY:	all clean
 
@@ -33,10 +39,13 @@ clean:
 $(clean_data): \
 				src/clean.R \
 				$(HERE)/clean/input/VIPdata_imported.rds \
+				$(HERE)/clean/input/pa2016_imported.rds \
+				$(HERE)/clean/input/pa2020_imported.rds \
 				$(HERE)/clean/input/census_imported.rds \
 				$(HERE)/clean/input/covid_az_imported.rds \
 				$(HERE)/clean/input/covid_sc_imported.rds \
-				$(HERE)/clean/input/counzip_azsc_imported.rds
+				$(HERE)/clean/input/covid_pa_imported.rds \
+				$(HERE)/clean/input/counzip_azscpa_imported.rds
 			Rscript --vanilla $<
 			
 # done.
