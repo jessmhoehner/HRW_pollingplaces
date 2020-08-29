@@ -42,6 +42,8 @@ az_2020_df <- read_rds(files$az_2020_clean)
 sc_2016_df <- read_rds(files$sc_2016_clean)
 sc_2020_df <- read_rds(files$sc_2020_clean)
 
+#FIXME:add PA data
+
 ```
 
 ### Arizona
@@ -59,6 +61,8 @@ PPE. During the 2020 PPE there were `r nrow(sc_2020_df)` open polling locations.
 This is a difference of `r abs(sum((nrow(sc_2020_df) - nrow(sc_2016_df))))` fewer 
 or a `r abs(round_half_up((sum((nrow(sc_2020_df) - nrow(sc_2016_df)))/as.numeric(nrow(sc_2016_df))*100),1))`% 
 decrease in polling locations.
+
+### Pennsylvania
 
 ## Changes polling locations between 2016 and 2020 {-} 
 
@@ -107,6 +111,8 @@ sc_table <- n_places_sc %>%
             count = n(),
             percent_of_zips = (count/nrow(n_places_sc)*100))
 
+#FIXME:add PA data
+
 ```
 
 ### Arizona 
@@ -130,8 +136,12 @@ or `r round_half_up(sc_table$percent_of_zips[3],1)`%, maintained the same
 number of polling locations, and `r sc_table$count[2]` zip codes, 
 or `r round_half_up(sc_table$percent_of_zips[2],1)`% lost polling locations
 during the 2020 PPE.
+
+### Pennsylvania
  
 ## Polling location changes and demographics {-} 
+#FIXME:try tabyl with demographics of interest on top and l/g/m groups on left
+#FIXME:add PA data
 
 ```{r demographics, echo=FALSE, message=FALSE}
 az <- read_rds(files$az_demo_clean)
@@ -195,6 +205,7 @@ row.names(sc_t4) <- c("40 -- 2,240",
 ```
 
 ### Arizona
+#FIXME: put this in terms of demographics first and then location change status
 
 In those zip codes which gained polling locations (n = `r nrow(az_g)`),
 `r comma(sum(az_g$total_hl))` people identified as Hispanic or Latino, 
@@ -480,6 +491,77 @@ Islander, and `r comma(sum(sc_lost_rland$nhl_ao))` people identified as some oth
 race or two or three or more races. In total, `r comma(sum(sc_lost_rland$total))`  people lived
 in zip codes within Richland county which lost polling locations during the 2020 PPE.
 
+#FIXME:add PA data ###################################################
+
+## New locations in 2020
+
+```{r newlocs, echo=FALSE, message=FALSE}
+
+# use this for graphs with geometry data filtered by zipcodes 
+# https://juliasilge.com/blog/using-tidycensus/ 
+
+# AZ 
+# how many locations in 2020 were new compared to 2016?
+#Maricopa
+
+## how many new polling locations are there in AZ between 2016 to 2020?
+
+# looking for slight differences in names and addresses which would
+# incorrectly miss duplicates, name seems to be a less consistent field
+# than address so I'll use that
+
+# 350/470 addresses in 2020 data not found in 2016 data
+new_addsaz <- anti_join(az_2020_df_full, az_2016_df, by = "address_line")
+
+# how many polling locations did maricopa have in 2016 vs 2020?
+
+# clean maricopa 2020 data
+mc2020 <- az_2020_maricopa_df %>%
+  mutate(address_line = tolower(address_line),
+         name = tolower(name)) %>%
+  filter(id %in% az_2020_df_full$id) %>%
+  filter(address_line %in% az_2020_df_full$address_line)
+#2 polling places with unique ids and addresses
+
+# how many new locations in az without maricopa?
+az_san_mar2020 <- az_2020_df_full %>%
+  filter(!id %in% mc2020$id)
+#468
+
+# how many new locations in az without maricopa?
+az_san_mar2016 <- az_2016_df %>%
+  filter(!id %in% mc2020$id)
+#325
+
+new_addsaz_sanmar <- anti_join(az_san_mar2020, az_san_mar2016, by = "address_line")
+#349/468 locations appear only in 2020
+
+# how many polling places persisted between 2016 and 2020?
+mc_both <- semi_join(mc2020, az_2016_df, by = "address_line")
+#1/150 locations open in maricopa in 2020 appear in both lists
+
+# how many were only active in 2020/new in 2020?
+mc_2020only <- anti_join(mc2020, az_2016_df, by = "address_line")
+#1/150 locations open in maricopa in 2020 do not appear in the 2016 list
+
+# SC
+# how many locations in 2020 were new compared to 2016?
+# Richland
+
+# how many addresses appear only in 2020 data and not 2016 data?
+
+# 799/1919 polling places are new in 2020
+new_addssc <- anti_join(sc_2020_df, sc_2016_df, by = "address_line",
+                       suffix = c("2020", "2016"))
+
+
+# PA
+# how many locations in 2020 were new compared to 2016?
+
+
+```
+
+
 ## Polling location changes, demographics, and COVID-19 {-} 
 
 ```{r covid, echo=FALSE, message=FALSE}
@@ -553,6 +635,8 @@ sc_dcg_rland <- sc_dc_g %>%
   filter(county == "Richland")
 sc_dcm_rland <- sc_dc_m %>%
   filter(county == "Richland")
+
+#FIXME:add PA data
 
 # done.
 
@@ -783,6 +867,8 @@ or Pacific Islander, and `r comma(sum(sc_dclost_rland$nhl_ao))` people identifie
 as some other race or two or three or more races.
 There are between `r comma(min(sc_dclost_rland$cases)) ` -- `r comma(max(sc_dclost_rland$cases))` 
 cases of COVID-19 reported.
+
+#FIXME:add PA data #####################################################
 
 ## Methodology
 
