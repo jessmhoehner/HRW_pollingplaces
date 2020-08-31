@@ -20,8 +20,6 @@ inputs <- list(
 
   sc_2016 = here::here("import/input/vip_sc_2016primary/polling_location.txt"),
   sc_2020 = here::here("import/input/vip_sc_2020primary/polling_location.txt"),
-  az_covid_zip = here::here("import/input/covid/COVID19CONFIRMED_BYZIP_excel.csv"),
-  sc_covid_zip = here::here("import/input/covid/TableOption2.pdf"),
 
   zip_counties = here::here("import/input/zips/zip_code_database.csv"),
 
@@ -35,10 +33,6 @@ outputs <- list(
   pa_2016_imp = here::here("clean/input/pa2016_imported.rds"),
   pa_2016_2_imp = here::here("clean/input/pa2016_2_imported.rds"),
   pa_2020_imp = here::here("clean/input/pa2020_imported.rds"),
-
-  covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
-  covid_sc_imp = here::here("clean/input/covid_sc_imported.rds"),
-  covid_pa_imp = here::here("clean/input/covid_pa_imported.rds"),
 
   census_imp = here::here("clean/input/census_imported.rds"),
   counnzip_azscpa_imp = here::here("clean/input/counzip_azscpa_imported.rds")
@@ -124,45 +118,6 @@ pa2020_df <- read_csv(inputs$pa_2020, col_names = TRUE,
   verify(colnames(.) == expected_colspa2020) %>%
   verify(ncol(.) == 17 & nrow(.) == 9234) %>%
   saveRDS(outputs$pa_2020_imp)
-
-# verification will break with new data
-
-# import covid-19 related data
-expected_cols2 <- c("postcode","confirmed_case_category","confirmed_case_count")
-
-az_covid_data <- read_csv(inputs$az_covid_zip, col_names = TRUE) %>%
-  clean_names() %>%
-  verify(colnames(.) == expected_cols2) %>%
-  rename(zipcode = postcode) %>%
-  mutate_at(c("confirmed_case_category","confirmed_case_count"), as.factor) %>%
-  verify(ncol(.) == 3 & nrow(.) == 410) %>%
-  saveRDS(outputs$covid_az_imp)
-
-expected_cols25 <- c("county", "state", "cases")
-
-# breaks with new covid data
-sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv",
-                          col_types = cols_only(county = 'c',
-                                                state = 'c',
-                                                cases = 'd')) %>%
-  clean_names() %>%
-  filter(state == "South Carolina") %>%
-  verify(colnames(.) == expected_cols25) %>%
-  verify(state == "South Carolina") %>%
-  verify(ncol(.) == 3 & nrow(.) == 7525) %>%
-  saveRDS(outputs$covid_sc_imp)
-
-# breaks with new covid data
-pa_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv",
-                          col_types = cols_only(county = 'c',
-                                                state = 'c',
-                                                cases = 'd')) %>%
-  clean_names() %>%
-  filter(state == "Pennsylvania") %>%
-  verify(colnames(.) == expected_cols25) %>%
-  verify(state == "Pennsylvania") %>%
-  verify(ncol(.) == 3 & nrow(.) == 10834) %>%
-  saveRDS(outputs$covid_pa_imp)
 
 # zips in SC and AZ
 zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
