@@ -26,12 +26,14 @@ inputs <- list(
   zip_counties = here::here("import/input/zips/zip_code_database.csv"),
 
   pa_2016 = here::here("import/input/penn/PollingPlaceList20161104.csv"),
+  pa_2016_2 = here::here("import/input/penn/CopyofPollingPlacesList_20160425.csv"),
   pa_2020 = here::here("import/input/penn/PollingPlaceList20200601(1).csv")
 
 )
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
   pa_2016_imp = here::here("clean/input/pa2016_imported.rds"),
+  pa_2016_2_imp = here::here("clean/input/pa2016_2_imported.rds"),
   pa_2020_imp = here::here("clean/input/pa2020_imported.rds"),
 
   covid_az_imp = here::here("clean/input/covid_az_imported.rds"),
@@ -71,6 +73,7 @@ inlist <- lapply(inputslist, function(x) {
 stopifnot(length(inlist) == 5)
 saveRDS(inlist, outputs$VIPinlist_imp)
 
+# data from 04 Nov 2016
 expected_colspa2016 <- c("county_name","precinct_code","precinct_name","description",
                      "house_num","prefix_direction_desc","street","street_type_desc",
                      "suffixdirection_desc","city","state_desc","postal_code",
@@ -85,6 +88,24 @@ pa2016_df <- read_csv(inputs$pa_2016, col_names = TRUE,
   verify(colnames(.) == expected_colspa2016) %>%
   verify(ncol(.) == 16 & nrow(.) == 9160) %>%
   saveRDS(outputs$pa_2016_imp)
+
+# data from 25 April 2016
+expected_colspa2016_2 <- c("county_name", "precinct_code", "precinct_name",
+                           "description", "house_num", "prefix_direction_desc",
+                           "street", "street_type_desc", "suffix_direction_desc",
+                           "city", "state_desc", "postal_code", "line2",
+                           "comment", "day_phone")
+
+pa2016_2_df <- read_csv(inputs$pa_2016_2, col_names = TRUE,
+                      na = "NULL", col_types =
+                        c(Comment = 'c',
+                          HouseNum = 'c',
+                          PostalCode = 'n',
+                          PrecinctCode = 'c')) %>%
+  clean_names() %>%
+  verify(colnames(.) == expected_colspa2016_2) %>%
+  verify(ncol(.) == 15 & nrow(.) == 9155) %>%
+  saveRDS(outputs$pa_2016_2_imp)
 
 
 expected_colspa2020 <- c("county_name","precinct_code","precinct_name",
@@ -128,7 +149,7 @@ sc_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "South Carolina") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "South Carolina") %>%
-  verify(ncol(.) == 3 & nrow(.) == 7433) %>%
+  verify(ncol(.) == 3 & nrow(.) == 7525) %>%
   saveRDS(outputs$covid_sc_imp)
 
 # breaks with new covid data
@@ -140,7 +161,7 @@ pa_covid_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-da
   filter(state == "Pennsylvania") %>%
   verify(colnames(.) == expected_cols25) %>%
   verify(state == "Pennsylvania") %>%
-  verify(ncol(.) == 3 & nrow(.) == 10700) %>%
+  verify(ncol(.) == 3 & nrow(.) == 10834) %>%
   saveRDS(outputs$covid_pa_imp)
 
 # zips in SC and AZ
