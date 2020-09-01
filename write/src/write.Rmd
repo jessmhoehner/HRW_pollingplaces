@@ -155,7 +155,7 @@ sc_rland <- sc %>%
 
 sc_lost_rland <- sc_rland  %>%
   filter(delta_cat == "Lost Polling Locations")
-sc_lost_rland <- sc_rland  %>%
+sc_g_rland <- sc_rland  %>%
   filter(delta_cat == "Gained Polling Locations")
 sc_m_rland <- sc_rland  %>%
   filter(delta_cat == "Maintained Polling Locations")
@@ -172,6 +172,16 @@ pa_lost <- pa %>%
 pa_g <- pa %>%
   filter(delta_cat == "Gained Polling Locations")
 pa_m <- pa %>%
+  filter(delta_cat == "Maintained Polling Locations")
+
+pa_phil <- pa %>%
+  filter(county == "Philadelphia")
+
+pa_lost_phil <- pa_phil  %>%
+  filter(delta_cat == "Lost Polling Locations")
+pa_g_phil <- pa_phil  %>%
+  filter(delta_cat == "Gained Polling Locations")
+pa_m_phil <- pa_phil  %>%
   filter(delta_cat == "Maintained Polling Locations")
 
 #############################################################################
@@ -222,12 +232,6 @@ sc_both <- semi_join(sc_2020_df, sc_2016_df, by = "address_line")
 
 # how many polling places persisted in richland between 2016 and 2020?
 sc_both_rch <- semi_join(rch_2020, rch_2016, by = "address_line")
-
-# PA
-#new_addspa <- anti_join(pa_2020_df, pa_2016_df, by = "address_line")
-
-# how many polling places persisted between 2016 and 2020?
-#pa_both <- semi_join(pa_2020_df, pa_2016_df, by = "address_line")
 
 ```
 
@@ -297,6 +301,29 @@ the Asian population lives in a zip code which lost polling locations.
 of the population who identified as some other race or two or three or 
 more races lives in a zip code which lost polling locations.
 
+Hispanic and Latino people comprise 
+`r round_half_up((sum(az$total_hl)/sum(az$total))*100,0)`% 
+of the population of Arizona, and 
+`r round_half_up((sum(az_lost$total_hl)/sum(az_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations. 
+White people comprise `r round_half_up((sum(az$nhl_white)/sum(az$total))*100,0)`% 
+of the population of Arizona, and 
+`r round_half_up((sum(az_lost$nhl_white)/sum(az_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations. Black people comprise 
+`r round_half_up((sum(az$nhl_black)/sum(az$total))*100,0)`% of the population of 
+Arizona, and `r round_half_up((sum(az_lost$nhl_black)/sum(az_lost$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations.
+American Indian people comprise 
+`r round_half_up((sum(az$nhl_ai_an)/sum(az$total))*100,0)`% 
+of the population of Arizona, and 
+`r round_half_up((sum(az_lost$nhl_ai_an)/sum(az_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations.
+Asian people comprise 
+`r round_half_up((sum(az$nhl_asian)/sum(az$total))*100,0)`% 
+of the population of Arizona, and 
+`r round_half_up((sum(az_lost$nhl_asian)/sum(az_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations.
+
 *Maricopa County*
 
 In total, `r comma(sum(az_lost$total))`, or 
@@ -318,6 +345,27 @@ the Asian population lives in a zip code which lost polling locations.
 of the population who identified as some other race or two or three or 
 more races lives in a zip code which lost polling locations.
 
+Hispanic and Latino people comprise 
+`r round_half_up((sum(az_maricopa$total_hl)/sum(az_maricopa$total))*100,0)`% 
+of the population of Maricopa County, and 
+`r round_half_up((sum(az_lost_maricopa$total_hl)/sum(az_lost_maricopa$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. 
+White people comprise `r round_half_up((sum(az_maricopa$nhl_white)/sum(az_maricopa$total))*100,0)`% 
+of the population of Maricopa County, and 
+`r round_half_up((sum(az_lost_maricopa$nhl_white)/sum(az_lost_maricopa$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Black people comprise 
+`r round_half_up((sum(az_maricopa$nhl_black)/sum(az_maricopa$total))*100,0)`% of 
+the population of Maricopa County, and `r round_half_up((sum(az_lost_maricopa$nhl_black)/sum(az_lost_maricopa$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. American Indian 
+people comprise `r round_half_up((sum(az_maricopa$nhl_ai_an)/sum(az_maricopa$total))*100,0)`% 
+of the population of Maricopa County, and 
+`r round_half_up((sum(az_lost_maricopa$nhl_ai_an)/sum(az_lost_maricopa$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Asian people comprise 
+`r round_half_up((sum(az_maricopa$nhl_asian)/sum(az_maricopa$total))*100,0)`% 
+of the population of Maricopa County, and 
+`r round_half_up((sum(az_lost_maricopa$nhl_asian)/sum(az_lost_maricopa$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations.
+
 ### South Carolina
 
 `r round_half_up(sum(sum(sc_lost$total_hl)/sum(sc$total_hl)) * 100, 0)`% of
@@ -333,6 +381,26 @@ the Asian population lives in a zip code which lost polling locations.
 `r round_half_up(sum(sum(sc_lost$nhl_ao)/sum(sc$nhl_ao)) * 100, 0)`% 
 of the population who identified as some other race or two or three or 
 more races lives in a zip code which lost polling locations.
+
+Hispanic and Latino people comprise 
+`r round_half_up((sum(sc$total_hl)/sum(sc$total))*100,0)`% 
+of the population of South Carolina, and 
+`r round_half_up((sum(sc_lost$total_hl)/sum(sc_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations. 
+White people comprise `r round_half_up((sum(sc$nhl_white)/sum(sc$total))*100,0)`% 
+of the population of South Carolina, and 
+`r round_half_up((sum(sc_lost$nhl_white)/sum(sc_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations. Black people comprise 
+`r round_half_up((sum(sc$nhl_black)/sum(sc$total))*100,0)`% of the population of 
+South Carolina, and `r round_half_up((sum(sc_lost$nhl_black)/sum(sc_lost$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations.
+American Indian people comprise less than 1% of the population of South Carolina, 
+and fewer than 1 % of people who lived in zip codes which lost polling locations.
+Asian people comprise 
+`r round_half_up((sum(sc$nhl_asian)/sum(sc$total))*100,0)`% 
+of the population of South Carolina, and 
+`r round_half_up((sum(sc_lost$nhl_asian)/sum(sc_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations.
 
 *Richland County*
 
@@ -355,6 +423,26 @@ the Asian population lives in a zip code which lost polling locations.
 of the population who identified as some other race or two or three or 
 more races lives in a zip code which lost polling locations.
 
+Hispanic and Latino people comprise 
+`r round_half_up((sum(sc_rland$total_hl)/sum(sc_rland$total))*100,0)`% 
+of the population of Richland County, and 
+`r round_half_up((sum(sc_lost_rland$total_hl)/sum(sc_lost_rland$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. 
+White people comprise `r round_half_up((sum(sc_rland$nhl_white)/sum(sc_rland$total))*100,0)`% 
+of the population of Richland County, and 
+`r round_half_up((sum(sc_lost_rland$nhl_white)/sum(sc_lost_rland$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Black people comprise 
+`r round_half_up((sum(sc_rland$nhl_black)/sum(sc_rland$total))*100,0)`% of 
+the population of Richland County, and `r round_half_up((sum(sc_lost_rland$nhl_black)/sum(sc_lost_rland$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. American Indian 
+people comprise less than 1% of the population of Richland County and fewer 
+than 1 % of people who lived in zip codes which lost polling locations. Asian 
+people comprise 
+`r round_half_up((sum(sc_rland$nhl_asian)/sum(sc_rland$total))*100,0)`% 
+of the population of Richland County, and 
+`r round_half_up((sum(sc_lost_rland$nhl_asian)/sum(sc_lost_rland$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations.
+
 ### Pennsylvania
 
 `r round_half_up(sum(sum(pa_lost$total_hl)/sum(pa$total_hl)) * 100, 0)`% of
@@ -371,7 +459,66 @@ the Asian population live in a zip code which lost polling locations.
 of the population who identified as some other race or two or three or 
 more races live in a zip code which lost polling locations.
 
-\newpage 
+Hispanic and Latino people comprise 
+`r round_half_up((sum(pa$total_hl)/sum(pa$total))*100,0)`% 
+of the population of Pennsylvania, and 
+`r round_half_up((sum(pa_lost$total_hl)/sum(pa_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations. 
+White people comprise `r round_half_up((sum(pa$nhl_white)/sum(pa$total))*100,0)`% 
+of the population of Pennsylvania, and 
+`r round_half_up((sum(pa_lost$nhl_white)/sum(pa_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations. Black people comprise 
+`r round_half_up((sum(pa$nhl_black)/sum(pa$total))*100,0)`% of the population of 
+Pennsylvania, and `r round_half_up((sum(pa_lost$nhl_black)/sum(pa_lost$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations.
+American Indian people comprise less than 1% of the population of Pennsylvania, 
+and fewer than 1 % of people who lived in zip codes which lost polling locations.
+Asian people comprise 
+`r round_half_up((sum(pa$nhl_asian)/sum(pa$total))*100,0)`% 
+of the population of Pennsylvania, and 
+`r round_half_up((sum(pa_lost$nhl_asian)/sum(pa_lost$total))*100,0)`% of people 
+who lived in zip codes which lost polling locations.
+
+*Philadelphia County*
+
+In total, `r comma(sum(pa_lost$total))`, or 
+`r round_half_up(sum(sum(pa_lost_phil$total)/sum(pa_phil$total))*100,0)`% of people 
+who lived in Richland County, South Carolina lived in zip codes which lost polling 
+locations during the 2020 PPE.
+
+`r round_half_up(sum(sum(pa_lost_phil$total_hl)/sum(pa_phil$total_hl)) * 100, 0)`% of
+the Hispanic or Latino population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(pa_lost_phil$nhl_white)/sum(pa_phil$nhl_white)) * 100, 0)`% of
+the White population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(pa_lost_phil$nhl_black)/sum(pa_phil$nhl_black)) * 100, 0)`% of
+the Black population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(pa_lost_phil$nhl_ai_an)/sum(pa_phil$nhl_ai_an)) * 100, 0)`% of 
+the American Indian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(pa_lost_phil$nhl_asian)/sum(pa_phil$nhl_asian)) * 100, 0)`% of 
+the Asian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(pa_lost_phil$nhl_ao)/sum(pa_phil$nhl_ao)) * 100, 0)`% 
+of the population who identified as some other race or two or three or 
+more races lives in a zip code which lost polling locations.
+
+Hispanic and Latino people comprise 
+`r round_half_up((sum(pa_phil$total_hl)/sum(pa_phil$total))*100,0)`% 
+of the population of Philadelphia County, and 
+`r round_half_up((sum(pa_lost_phil$total_hl)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. 
+White people comprise `r round_half_up((sum(pa_phil$nhl_white)/sum(pa_phil$total))*100,0)`% 
+of the population of Philadelphia County, and 
+`r round_half_up((sum(pa_lost_phil$nhl_white)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Black people comprise 
+`r round_half_up((sum(pa_phil$nhl_black)/sum(pa_phil$total))*100,0)`% of 
+the population of Philadelphia County, and `r round_half_up((sum(pa_lost_phil$nhl_black)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. American Indian 
+people comprise less than 1% of the population of Philadelphia County, and fewer 
+than 1 % of people who lived in zip codes which lost polling locations. 
+Asian people comprise 
+`r round_half_up((sum(pa_phil$nhl_asian)/sum(pa_phil$total))*100,0)`% 
+of the population of Philadelphia County, and 
+`r round_half_up((sum(pa_lost_phil$nhl_asian)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations.
 
 ## Polling location changes by population {-} 
 
