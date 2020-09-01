@@ -8,10 +8,9 @@
 #
 pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus", "textreadr")
 
-# AZ covid-19 data by zip obtained here
-# https://azdhs.gov/preparedness/epidemiology-disease-control/infectious-disease-epidemiology/covid-19/dashboards/index.php
 # AZ and SC zipcode and county data obtained here
-# https://www.unitedstateszipcodes.org/az/#zips-list and https://www.unitedstateszipcodes.org/sc/#zips-list
+# https://www.unitedstateszipcodes.org/az/#zips-list and
+# https://www.unitedstateszipcodes.org/sc/#zips-list
 
 inputs <- list(
   az_2016 = here::here("import/input/vip_az_2016primary/polling_location.txt"),
@@ -23,13 +22,13 @@ inputs <- list(
 
   zip_counties = here::here("import/input/zips/zip_code_database.csv"),
 
-  pa_2016 = here::here("import/input/penn/PollingPlaceList20161104.csv"),
-  pa_2016_2 = here::here("import/input/penn/CopyofPollingPlacesList_20160425.csv"),
+  pa_2016 = here::here("import/input/penn/CopyofPollingPlacesList_20160425.csv"),
   pa_2020 = here::here("import/input/penn/PollingPlaceList20200601(1).csv")
 
 )
 outputs <- list(
   VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
+
   pa_2016_imp = here::here("clean/input/pa2016_imported.rds"),
   pa_2016_2_imp = here::here("clean/input/pa2016_2_imported.rds"),
   pa_2020_imp = here::here("clean/input/pa2020_imported.rds"),
@@ -40,8 +39,8 @@ outputs <- list(
 
 # import VIP data
 ## creates a list of VIP files as connections
-inputslist <- list(inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa,
-                   inputs$sc_2016, inputs$sc_2020)
+inputslist <- list(inputs$az_2016, inputs$az_2020,
+                   inputs$az_2020_maricopa,inputs$sc_2016, inputs$sc_2020)
 
 names(inputslist) <- c("az_2016", "az_2020", "az_2020_maricopa",
                        "sc_2016", "sc_2020")
@@ -56,8 +55,7 @@ inlist <- lapply(inputslist, function(x) {
 
   x_df <- read_csv(x, col_names = TRUE, na = "NA",
                    col_types = cols_only(id = 'c',
-                                         name = 'c',
-                                         address_line = 'c')) %>%
+                                         name = 'c', address_line = 'c')) %>%
     clean_names() %>%
     verify(colnames(.) == expected_cols) %>%
     verify(ncol(.) == 3)
@@ -67,40 +65,19 @@ inlist <- lapply(inputslist, function(x) {
 stopifnot(length(inlist) == 5)
 saveRDS(inlist, outputs$VIPinlist_imp)
 
-# data from 04 Nov 2016
 expected_colspa2016 <- c("county_name","precinct_code","precinct_name","description",
                      "house_num","prefix_direction_desc","street","street_type_desc",
-                     "suffixdirection_desc","city","state_desc","postal_code",
-                     "line2","comment","day_phone","handicap_accessible")
+                     "suffix_direction_desc","city","state_desc","postal_code",
+                     "line2","comment","day_phone")
 
 pa2016_df <- read_csv(inputs$pa_2016, col_names = TRUE,
                       na = "NULL", col_types =
-                        c(Comment = 'c',
-                          HouseNum = 'c',
-                          PostalCode = 'n')) %>%
+                        c(Comment = 'c', HouseNum = 'c',
+                          PostalCode = 'n', PrecinctCode = 'c')) %>%
   clean_names() %>%
   verify(colnames(.) == expected_colspa2016) %>%
-  verify(ncol(.) == 16 & nrow(.) == 9160) %>%
-  saveRDS(outputs$pa_2016_imp)
-
-# data from 25 April 2016
-expected_colspa2016_2 <- c("county_name", "precinct_code", "precinct_name",
-                           "description", "house_num", "prefix_direction_desc",
-                           "street", "street_type_desc", "suffix_direction_desc",
-                           "city", "state_desc", "postal_code", "line2",
-                           "comment", "day_phone")
-
-pa2016_2_df <- read_csv(inputs$pa_2016_2, col_names = TRUE,
-                      na = "NULL", col_types =
-                        c(Comment = 'c',
-                          HouseNum = 'c',
-                          PostalCode = 'n',
-                          PrecinctCode = 'c')) %>%
-  clean_names() %>%
-  verify(colnames(.) == expected_colspa2016_2) %>%
   verify(ncol(.) == 15 & nrow(.) == 9155) %>%
   saveRDS(outputs$pa_2016_2_imp)
-
 
 expected_colspa2020 <- c("county_name","precinct_code","precinct_name",
                          "precinct_split_code","description","house_num",
@@ -111,9 +88,7 @@ expected_colspa2020 <- c("county_name","precinct_code","precinct_name",
 pa2020_df <- read_csv(inputs$pa_2020, col_names = TRUE,
                       na = "NULL", col_types =
                         c(SuffixDirection = 'c',
-                          Comment = 'c',
-                          HouseNum = 'c',
-                          PostalCode = 'n')) %>%
+                          Comment = 'c', HouseNum = 'c', PostalCode = 'n')) %>%
   clean_names() %>%
   verify(colnames(.) == expected_colspa2020) %>%
   verify(ncol(.) == 17 & nrow(.) == 9234) %>%
