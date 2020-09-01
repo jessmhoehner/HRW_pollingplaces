@@ -184,6 +184,24 @@ pa_g_phil <- pa_phil  %>%
 pa_m_phil <- pa_phil  %>%
   filter(delta_cat == "Maintained Polling Locations")
 
+# zip codes within the City of Philadelphia
+city_zips <- c("08102", "08103", "08105", "08110","19004", "19012", "19027", 
+               "19102", "19103", "19104", "19106", "19107", "19109", "19111", 
+               "19119", "19120", "19121", "19122", "19123", "19124", "19125", 
+               "19126", "19129", "19130", "19131", "19132", "19133", "19134", 
+               "19135", "19137", "19138", "19140", "19141", "19144", "19147", 
+               "19149", "19150")
+
+city_phil <- pa_phil %>%
+  filter(geoid %in% city_zips)
+
+city_lost_phil <- city_phil  %>%
+  filter(delta_cat == "Lost Polling Locations")
+city_g_phil <- city_phil  %>%
+  filter(delta_cat == "Gained Polling Locations")
+city_m_phil <- city_phil  %>%
+  filter(delta_cat == "Maintained Polling Locations")
+
 #############################################################################
 
 # az 
@@ -483,7 +501,7 @@ who lived in zip codes which lost polling locations.
 
 In total, `r comma(sum(pa_lost$total))`, or 
 `r round_half_up(sum(sum(pa_lost_phil$total)/sum(pa_phil$total))*100,0)`% of people 
-who lived in Richland County, South Carolina lived in zip codes which lost polling 
+who lived in Philadelphia County, Pennsylvania lived in zip codes which lost polling 
 locations during the 2020 PPE.
 
 `r round_half_up(sum(sum(pa_lost_phil$total_hl)/sum(pa_phil$total_hl)) * 100, 0)`% of
@@ -519,6 +537,49 @@ Asian people comprise
 of the population of Philadelphia County, and 
 `r round_half_up((sum(pa_lost_phil$nhl_asian)/sum(pa_lost_phil$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations.
+
+*City of Philadelphia*
+
+In total, `r comma(sum(city_lost_phil$total))`, or 
+`r round_half_up(sum(sum(city_lost_phil$total)/sum(pa_phil$total))*100,0)`% of people 
+who lived within the City of Philadelphia lived in zip codes which lost polling 
+locations during the 2020 PPE.
+
+`r round_half_up(sum(sum(city_lost_phil$total_hl)/sum(pa_phil$total_hl)) * 100, 0)`% of
+the Hispanic or Latino population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(city_lost_phil$nhl_white)/sum(pa_phil$nhl_white)) * 100, 0)`% of
+the White population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(city_lost_phil$nhl_black)/sum(pa_phil$nhl_black)) * 100, 0)`% of
+the Black population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(city_lost_phil$nhl_ai_an)/sum(pa_phil$nhl_ai_an)) * 100, 0)`% of 
+the American Indian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(city_lost_phil$nhl_asian)/sum(pa_phil$nhl_asian)) * 100, 0)`% of 
+the Asian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(city_lost_phil$nhl_ao)/sum(pa_phil$nhl_ao)) * 100, 0)`% 
+of the population who identified as some other race or two or three or 
+more races lives in a zip code which lost polling locations.
+
+Hispanic and Latino people comprise 
+`r round_half_up((sum(city_phil$total_hl)/sum(city_phil$total))*100,0)`% 
+of the population of City of Philadelphia, and 
+`r round_half_up((sum(pa_lost_phil$total_hl)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. 
+White people comprise `r round_half_up((sum(city_phil$nhl_white)/sum(city_phil$total))*100,0)`% 
+of the population of City of Philadelphia, and 
+`r round_half_up((sum(pa_lost_phil$nhl_white)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Black people comprise 
+`r round_half_up((sum(city_phil$nhl_black)/sum(city_phil$total))*100,0)`% of 
+the population of City of Philadelphia, and `r round_half_up((sum(pa_lost_phil$nhl_black)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. American Indian 
+people comprise less than 1% of the population of City of Philadelphia, and fewer 
+than 1 % of people who lived in zip codes which lost polling locations. 
+Asian people comprise 
+`r round_half_up((sum(city_phil$nhl_asian)/sum(city_phil$total))*100,0)`% 
+of the population of City of Philadelphia, and 
+`r round_half_up((sum(pa_lost_phil$nhl_asian)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations.
+
+\newpage
 
 ## Polling location changes by population {-} 
 
@@ -634,7 +695,6 @@ ncountiesaz <- az %>%
   group_by(county) %>%
   distinct(county) %>%
   arrange(county)
-
 
 ncountiessc <- sc %>%
   group_by(county) %>%
