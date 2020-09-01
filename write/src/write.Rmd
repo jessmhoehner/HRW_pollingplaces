@@ -11,8 +11,11 @@ output:
 
 ```{r setup, message = FALSE, include= FALSE, echo=FALSE}
 
-pacman::p_load(tidyverse, knitr, janitor, tinytex, scales, kableExtra)
-# remove scientific notation from output
+pacman::p_load(tidyverse, knitr, janitor, 
+               tinytex, scales, kableExtra, 
+               tidycensus, stringr, sf)
+
+#disable sci. notation
 options(scipen = 999)
 
 files <- list(
@@ -21,14 +24,42 @@ files <- list(
   az_2020_clean = here::here("write/input/az_2020_clean.rds"),
   az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
   az_demo_clean = here::here("write/input/az_demo_clean.rds"),
-  az_demo_covid_clean = here::here("write/input/az_demo_covid_clean.rds"),
+  
   sc_2016_clean = here::here("write/input/sc_2016_clean.rds"),
   sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
   sc_demo_clean = here::here("write/input/sc_demo_clean.rds"), 
-  sc_demo_covid_clean = here::here("write/input/sc_demo_covid_clean.rds")
+  
+  pa_2016_clean = here::here("write/input/pa_2016_clean.rds"),
+  pa_2016_freq_clean = here::here("write/input/pa_2016_freq_clean.rds"),
+  pa_2020_clean = here::here("write/input/pa_2020_clean.rds"),
+  pa_2020_freq_clean = here::here("write/input/pa_2020_freq_clean.rds"),
+  pa_demo_clean = here::here("write/input/pa_demo_clean.rds")
+  
 )
+
+az_2016_df <- read_rds(files$az_2016_clean)
+az_2020_df <- read_rds(files$az_2020_clean)
+sc_2016_df <- read_rds(files$sc_2016_clean)
+sc_2020_df <- read_rds(files$sc_2020_clean)
+pa_2016_df <- read_rds(files$pa_2016_clean)
+pa_2020_df <- read_rds(files$pa_2020_clean)
+
+
+az <- read_rds(files$az_demo_clean) %>%
+  filter(is.na(total) == FALSE)
+sc <- read_rds(files$sc_demo_clean) %>%
+  filter(is.na(name) == FALSE)
+pa <- read_rds(files$pa_demo_clean) %>%
+  filter(is.na(name) == FALSE)
+
+az_zips_freq_2016 <- read_rds(files$az_2016_freq_clean)
+az_zips_freq_2020 <- read_rds(files$az_2020_freq_clean)
+sc_zips_freq_2016 <- read_rds(files$sc_2016_freq_clean)
+sc_zips_freq_2020 <- read_rds(files$sc_2020_freq_clean)
+pa_zips_freq_2016 <- read_rds(files$pa_2016_freq_clean)
+pa_zips_freq_2020 <- read_rds(files$pa_2020_freq_clean)
 
 ```
 
@@ -36,41 +67,7 @@ files <- list(
 
 ```{r nlocationsa, message=FALSE, echo=FALSE}
 
-az_2016_df <- read_rds(files$az_2016_clean)
-az_2020_df <- read_rds(files$az_2020_clean)
-
-sc_2016_df <- read_rds(files$sc_2016_clean)
-sc_2020_df <- read_rds(files$sc_2020_clean)
-
-#FIXME:add PA data
-
-```
-
-### Arizona
-
-Overall, Arizona had `r nrow(az_2016_df)` open polling locations statewide at the 2016
-primary Presidential election (PPE). During the 2020 PPE there were `r nrow(az_2020_df)` 
-open polling locations. This is a difference of `r sum((nrow(az_2020_df) - nrow(az_2016_df)))` 
-more or a `r round_half_up((sum((nrow(az_2020_df) - nrow(az_2016_df)))/as.numeric(nrow(az_2016_df))*100),1)`% 
-increase in polling locations.
-
-### South Carolina
-
-Overall, South Carolina had `r nrow(sc_2016_df)` open polling locations statewide at the 2016
-PPE. During the 2020 PPE there were `r nrow(sc_2020_df)` open polling locations. 
-This is a difference of `r abs(sum((nrow(sc_2020_df) - nrow(sc_2016_df))))` fewer 
-or a `r abs(round_half_up((sum((nrow(sc_2020_df) - nrow(sc_2016_df)))/as.numeric(nrow(sc_2016_df))*100),1))`% 
-decrease in polling locations.
-
-### Pennsylvania
-
-## Changes polling locations between 2016 and 2020 {-} 
-
-```{r nlocationsb, message=FALSE, echo=FALSE}
-# AZ
-az_zips_freq_2016 <- read_rds(files$az_2016_freq_clean)
-az_zips_freq_2020 <- read_rds(files$az_2020_freq_clean)
-
+# az
 n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
   mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
@@ -87,10 +84,6 @@ az_table <- n_places_az %>%
   summarise(.groups = "keep", 
             count = n(),
             percent_of_zips = ((count/nrow(n_places_az))*100))
-
-# SC
-sc_zips_freq_2016 <- read_rds(files$sc_2016_freq_clean)
-sc_zips_freq_2020 <- read_rds(files$sc_2020_freq_clean)
 
 # which zip codes saw an increase, decrease, or maintenance in polling places?
 n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
@@ -110,51 +103,28 @@ sc_table <- n_places_sc %>%
   summarise(.groups = "keep", 
             count = n(),
             percent_of_zips = (count/nrow(n_places_sc)*100))
+# PA
+# which zip codes saw an increase, decrease, or maintenance in polling places?
+n_places_pa <- full_join(pa_zips_freq_2020, pa_zips_freq_2016, by = "zipcode") %>%
+  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
+  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
+         delta_cat = case_when(
+           delta_n_places == 0 ~ "Maintained Polling Locations",
+           delta_n_places < 0 ~ "Lost Polling Locations",
+           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
+  filter(zipcode != "pa") %>%
+  arrange(delta_n_places) %>%
+  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
 
-#FIXME:add PA data
+# how many lost, and how many gained, maintained?
+pa_table <- n_places_pa %>%
+  group_by(delta_cat) %>%
+  summarise(.groups = "keep", 
+            count = n(),
+            percent_of_zips = (count/nrow(n_places_pa)*100))
 
-```
+################################################################################
 
-### Arizona 
-
-Between the 2016 and 2020 PPEs, `r az_table$count[1]` zip codes, or 
-`r round_half_up(az_table$percent_of_zips[1],1)`% of zip codes in Arizona with 
-open polling locations during the 2016 PPE gained polling locations during the 
-2020 PPE while `r az_table$count[3]` zip codes, 
-or `r round_half_up(az_table$percent_of_zips[3],1)`%, maintained the same
-number of polling locations, and `r az_table$count[2]` zip codes, 
-or `r round_half_up(az_table$percent_of_zips[2],1)`% lost polling locations
-during the 2020 PPE.
-
-### South Carolina 
-  
-Between the 2016 and 2020 PPEs, `r sc_table$count[1]` zip codes, or 
-`r round_half_up(sc_table$percent_of_zips[1],1)`% of zip codes in Arizona with 
-open polling locations during the 2016 PPE gained polling locations during the 
-2020 PPE while `r sc_table$count[3]` zip codes, 
-or `r round_half_up(sc_table$percent_of_zips[3],1)`%, maintained the same
-number of polling locations, and `r sc_table$count[2]` zip codes, 
-or `r round_half_up(sc_table$percent_of_zips[2],1)`% lost polling locations
-during the 2020 PPE.
-
-### Pennsylvania
- 
-## Polling location changes and demographics {-} 
-#FIXME:try tabyl with demographics of interest on top and l/g/m groups on left
-#FIXME:add PA data
-
-```{r demographics, echo=FALSE, message=FALSE}
-az <- read_rds(files$az_demo_clean)
-
-az_t1 <- table(az$gp_hl, az$delta_cat)
-az_t2 <- table(az$gp_white, az$delta_cat)
-az_t4 <- table(az$gp_ai_an, az$delta_cat)
-az_t5 <- table(az$qtotal, az$delta_cat)
-row.names(az_t5) <- c("37 -- 2,210", 
-                      "2,211 -- 8,860", 
-                      "8,861 -- 33,500", 
-                      "33,501 -- 74,400")
-  
 az_lost <- az %>%
   filter(delta_cat == "Lost Polling Locations")
 az_g <- az %>%
@@ -162,20 +132,17 @@ az_g <- az %>%
 az_m <- az %>%
   filter(delta_cat == "Maintained Polling Locations")
 
-az_lost_maricopa <- az_lost %>%
-  filter(county == "Maricopa County")
-az_g_maricopa <- az_g %>%
-  filter(county == "Maricopa County")
-az_m_maricopa <- az_m %>%
-  filter(county == "Maricopa County")
+az_maricopa <- az %>%
+  filter(county == "Maricopa County") 
 
-ncountiesaz <- az %>%
-  group_by(county) %>%
-  distinct(county) %>%
-  arrange(county)
+az_lost_maricopa <- az_maricopa %>%
+  filter(delta_cat == "Lost Polling Locations")
+az_g_maricopa <- az_maricopa %>%
+  filter(delta_cat == "Gained Polling Locations")
+az_m_maricopa <- az_maricopa %>%
+  filter(delta_cat == "Maintained Polling Locations")
 
-sc <- read_rds(files$sc_demo_clean)
-
+# SC
 sc_lost <- sc %>%
   filter(delta_cat == "Lost Polling Locations")
 sc_g <- sc %>%
@@ -183,702 +150,365 @@ sc_g <- sc %>%
 sc_m <- sc %>%
   filter(delta_cat == "Maintained Polling Locations")
 
-sc_lost_rland <- sc_lost %>%
+sc_rland <- sc %>%
   filter(county == "Richland")
-sc_m_rland <- sc_m %>%
-  filter(county == "Richland")
+
+sc_lost_rland <- sc_rland  %>%
+  filter(delta_cat == "Lost Polling Locations")
+sc_lost_rland <- sc_rland  %>%
+  filter(delta_cat == "Gained Polling Locations")
+sc_m_rland <- sc_rland  %>%
+  filter(delta_cat == "Maintained Polling Locations")
 
 ncountiessc <- sc %>%
   group_by(county) %>%
   distinct(county) %>%
   arrange(county)
 
-sc_t1 <- table(sc$gp_hl, sc$delta_cat)
-sc_t2 <- table(sc$gp_white, sc$delta_cat)
-sc_t3 <- table(sc$gp_black, sc$delta_cat)
-sc_t4 <- table(sc$qtotal, sc$delta_cat)
-row.names(sc_t4) <- c("40 -- 2,240", 
-                      "2,241 -- 6,950", 
-                      "6,951 -- 19,200", 
-                      "19,201 -- 81,900")
+# PA
+
+pa_lost <- pa %>%
+  filter(delta_cat == "Lost Polling Locations")
+pa_g <- pa %>%
+  filter(delta_cat == "Gained Polling Locations")
+pa_m <- pa %>%
+  filter(delta_cat == "Maintained Polling Locations")
+
+#############################################################################
+
+# az 
+new_addsaz <- anti_join(az_2020_df, az_2016_df, by = "address_line")
+
+# how many polling locations did maricopa have in 2016 vs 2020?
+maricopa_zips <- as.character(az_maricopa$geoid)
+
+mar_2020 <- az_2020_df %>%
+  filter(zipcode %in% maricopa_zips) %>%
+  distinct(address_line, .keep_all = TRUE)
+# mountain vista middle azhool gym at 
+# 33622 north mountain vista blvd san tan valley az 85142 
+# is not in original maricopa 2020 data
+mar_2016 <- az_2016_df %>%
+  filter(zipcode %in% maricopa_zips)
+
+# maricopa
+new_addsaz_mar <- anti_join(mar_2020, mar_2016, by = "address_line")
+
+# how many polling places persisted overall between 2016 and 2020?
+az_both <- semi_join(az_2020_df, az_2016_df, by = "address_line")
+
+# how many polling places persisted in maricopa between 2016 and 2020?
+az_both_mar <- semi_join(mar_2020, mar_2016, by = "address_line")
+
+# South Carolina
+
+new_addssc <- anti_join(sc_2020_df, sc_2016_df, by = "address_line")
+
+# how many polling locations did richland have in 2016 vs 2020?
+richland_zips <- as.character(sc_rland$geoid)
+
+rch_2020 <- sc_2020_df %>%
+  filter(zipcode %in% richland_zips) %>%
+  distinct(address_line, .keep_all = TRUE)
+
+rch_2016 <- sc_2016_df %>%
+  filter(zipcode %in% richland_zips)
+
+# richland
+new_addssc_rch <- anti_join(rch_2020, rch_2016, by = "address_line")
+
+# how many polling places persisted overall between 2016 and 2020?
+sc_both <- semi_join(sc_2020_df, sc_2016_df, by = "address_line")
+
+# how many polling places persisted in richland between 2016 and 2020?
+sc_both_rch <- semi_join(rch_2020, rch_2016, by = "address_line")
+
+# PA
+#new_addspa <- anti_join(pa_2020_df, pa_2016_df, by = "address_line")
+
+# how many polling places persisted between 2016 and 2020?
+#pa_both <- semi_join(pa_2020_df, pa_2016_df, by = "address_line")
 
 ```
 
 ### Arizona
-#FIXME: put this in terms of demographics first and then location change status
 
-In those zip codes which gained polling locations (n = `r nrow(az_g)`),
-`r comma(sum(az_g$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_g$nhl_white))` people identified as White, 
-`r comma(sum(az_g$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_g$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_g$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_g$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_g$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(az_g$total))` people lived
-in zip codes which gained polling locations during the 2020 PPE.
+Between the 2016 primary Presidential election (PPE) and the 2020 PPE there was
+a net addition of `r sum((nrow(az_2020_df) - nrow(az_2016_df)))` polling locations, 
+which is a `r round_half_up((sum((nrow(az_2020_df) - nrow(az_2016_df)))/as.numeric(nrow(az_2016_df))*100),1)`% increase.
 
-In those zip codes which maintained polling locations (n = `r nrow(az_m)`),
-`r comma(sum(az_m$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_m$nhl_white))` people identified as White, 
-`r comma(sum(az_m$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_m$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_m$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_m$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_m$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(az_m$total))` people lived
-in zip codes which maintained polling locations during the 2020 PPE.
+In about `r round_half_up(az_table$percent_of_zips[2])`% of the `r sum(az_table$count)`
+zip codes in Arizona there was a reduction in the number of polling places. 
+In total, about `r comma(sum(az_lost$total))` or 
+`r round_half_up(sum(sum(az_lost$total)/sum(az$total))*100, 0)`% of the 
+population of Arizona, lives in a zip code that saw a reduction in the number of 
+polling places.
 
-In those zip codes which lost polling locations (n = `r nrow(az_lost)`),
-`r comma(sum(az_lost$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_lost$nhl_white))` people identified as White, 
-`r comma(sum(az_lost$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_lost$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_lost$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_lost$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_lost$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(az_lost$total))` people lived
-in zip codes which lost polling locations during the 2020 PPE.
-
-*Selected Tables *
-
-The following tables show the number of people of each demographic in groups of
-10,000 people compared with how many zip codes within each group gained, maintained, 
-or lost polling locations. ex: In zip codes where between 0 -- 10,000 people
-identified as Hispanic or Latino, 95 gained polling locations, 28 lost polling
-locations, and 112 maintained polling locations. Zip codes may overlap between 
-demographic groups such that one zip code could have between 0 -- 10,000 people
-who identify as Hispanic or Latino and between 0 -- 10,000 people who identify as White.
-
-```{r azkables, echo=FALSE, message=FALSE}
-
-kable(az_t1, "latex", booktabs = T, row.names = TRUE, 
-      caption = "Arizona: Hispanic or Latino") %>%
-  kable_styling(position = "center", latex_options = "HOLD_position")
-
-kable(az_t2, "latex", booktabs = T, row.names = TRUE, 
-      caption = "Arizona: White") %>%
-  kable_styling(position = "center", latex_options = "HOLD_position")
-
-kable(az_t4, "latex", booktabs = T, row.names = TRUE, 
-      caption = "Arizona: American Indian or Alaskan Native") %>%
-  kable_styling(position = "center", latex_options = "HOLD_position")
-
-```
-
-Zip codes with between 0 -- 10,000 people who identify as Native American or 
-Alaskan Native gained the greatest number of polling locations between the 2016 
-and 2020 PPE, those with between 0 -- 10,000 people who identify as Hispanic or 
-Latino gained the second highest number of polling locations, and zip codes with 
-between 40,001 -- 50,000 people who identify as White gained the fewest polling locations.
-
-Zip codes with between 0 -- 10,000 people who identify as Native American or 
-Alaskan Native maintained the greatest number of polling locations between the 2016 
-and 2020 PPE, those with between 0 -- 10,000 people who identify as Hispanic or 
-Latino maintained the second highest number of polling locations, and zip codes with 
-between 40,001 -- 60,000 people who identify as Hispanic maintained the fewest 
-polling locations.
-
-Zip codes with between 0 -- 10,000 people who identify as Native American or 
-Alaskan Native lost the greatest number of polling locations between the 2016 
-and 2020 PPE, those with between 0 -- 10,000 people who identify as Hispanic or 
-Latino lost the second highest number of polling locations (28), and zip codes with 
-between 30,001 -- 60,000 people who identify as Hispanic or Latino and between 
-10,001  --  20,000 people who identify as Native American or Alaskan Native 
-lost the fewest polling locations.
-
-*Quantile Table of Total People per Zip Code*
-
-```{r qtableaz, echo = FALSE, message = FALSE}
-
-kable(az_t5, "latex", booktabs = T, row.names = TRUE, 
-      caption = "Arizona: Total") %>%
-  kable_styling(position = "center", latex_options = "HOLD_position")
-
-```
-
-Zip codes with between 33,501 -- 74,400 people gained the greatest number of 
-polling locations between the 2016 and 2020 PPE, those with between 
-8,861 -- 33,500 people gained the second greatest number of polling locations, 
-and the two smallest quantiles of zips codes each gained the least number of 
-polling locations.
-
-Zip codes with between 37 -- 2,210 people maintained the greatest number of
-polling locations, those with between 2,211 -- 8,860 people maintained the 
-second greatest number of polling locations, and those with between 
-33,501 -- 74,400 people maintained the fewest number of polling locations.
-
-Zip codes with between 8,861 -- 33,500 people lost the greatest number of 
-polling locations between the 2016 and 2020 PPE, those with between 
-33,501 -- 74,400 people lost the second greatest number of polling locations, 
-and those with between 37 -- 2,210 people lost the least number of 
-polling locations.
-
-*Maricopa County*
-
-In those zip codes which gained polling locations (n = `r nrow(az_g_maricopa)`),
-`r comma(sum(az_g_maricopa$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_g_maricopa$nhl_white))` people identified as White, 
-`r comma(sum(az_g_maricopa$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_g_maricopa$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_g_maricopa$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_g_maricopa$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_g_maricopa$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(az_g_maricopa$total))`  people lived
-in zip codes within Maricopa county which gained polling locations during the 2020 PPE.
-
-In those zip codes which maintained polling locations (n = `r nrow(az_m_maricopa)`),
-`r comma(sum(az_m_maricopa$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_m_maricopa$nhl_white))` people identified as White, 
-`r comma(sum(az_m_maricopa$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_m_maricopa$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_m_maricopa$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_m_maricopa$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_m_maricopa$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(az_m_maricopa$total))`  people lived
-in zip codes within Maricopa county which maintained polling locations during the 2020 PPE.
-
-In those zip codes which lost polling locations (n = `r nrow(az_lost_maricopa)`),
-`r comma(sum(az_lost_maricopa$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_lost_maricopa$nhl_white))` people identified as White, 
-`r comma(sum(az_lost_maricopa$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_lost_maricopa$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_lost_maricopa$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_lost_maricopa$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_lost_maricopa$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(az_lost_maricopa$total))`  people lived
-in zip codes within Maricopa county which lost polling locations during the 2020 PPE.
-
-\newpage
+Compared to 2016, there were `r nrow(new_addsaz)` new polling places opened in 
+Arizona statewide in 2020, `r nrow(new_addsaz_mar)` of these were opened in
+Maricopa county alone. Arizona maintained `r nrow(az_both)` of the same
+polling locations between 2016 and 2020 and `r nrow(az_both_mar)` of these were
+within Maricopa County.
 
 ### South Carolina
 
-In those zip codes which gained polling locations (n = `r nrow(sc_g)`),
-`r comma(sum(sc_g$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(sc_g$nhl_white))` people identified as White, 
-`r comma(sum(sc_g$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_g$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_g$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_g$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_g$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(sc_g$total))` people lived
-in zip codes which gained polling locations during the 2020 PPE.
+In South Carolina, there was a `r abs(round_half_up((sum((nrow(sc_2020_df) - nrow(sc_2016_df)))/as.numeric(nrow(sc_2016_df))*100),1))`% reduction 
+(`r abs(sum((nrow(sc_2020_df) - nrow(sc_2016_df))))`) in the number of polling 
+locations between the 2016 and 2020 PPEs. In total, about 
+`r comma(sum(sc_lost$total))` or 
+`r round_half_up(sum(sum(sc_lost$total)/sum(sc$total))*100, 0)`% of the 
+population of South Carolina, lives in a zip code that saw a reduction in the number of 
+polling places.
 
-In those zip codes which maintained polling locations (n = `r nrow(sc_m)`),
-`r comma(sum(sc_m$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(sc_m$nhl_white))` people identified as White, 
-`r comma(sum(sc_m$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_m$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_m$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_m$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_m$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(sc_m$total))` people lived
-in zip codes which maintained polling locations during the 2020 PPE.
+Compared to 2016, there were `r nrow(new_addssc)` new polling places opened in 
+South Carolina statewide in 2020, `r nrow(new_addssc_rch)` of these were opened in
+Richland county. South Carolina maintained `r comma(nrow(sc_both))` of the same
+polling locations between 2016 and 2020 and `r nrow(sc_both_rch)` of these were
+within Richland County.
 
-In those zip codes which lost polling locations (n = `r nrow(sc_lost)`),
-`r comma(sum(sc_lost$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(sc_lost$nhl_white))` people identified as White, 
-`r comma(sum(sc_lost$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_lost$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_lost$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_lost$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_lost$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(sc_lost$total))` people lived
-in zip codes which lost polling locations during the 2020 PPE.
+### Pennsylvania
+
+Between the 2016 and 2020 PPEs there was a decrease of 
+`r comma(abs(nrow(pa_2020_df) - nrow(pa_2016_df)))` polling locations, which is a
+`r abs(round_half_up((sum((nrow(pa_2020_df) - nrow(pa_2016_df)))/as.numeric(nrow(pa_2016_df))*100),1))`% decrease statewide.
+
+In about `r round_half_up(pa_table$percent_of_zips[2])`% of the 
+`r comma(sum(pa_table$count))` zip codes in Pennsylvania there was a reduction 
+in the number of polling places. In total, about `r comma(sum(pa_lost$total))` or 
+`r round_half_up(sum(sum(pa_lost$total)/sum(pa$total))*100, 0)`% of the 
+population of Pennsylvania, lives in a zip code that saw a reduction in the number 
+of polling places.
+
+## Polling location changes by demographics {-} 
+
+### Arizona
+
+`r round_half_up(sum(sum(az_lost$total_hl)/sum(az$total_hl)) * 100, 0)`% of
+the Hispanic or Latino population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(az_lost$nhl_white)/sum(az$nhl_white)) * 100, 0)`% of
+the White population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(az_lost$nhl_black)/sum(az$nhl_black)) * 100, 0)`% of
+the Black population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(az_lost$nhl_ai_an)/sum(az$nhl_ai_an)) * 100, 0)`% of 
+the American Indian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(az_lost$nhl_asian)/sum(az$nhl_asian)) * 100, 0)`% of 
+the Asian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(az_lost$nhl_ao)/sum(az$nhl_ao)) * 100, 0)`% 
+of the population who identified as some other race or two or three or 
+more races lives in a zip code which lost polling locations.
+
+*Maricopa County*
+
+In total, `r comma(sum(az_lost$total))`, or 
+`r round_half_up(sum(sum(az_lost_maricopa$total)/sum(az_maricopa$total))*100,0)`% of people 
+who lived in Maricopa County, Arizona lived in zip codes which lost polling 
+locations during the 2020 PPE.
+
+`r round_half_up(sum(sum(az_lost_maricopa$total_hl)/sum(az_maricopa$total_hl)) * 100, 0)`% of
+the Hispanic or Latino population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(az_lost_maricopa$nhl_white)/sum(az_maricopa$nhl_white)) * 100, 0)`% of
+the White population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(az_lost_maricopa$nhl_black)/sum(az_maricopa$nhl_black)) * 100, 0)`% of
+the Black population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(az_lost_maricopa$nhl_ai_an)/sum(az_maricopa$nhl_ai_an)) * 100, 0)`% of 
+the American Indian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(az_lost_maricopa$nhl_asian)/sum(az_maricopa$nhl_asian)) * 100, 0)`% of 
+the Asian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(az_lost_maricopa$nhl_ao)/sum(az_maricopa$nhl_ao)) * 100, 0)`% 
+of the population who identified as some other race or two or three or 
+more races lives in a zip code which lost polling locations.
+
+### South Carolina
+
+`r round_half_up(sum(sum(sc_lost$total_hl)/sum(sc$total_hl)) * 100, 0)`% of
+the Hispanic or Latino population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(sc_lost$nhl_white)/sum(sc$nhl_white)) * 100, 0)`% of
+the White population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(sc_lost$nhl_black)/sum(sc$nhl_black)) * 100, 0)`% of
+the Black population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(sc_lost$nhl_ai_an)/sum(sc$nhl_ai_an)) * 100, 0)`% of 
+the American Indian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(sc_lost$nhl_asian)/sum(sc$nhl_asian)) * 100, 0)`% of 
+the Asian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(sc_lost$nhl_ao)/sum(sc$nhl_ao)) * 100, 0)`% 
+of the population who identified as some other race or two or three or 
+more races lives in a zip code which lost polling locations.
+
+*Richland County*
+
+In total, `r comma(sum(sc_lost$total))`, or 
+`r round_half_up(sum(sum(sc_lost_rland$total)/sum(sc_rland$total))*100,0)`% of people 
+who lived in Richland County, South Carolina lived in zip codes which lost polling 
+locations during the 2020 PPE.
+
+`r round_half_up(sum(sum(sc_lost_rland$total_hl)/sum(sc_rland$total_hl)) * 100, 0)`% of
+the Hispanic or Latino population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(sc_lost_rland$nhl_white)/sum(sc_rland$nhl_white)) * 100, 0)`% of
+the White population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(sc_lost_rland$nhl_black)/sum(sc_rland$nhl_black)) * 100, 0)`% of
+the Black population lives in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(sc_lost_rland$nhl_ai_an)/sum(sc_rland$nhl_ai_an)) * 100, 0)`% of 
+the American Indian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(sc_lost_rland$nhl_asian)/sum(sc_rland$nhl_asian)) * 100, 0)`% of 
+the Asian population lives in a zip code which lost polling locations.
+`r round_half_up(sum(sum(sc_lost_rland$nhl_ao)/sum(sc_rland$nhl_ao)) * 100, 0)`% 
+of the population who identified as some other race or two or three or 
+more races lives in a zip code which lost polling locations.
+
+### Pennsylvania
+
+`r round_half_up(sum(sum(pa_lost$total_hl)/sum(pa$total_hl)) * 100, 0)`% of
+the Hispanic or Latino population live in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(pa_lost$nhl_white)/sum(pa$nhl_white)) * 100, 0)`% of
+the White population live in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(pa_lost$nhl_black)/sum(pa$nhl_black)) * 100, 0)`% of
+the Black population live in a zip code which lost polling locations. 
+`r round_half_up(sum(sum(pa_lost$nhl_ai_an)/sum(pa$nhl_ai_an)) * 100, 0)`% of 
+the American Indian population live in a zip code which lost polling locations.
+`r round_half_up(sum(sum(pa_lost$nhl_asian)/sum(pa$nhl_asian)) * 100, 0)`% of 
+the Asian population live in a zip code which lost polling locations.
+`r round_half_up(sum(sum(pa_lost$nhl_ao)/sum(pa$nhl_ao)) * 100, 0)`% 
+of the population who identified as some other race or two or three or 
+more races live in a zip code which lost polling locations.
+
+\newpage 
+
+## Polling location changes by population {-} 
 
 *Selected Tables*
 
-The following tables show the number of people of each demographic grouped into 
-quantiles compared with how many zip codes within each quantile gained, maintained, 
-or lost polling locations. ex: In zip codes where between 0 -- 10,000 people
-identified as Hispanic or Latino, 22 gained polling locations, 118 lost polling
-locations, and 240 maintained polling locations. Zip codes may overlap between 
-demographic groups such that one zip code could have between 0 -- 10,000 people
-who identify as Hispanic or Latino and between 0 -- 10,000 people who identify as White.
+## Arizona
 
+The following tables show the number of people compared with how many zip codes 
+gained, maintained, or lost polling locations.In zip codes where between 
+0 -- 10,000 people live, 52 gained polling locations, 10 lost polling locations, 
+and 84 maintained polling locations.
 
-```{r sckables, echo=FALSE, message=FALSE}
+```{r azkable, echo=FALSE, message=FALSE}
 
-kable(sc_t1, "latex", booktabs = T, row.names = TRUE, 
-      caption = "South Carolina: Hispanic or Latino") %>%
-  kable_styling(position = "center", latex_options = "HOLD_position")
+az_t1 <- az %>%
+  tabyl(gp_total, delta_cat) %>%
+  adorn_totals("row") %>%
+  adorn_title("combined")
 
-kable(sc_t2, "latex", booktabs = T, row.names = TRUE, 
-      caption = "South Carolina: White") %>%
-  kable_styling(position = "center", latex_options = "HOLD_position")
-
-kable(sc_t3, "latex", booktabs = T, row.names = TRUE, 
-      caption = "South Carolina: Black or African American") %>%
+kable(az_t1, "latex", booktabs = T, row.names = TRUE, 
+      caption = "Arizona") %>%
   kable_styling(position = "center", latex_options = "HOLD_position")
 
 ```
 
-Zip codes with between 0 -- 10,000 people who identify as Hispanic or 
-Latino gained the greatest number of polling locations between the 2016 
-and 2020 PPE, those with between 0 -- 10,000 people who identify as Black or 
-African American gained the second highest number of polling locations, and 
-zip codes with between 50,001 -- 60,000 people who identify as White and 
-between 30,001 -- 40,000 people who identify as Black or African American 
-gained the fewest polling locations.
+Zip codes with between 0 -- 10,000 people gained the greatest number of polling 
+locations between the 2016 and 2020 PPE. Those with between 30,001 -- 40,000 
+people gained the second highest number of polling locations, and zip codes with 
+between 70,001 -- 80,000 people gained the fewest polling locations.
 
-Zip codes with between 0 -- 10,000 people who identify as Hispanic or Latino 
-maintained the greatest number of polling locations between the 2016 
-and 2020 PPE, those with between 0 -- 10,000 people who identify as Black or 
-African American maintained the second highest number of polling locations, 
-and zip codes with between 40,001 -- 60,000 people who identify as White
-maintained the fewest polling locations.
-
-Zip codes with between 0 -- 10,000 people who identify as as Hispanic or Latino 
-lost the greatest number of polling locations between the 2016 
-and 2020 PPE, those with between 0 -- 10,000 people who identify as Black or 
-African American lost the second highest number of polling locations, 
-and zip codes with between 30,001 -- 40,000 people who identify as Black or 
-African American lost the fewest polling locations.
-
-*Quantile Table of Total People per Zip Code*
-
-```{r qtablesc, echo=FALSE, message=FALSE}
-
-kable(sc_t4, "latex", booktabs = T, row.names = TRUE, 
-      caption = "South Carolina: Total") %>%
-  kable_styling(position = "center", latex_options = "HOLD_position")
-
-```
-
-Zip codes with between 40 -- 2,240 and between 6,951 -- 19,200 people each
-gained the greatest number of polling locations between the 2016 and 2020 PPE, 
-those with between 19,201 -- 81,900 people gained the second greatest number of 
-polling locations, and those with between 2,241 -- 6,950 people gained the least 
-number of polling locations.
-
-Zip codes with between 40 -- 2,240 people maintained the greatest number of
-polling locations, those with between 2,241 -- 6,950 people maintained the 
-second greatest number of polling locations, and those with between 
-19,201 -- 81,900 people maintained the fewest number of polling locations.
-
-Zip codes with between 19,201 -- 81,900 people lost the greatest number of 
+Zip codes with between 0 -- 10,000 people maintained the greatest number of 
 polling locations between the 2016 and 2020 PPE, those with between 
-6,951 -- 19,200 people lost the second greatest number of polling locations, 
-and those with between 40 -- 2,240 people lost the least number of 
+10,001 -- 20,000 people maintained the second highest number of polling locations, 
+and zip codes with between 70,001 -- 80,000 people maintained no polling locations. 
+
+Zip codes with between 0 -- 10,000 people lost the greatest number of polling 
+locations between the 2016 and 2020 PPE, those with between 10,001 -- 20,000 
+people lost the second highest number of polling locations, and zip codes with 
+between 50,001 -- 60,000 and between 70,001 -- 80,000 people lost no
 polling locations.
 
-*Richland County*
+## South Carolina 
 
-There were no zip codes within Richland county which gained polling locations
-between the 2016 and 2020 PPEs.
+```{r sckable, echo=FALSE, message=FALSE}
 
-\newpage
+sc_t1 <- sc %>%
+  tabyl(gp_total, delta_cat) %>%
+  adorn_totals("row") %>%
+  adorn_title("combined")
 
-In those zip codes which maintained polling locations (n = `r nrow(sc_m_rland)`),
-`r comma(sum(sc_m_rland$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(sc_m_rland$nhl_white))` people identified as White, 
-`r comma(sum(sc_m_rland$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_m_rland$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_m_rland$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_m_rland$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_m_rland$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(sc_m_rland$total))`  people lived
-in zip codes within Richland county which maintained polling locations during the 2020 PPE.
-
-In those zip codes which lost polling locations (n = `r nrow(sc_lost_rland)`),
-`r comma(sum(sc_lost_rland$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(sc_lost_rland$nhl_white))` people identified as White, 
-`r comma(sum(sc_lost_rland$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_lost_rland$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_lost_rland$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_lost_rland$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_lost_rland$nhl_ao))` people identified as some other 
-race or two or three or more races. In total, `r comma(sum(sc_lost_rland$total))`  people lived
-in zip codes within Richland county which lost polling locations during the 2020 PPE.
-
-#FIXME:add PA data ###################################################
-
-## New locations in 2020
-
-```{r newlocs, echo=FALSE, message=FALSE}
-
-# use this for graphs with geometry data filtered by zipcodes 
-# https://juliasilge.com/blog/using-tidycensus/ 
-
-# AZ 
-# how many locations in 2020 were new compared to 2016?
-#Maricopa
-
-## how many new polling locations are there in AZ between 2016 to 2020?
-
-# looking for slight differences in names and addresses which would
-# incorrectly miss duplicates, name seems to be a less consistent field
-# than address so I'll use that
-
-# 350/470 addresses in 2020 data not found in 2016 data
-new_addsaz <- anti_join(az_2020_df_full, az_2016_df, by = "address_line")
-
-# how many polling locations did maricopa have in 2016 vs 2020?
-
-# clean maricopa 2020 data
-mc2020 <- az_2020_maricopa_df %>%
-  mutate(address_line = tolower(address_line),
-         name = tolower(name)) %>%
-  filter(id %in% az_2020_df_full$id) %>%
-  filter(address_line %in% az_2020_df_full$address_line)
-#2 polling places with unique ids and addresses
-
-# how many new locations in az without maricopa?
-az_san_mar2020 <- az_2020_df_full %>%
-  filter(!id %in% mc2020$id)
-#468
-
-# how many new locations in az without maricopa?
-az_san_mar2016 <- az_2016_df %>%
-  filter(!id %in% mc2020$id)
-#325
-
-new_addsaz_sanmar <- anti_join(az_san_mar2020, az_san_mar2016, by = "address_line")
-#349/468 locations appear only in 2020
-
-# how many polling places persisted between 2016 and 2020?
-mc_both <- semi_join(mc2020, az_2016_df, by = "address_line")
-#1/150 locations open in maricopa in 2020 appear in both lists
-
-# how many were only active in 2020/new in 2020?
-mc_2020only <- anti_join(mc2020, az_2016_df, by = "address_line")
-#1/150 locations open in maricopa in 2020 do not appear in the 2016 list
-
-# SC
-# how many locations in 2020 were new compared to 2016?
-# Richland
-
-# how many addresses appear only in 2020 data and not 2016 data?
-
-# 799/1919 polling places are new in 2020
-new_addssc <- anti_join(sc_2020_df, sc_2016_df, by = "address_line",
-                       suffix = c("2020", "2016"))
-
-
-# PA
-# how many locations in 2020 were new compared to 2016?
-
+kable(sc_t1, "latex", booktabs = T, row.names = TRUE, 
+      caption = "South Carolina") %>%
+  kable_styling(position = "center", latex_options = "HOLD_position")
 
 ```
 
+Zip codes with between 0 -- 10,000 people and those with between 
+10,001 -- 20,000 people gained the greatest number of polling locations between 
+the 2016 and 2020 PPE. Those with between 20,001 -- 30,000 people gained the 
+second highest number of polling locations, and zip codes with between 
+60,001 -- 70,000 people and those with between 80,001 -- 90,000 people
+gained no polling locations.
 
-## Polling location changes, demographics, and COVID-19 {-} 
+Zip codes with between 0 -- 10,000 people maintained the greatest number of 
+polling locations between the 2016 and 2020 PPE, those with between 
+10,001 -- 20,000 people maintained the second highest number of polling locations, 
+and zip codes with between 80,001 -- 90,000 people maintained no locations. 
 
-```{r covid, echo=FALSE, message=FALSE}
+Zip codes with between 10,001 -- 20,000 people lost the greatest number of polling 
+locations between the 2016 and 2020 PPE, those with between 0 -- 10,000 
+people lost the second highest number of polling locations, and zip codes with 
+between 60,001 -- 70,000 people and those with between 80,001 -- 90,000 people
+lost the fewest locations. 
 
-az_covid_df <- read_rds(files$az_demo_covid_clean) %>%
-  mutate_at(vars(covid_cat, polling_cat), as.factor) %>%
-  select(zipcode, covid_cat, polling_cat, 
-         confirmed_case_count, total_hl, total_nhl, nhl_white, 
-         nhl_black, nhl_ai_an, nhl_asian, nhl_nhi_pi,
-         nhl_ao, county) %>%
-  mutate(confirmed_case_count = as.numeric(confirmed_case_count))
+## Pennsylvania
 
-az_dc_lost <- az_covid_df %>%
-  filter(covid_cat == "Lost Polling Locations")
-az_dc_g <- az_covid_df %>%
-  filter(covid_cat == "Gained Polling Locations")
-az_dc_m <- az_covid_df %>%
-  filter(covid_cat == "Maintained Polling Locations")
+```{r pakable, echo=FALSE, message=FALSE}
 
-az_dc_s <- az_covid_df %>%
-  filter(covid_cat == "COVID Data Suppressed Pending Tribal Approval")
-az_dcs_lost <- az_dc_s %>%
-  filter(polling_cat == "Lost Polling Locations")
-az_dcs_g <- az_dc_s %>%
-  filter(polling_cat == "Gained Polling Locations")
-az_dcs_m <- az_dc_s %>%
-  filter(polling_cat == "Maintained Polling Locations")
+pa_t1 <- pa %>%
+   tabyl(gp_total, delta_cat) %>%
+  adorn_totals("row") %>%
+  adorn_title("combined")
 
-az_dc_nd <- az_covid_df %>%
-  filter(covid_cat == "No COVID Data Reported")
-az_dc_ndg <- az_dc_nd %>%
-  filter(polling_cat == "Gained Polling Locations")
-az_dc_ndm <- az_dc_nd %>%
-  filter(polling_cat == "Maintained Polling Locations")
-
-# maricopa county
-az_dclost_maricopa <- az_dc_lost %>%
-  filter(county == "Maricopa County")
-az_dcg_maricopa <- az_dc_g %>%
-  filter(county == "Maricopa County")
-az_dcm_maricopa <- az_dc_m %>%
-  filter(county == "Maricopa County")
-
-az_dc_ndmaricopa <- az_dc_nd %>%
-  filter(covid_cat == "No COVID Data Reported")
-az_dcg_ndgmaricopa <- az_dc_ndmaricopa %>%
-  filter(polling_cat == "Gained Polling Locations")
-az_dcm_ndmmaricopa <- az_dc_ndmaricopa %>%
-  filter(polling_cat == "Maintained Polling Locations")
-
-# south carolina
-
-sc_covid_df <- read_rds(files$sc_demo_covid_clean) %>%
-  mutate_at(vars(delta_cat), as.factor) %>%
-  select(zipcode, delta_cat, cases, 
-         total_hl, total_nhl, nhl_white, 
-         nhl_black, nhl_ai_an, nhl_asian, nhl_nhi_pi,
-         nhl_ao, county)
-
-sc_dc_lost <- sc_covid_df %>%
-  filter(delta_cat == "Lost Polling Locations")
-sc_dc_g <- sc_covid_df %>%
-  filter(delta_cat == "Gained Polling Locations")
-sc_dc_m <- sc_covid_df %>%
-  filter(delta_cat == "Maintained Polling Locations")
-
-# Richland county
-sc_dclost_rland <- sc_dc_lost %>%
-  filter(county == "Richland")
-sc_dcg_rland <- sc_dc_g %>%
-  filter(county == "Richland")
-sc_dcm_rland <- sc_dc_m %>%
-  filter(county == "Richland")
-
-#FIXME:add PA data
-
-# done.
+kable(pa_t1, "latex", booktabs = T, row.names = TRUE, 
+      caption = "Pennsylvania") %>%
+  kable_styling(position = "center", latex_options = "HOLD_position")
 
 ```
 
-### Arizona
+Zip codes with between 0 -- 10,000 people gained the greatest number of polling 
+locations between the 2016 and 2020 PPE. Those with between 
+10,001 -- 20,000 people gained the second highest number of polling locations, 
+and zip codes with between 70,001 -- 80,000 people gained the fewest number of
+locations.
 
-In those zip codes with complete COVID-19 data which gained polling locations 
-(n = `r nrow(az_dc_g)`), `r comma(sum(az_dc_g$total_hl))` people identified as Hispanic 
-or Latino, `r comma(sum(az_dc_g$nhl_white))` people identified as White, 
-`r comma(sum(az_dc_g$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dc_g$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_dc_g$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_dc_g$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_dc_g$nhl_ao))` people identified as some other race 
-or two or three or more races. There are between 
-`r min(az_dc_g$confirmed_case_count) ` -- `r max(az_dc_g$confirmed_case_count)` cases
-of COVID-19 reported in these zip codes.
+Zip codes with between 0 -- 10,000 people maintained the greatest number of 
+polling locations between the 2016 and 2020 PPE, those with between 
+10,001 -- 20,000 people maintained the second highest number of polling locations, 
+and zip codes with between both 60,001 -- 70,000 people and those with between 
+70,001 -- 80,000 people maintained no locations. 
 
-In those zip codes with complete COVID-19 data which maintained polling locations 
-(n = `r nrow(az_dc_m)`), `r comma(sum(az_dc_m$total_hl))` people identified as Hispanic 
-or Latino, `r comma(sum(az_dc_m$nhl_white))` people identified as White, 
-`r comma(sum(az_dc_m$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dc_m$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_dc_m$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_dc_m$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_dc_m$nhl_ao))` people identified as some other race 
-or two or three or more races.There are between 
-`r min(az_dc_m$confirmed_case_count) ` -- `r max(az_dc_m$confirmed_case_count)` cases
-of COVID-19 reported in these zip codes.
-
-In those zip codes with complete COVID-19 data which lost polling locations 
-(n = `r nrow(az_dc_lost)`), `r comma(sum(az_dc_lost$total_hl))` people identified as Hispanic 
-or Latino, `r comma(sum(az_dc_lost$nhl_white))` people identified as White, 
-`r comma(sum(az_dc_lost$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dc_lost$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_dc_lost$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_dc_lost$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_dc_lost$nhl_ao))` people identified as some other race 
-or two or three or more races. There are between 
-`r min(az_dc_lost$confirmed_case_count) ` -- `r max(az_dc_lost$confirmed_case_count)` cases
-of COVID-19 reported in these zip codes.
-
-In those zip codes in which COVID-19 data are pending tribal approval and 
-which gained polling locations (n = `r nrow(az_dcs_g)`),
-`r comma(sum(az_dcs_g$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_dcs_g$nhl_white))` people identified as White, 
-`r comma(sum(az_dcs_g$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dcs_g$nhl_ai_an))` people identified as American Indian or 
-Alaskan Native, `r comma(sum(az_dcs_g$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_dcs_g$nhl_nhi_pi))` people identified as Native Hawaiian or 
-Pacific Islander, and `r comma(sum(az_dcs_g$nhl_ao))` people identified as 
-some other race or two or three or more races. There is 
-`r max(az_dcs_g$confirmed_case_count)` case of COVID-19 reported.
-
-In those zip codes in which COVID-19 data are pending tribal approval and 
-which maintained polling locations (n = `r nrow(az_dcs_m)`),
-`r comma(sum(az_dcs_m$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_dcs_m$nhl_white))` people identified as White, 
-`r comma(sum(az_dcs_m$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dcs_m$nhl_ai_an))` people identified as American Indian or 
-Alaskan Native, `r comma(sum(az_dcs_m$nhl_asian))` people identified as Asian, 
-no one identified as Native Hawaiian or Pacific Islander, and 
-`r comma(sum(az_dcs_m$nhl_ao))` people identified as 
-some other race or two or three or more races. There is 
-`r max(az_dcs_m$confirmed_case_count)` case of COVID-19 reported.
-
-In those zip codes in which COVID-19 data are pending tribal approval and 
-which lost polling locations (n = `r nrow(az_dcs_lost)`),
-`r comma(sum(az_dcs_lost$total_hl))` people identified as Hispanic or Latino, 
-`r comma(sum(az_dcs_lost$nhl_white))` people identified as White, 
-`r comma(sum(az_dcs_lost$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dcs_lost$nhl_ai_an))` people identified as American Indian or 
-Alaskan Native, `r comma(sum(az_dcs_lost$nhl_asian))` people identified as Asian, 
-no one identified as Native Hawaiian or Pacific Islander, and 
-`r comma(sum(az_dcs_lost$nhl_ao))` people identified as some other race or two 
-or three or more races. There is `r max(az_dcs_lost$confirmed_case_count)` case
-of COVID-19 reported.
-
-In those zip codes without COVID-19 data which gained polling locations 
-(n = `r nrow(az_dc_ndg)`), `r comma(sum(az_dc_ndg$total_hl))` people identified as Hispanic 
-or Latino, `r comma(sum(az_dc_ndg$nhl_white))` people identified as White, 
-`r comma(sum(az_dc_ndg$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dc_ndg$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_dc_ndg$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_dc_ndg$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_dc_ndg$nhl_ao))` people identified as some other race 
-or two or three or more races.
-
-In those zip codes without COVID-19 data which maintained polling 
-locations (n = `r nrow(az_dc_ndm)`), `r comma(sum(az_dc_ndm$total_hl))` people identified as 
-Hispanic or Latino, `r comma(sum(az_dc_ndm$nhl_white))` people identified as White, 
-`r comma(sum(az_dc_ndm$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(az_dc_ndm$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(az_dc_ndm$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_dc_ndm$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(az_dc_ndm$nhl_ao))` people identified as some other race 
-or two or three or more races.
-
-There were no zip codes without COVID-19 data which lost polling locations
-between the 2016 and 2020 PPE.
-
-*Maricopa County*
-
-In those zip codes with complete COVID-19 data which gained polling locations 
-(n = `r nrow(az_dcg_maricopa)`), `r comma(sum(az_dcg_maricopa$total_hl))` people identified 
-as Hispanic or Latino, `r comma(sum(az_dcg_maricopa$nhl_white))` people identified 
-as White, `r comma(sum(az_dcg_maricopa$nhl_black))` people identified as 
-Black or African-American, `r comma(sum(az_dcg_maricopa$nhl_ai_an))` people identified 
-as American Indian or Alaskan Native, `r comma(sum(az_dcg_maricopa$nhl_asian))` people 
-identified as Asian, `r comma(sum(az_dcg_maricopa$nhl_nhi_pi))` people identified 
-as Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcg_maricopa$nhl_ao))`
-people identified as some other race or two or three or more races.
-There are between 
-`r min(az_dcg_maricopa$confirmed_case_count) ` -- `r max(az_dcg_maricopa$confirmed_case_count)` 
-cases of COVID-19 reported in these zip codes.
-
-In those zip codes with complete COVID-19 data which maintained polling locations 
-(n = `r nrow(az_dcm_maricopa)`),`r comma(sum(az_dcm_maricopa$total_hl))` people identified 
-as Hispanic or Latino, `r comma(sum(az_dcm_maricopa$nhl_white))` people identified 
-as White, `r comma(sum(az_dcm_maricopa$nhl_black))` people identified as 
-Black or African-American, `r comma(sum(az_dcm_maricopa$nhl_ai_an))` people identified 
-as American Indian or Alaskan Native, `r comma(sum(az_dcm_maricopa$nhl_asian))` people 
-identified as Asian, `r comma(sum(az_dcm_maricopa$nhl_nhi_pi))` people identified 
-as Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcm_maricopa$nhl_ao))`
-people identified as some other race or two or three or more races.
-There are between 
-`r min(az_dcm_maricopa$confirmed_case_count) ` -- `r max(az_dcm_maricopa$confirmed_case_count)` 
-cases of COVID-19 reported in these zip codes.
-
-In those zip codes with complete COVID-19 data which lost polling locations 
-(n = `r nrow(az_dclost_maricopa)`), `r comma(sum(az_dclost_maricopa$total_hl))` people 
-identified as Hispanic or Latino, `r comma(sum(az_dclost_maricopa$nhl_white))` 
-people identified as White, `r comma(sum(az_dclost_maricopa$nhl_black))` people 
-identified as Black or African-American, `r comma(sum(az_dclost_maricopa$nhl_ai_an))` 
-people identified as American Indian or Alaskan Native, 
-`r comma(sum(az_dclost_maricopa$nhl_asian))` people identified as Asian, 
-`r comma(sum(az_dclost_maricopa$nhl_nhi_pi))` people identified as Native Hawaiian 
-or Pacific Islander, and `r comma(sum(az_dclost_maricopa$nhl_ao))` people identified 
-as some other race or two or three or more races. There are between 
-`r min(az_dclost_maricopa$confirmed_case_count) ` -- `r max(az_dclost_maricopa$confirmed_case_count)` 
-cases of COVID-19 reported in these zip codes.
-
-In those zip codes without complete COVID-19 data which gained polling locations 
-(n = `r nrow(az_dcg_ndgmaricopa)`), `r comma(sum(az_dcg_ndgmaricopa$total_hl))` people identified 
-as Hispanic or Latino, `r comma(sum(az_dcg_ndgmaricopa$nhl_white))` people identified 
-as White, `r comma(sum(az_dcg_ndgmaricopa$nhl_black))` people identified as 
-Black or African-American, `r comma(sum(az_dcg_ndgmaricopa$nhl_ai_an))` people identified 
-as American Indian or Alaskan Native, `r comma(sum(az_dcg_ndgmaricopa$nhl_asian))` people 
-identified as Asian, `r comma(sum(az_dcg_ndgmaricopa$nhl_nhi_pi))` people identified 
-as Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcg_ndgmaricopa$nhl_ao))`
-people identified as some other race or two or three or more races.
-
-In those zip codes without complete COVID-19 data which maintained polling locations 
-(n = `r nrow(az_dcm_ndmmaricopa)`), `r comma(sum(az_dcm_ndmmaricopa$total_hl))` people identified 
-as Hispanic or Latino, `r comma(sum(az_dcm_ndmmaricopa$nhl_white))` people identified 
-as White, `r comma(sum(az_dcm_ndmmaricopa$nhl_black))` people identified as 
-Black or African-American, `r comma(sum(az_dcm_ndmmaricopa$nhl_ai_an))` people identified 
-as American Indian or Alaskan Native, `r comma(sum(az_dcm_ndmmaricopa$nhl_asian))` people 
-identified as Asian, `r comma(sum(az_dcm_ndmmaricopa$nhl_nhi_pi))` people identified 
-as Native Hawaiian or Pacific Islander, and `r comma(sum(az_dcm_ndmmaricopa$nhl_ao))`
-people identified as some other race or two or three or more races.
-
-There were no zip codes without COVID-19 data in Maricopa which lost polling 
-locations between the 2016 and 2020 PPE.
-
-### South Carolina
-
-In those zip codes with complete COVID-19 data which gained polling locations 
-(n = `r nrow(sc_dc_g)`), `r comma(sum(sc_dc_g$total_hl))` people identified as Hispanic 
-or Latino, `r comma(sum(sc_dc_g$nhl_white))` people identified as White, 
-`r comma(sum(sc_dc_g$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_dc_g$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_dc_g$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_dc_g$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_dc_g$nhl_ao))` people identified as some other race 
-or two or three or more races. There are between 
-`r comma(min(sc_dc_g$cases)) ` -- `r comma(max(sc_dc_g$cases))` cases of COVID-19 reported.
-
-In those zip codes with complete COVID-19 data which maintained polling 
-locations (n = `r nrow(sc_dc_m)`), `r comma(sum(sc_dc_m$total_hl))` people identified as 
-Hispanic or Latino, `r comma(sum(sc_dc_m$nhl_white))` people identified as White, 
-`r comma(sum(sc_dc_m$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_dc_m$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_dc_m$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_dc_m$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_dc_m$nhl_ao))` people identified as some other race 
-or two or three or more races. There are between 
-`r comma(min(sc_dc_m$cases)) ` -- `r comma(max(sc_dc_m$cases))` cases of COVID-19 reported.
-
-In those zip codes with complete COVID-19 data which lost polling locations 
-(n = `r nrow(sc_dc_lost)`), `r comma(sum(sc_dc_lost$total_hl))` people identified as 
-Hispanic or Latino, `r comma(sum(sc_dc_lost$nhl_white))` people identified as White, 
-`r comma(sum(sc_dc_lost$nhl_black))` people identified as Black or African-American, 
-`r comma(sum(sc_dc_lost$nhl_ai_an))` people identified as American Indian or Alaskan 
-Native, `r comma(sum(sc_dc_lost$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_dc_lost$nhl_nhi_pi))` people identified as Native Hawaiian or Pacific 
-Islander, and `r comma(sum(sc_dc_lost$nhl_ao))` people identified as some other 
-race or two or three or more races. There are between 
-`r comma(min(sc_dc_lost$cases))` -- `r comma(max(sc_dc_lost$cases))` cases of COVID-19 reported.
-
-*Richland County*
-
-There were no zip codes within Richland county which gained polling locations
-between the 2016 and 2020 PPEs.
-
-In those zip codes with complete COVID-19 data which maintained polling locations 
-(n = `r nrow(sc_dcm_rland)`),`r comma(sum(sc_dcm_rland$total_hl))` people identified 
-as Hispanic or Latino, `r comma(sum(sc_dcm_rland$nhl_white))` people identified 
-as White, `r comma(sum(sc_dcm_rland$nhl_black))` people identified as 
-Black or African-American, `r comma(sum(sc_dcm_rland$nhl_ai_an))` people identified 
-as American Indian or Alaskan Native, `r comma(sum(sc_dcm_rland$nhl_asian))` people 
-identified as Asian, `r comma(sum(sc_dcm_rland$nhl_nhi_pi))` people identified 
-as Native Hawaiian or Pacific Islander, and `r comma(sum(sc_dcm_rland$nhl_ao))`
-people identified as some other race or two or three or more races.
-There are between `r comma(min(sc_dcm_rland$cases)) ` -- `r comma(max(sc_dcm_rland$cases))` 
-cases of COVID-19 reported.
-
-In those zip codes with complete COVID-19 data which lost polling locations 
-(n = `r nrow(sc_dclost_rland)`),`r comma(sum(sc_dclost_rland$total_hl))` people 
-identified as Hispanic or Latino, `r comma(sum(sc_dclost_rland$nhl_white))` 
-people identified as White, `r comma(sum(sc_dclost_rland$nhl_black))` people 
-identified as Black or African-American, `r comma(sum(sc_dclost_rland$nhl_ai_an))` 
-people identified as American Indian or Alaskan Native, 
-`r comma(sum(sc_dclost_rland$nhl_asian))` people identified as Asian, 
-`r comma(sum(sc_dclost_rland$nhl_nhi_pi))` people identified as Native Hawaiian 
-or Pacific Islander, and `r comma(sum(sc_dclost_rland$nhl_ao))` people identified 
-as some other race or two or three or more races.
-There are between `r comma(min(sc_dclost_rland$cases)) ` -- `r comma(max(sc_dclost_rland$cases))` 
-cases of COVID-19 reported.
-
-#FIXME:add PA data #####################################################
+Zip codes with between 10,001 -- 20,000 people lost the greatest number of polling 
+locations between the 2016 and 2020 PPE, those with between 10,001 -- 20,000 
+people lost the second highest number of polling locations, and zip codes with 
+between both 60,001 -- 70,000 people and those with between 70,001 -- 80,000 
+people lost no locations. 
 
 ## Methodology
 
+``` {r ncounties, echo=FALSE, message=FALSE}
+
+ncountiesaz <- az %>%
+  group_by(county) %>%
+  distinct(county) %>%
+  arrange(county)
+
+
+ncountiessc <- sc %>%
+  group_by(county) %>%
+  distinct(county) %>%
+  arrange(county)
+
+ncountiespa <- pa %>%
+  group_by(county) %>%
+  distinct(county) %>%
+  arrange(county)
+
+```
+
 This report examines polling location data from `r nrow(ncountiesaz)`
 or `r round_half_up(sum((nrow(ncountiesaz)/15)*100),0)`% of the counties in 
-Arizona and `r nrow(ncountiessc)` or `r round_half_up(sum((nrow(ncountiessc)/46)*100),0)`% 
-of the counties in South Carolina. Pima County, AZ has not been included since 
-the data come from the Voter Information Project and Pima County does not 
-participate in its activities. Data were reviewed for uniqueness, completeness, 
-and accuracy of information on zip codes, county, and number of polling locations. 
+Arizona, `r nrow(ncountiessc)` or `r round_half_up(sum((nrow(ncountiessc)/46)*100),0)`% 
+of the counties in South Carolina, and `r nrow(ncountiespa)` or `r round_half_up(sum((nrow(ncountiespa)/67)*100),0)`% of the counties in Pennsylvania.
+
+Pima County, Arizona has not been included since the data come from the Voter 
+Information Project and Pima County does not participate in its activities. 
+Data were reviewed for uniqueness, completeness, and accuracy of addresses.
 Polling locations are known to change just before an election so this data 
 should not be viewed as a definitive list of the actual polling locations used 
 on election day.
@@ -886,24 +516,18 @@ on election day.
 Demographic data were obtained from the 2014 -- 2018 American Community Survey's 
 B03002 table and groups were categorized as either Hispanic or Latino, and
 not Hispanic or Latino by specific group: White alone, Black or African American 
-Alone, American Indian and Alaska Native alone, Asian alone,Native Hawaiian and 
+Alone, American Indian and Alaska Native alone, Asian alone, Native Hawaiian and 
 Other Pacific Islander alone, and All other races alone (Including Some other 
 race alone and Two or more races alone).
 
 Zip code and county data were obtained from unitedstateszipcodes.org. 
 While many zip codes map directly to specific counties, the relationship between 
 these two organizational systems is not always 1:1 and is subject to change.
-
-Data on COVID-19 cases in Arizona was obtained from the Arizona Department 
-of Health Services while data on cases in South Carolina was obtained
-though the New York Times covid-19 repository on GitHub. Data from these sources
-was combined with demographic and zip code data. Data on COVID-19 cases was only 
-kept for those zip codes for which we also had polling location data and in 
-Arizona, was categorized to denote where data were missing or suppressed pending 
-tribal approval as noted in the original data. Data are current as of as 
-of `r format(Sys.time(), '%d %B, %Y')`.
+Data are current as of as of `r format(Sys.time(), '%d %B, %Y')`.
 
 ## Acknowledgements {-} 
 
-We are grateful to Sarah Berlin at Democracy Works for collecting data from the 
-Voter Information Project.
+We are grateful to Sarah Berlin at Democracy Works for providing data on Arizona 
+and South Caroling from the Voter Information Project and Rebecca Fuhrman at the 
+Commonwealth of Pennsylvania's Department of State for providing data from 
+Pennsylvania.

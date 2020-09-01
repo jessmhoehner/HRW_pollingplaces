@@ -15,6 +15,7 @@ clean_data = \
 				 $(HERE)/write/input/az_2020_clean.rds \
 				 $(HERE)/write/input/az_2020_freq_clean.rds \
 				 $(HERE)/write/input/az_demo_clean.rds \
+				 $(HERE)/write/input/az_2020_maricopa_clean.rds \
 				 $(HERE)/write/input/sc_2016_clean.rds \
 				 $(HERE)/write/input/sc_2016_freq_clean.rds \
 				 $(HERE)/write/input/sc_2020_clean.rds \

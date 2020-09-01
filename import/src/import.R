@@ -65,6 +65,7 @@ inlist <- lapply(inputslist, function(x) {
 stopifnot(length(inlist) == 5)
 saveRDS(inlist, outputs$VIPinlist_imp)
 
+
 expected_colspa2016 <- c("county_name","precinct_code","precinct_name","description",
                      "house_num","prefix_direction_desc","street","street_type_desc",
                      "suffix_direction_desc","city","state_desc","postal_code",
@@ -77,7 +78,7 @@ pa2016_df <- read_csv(inputs$pa_2016, col_names = TRUE,
   clean_names() %>%
   verify(colnames(.) == expected_colspa2016) %>%
   verify(ncol(.) == 15 & nrow(.) == 9155) %>%
-  saveRDS(outputs$pa_2016_2_imp)
+  saveRDS(outputs$pa_2016_imp)
 
 expected_colspa2020 <- c("county_name","precinct_code","precinct_name",
                          "precinct_split_code","description","house_num",
