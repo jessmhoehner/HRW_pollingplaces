@@ -6,35 +6,35 @@
 # ============================================
 # HRW_pollingplaces/clean/src/clean.R
 #
-pacman::p_load("tidyverse", "assertr", "janitor", "gtools", "tidycensus")
+pacman::p_load("here", "tidyverse", "assertr", "janitor")
 
 inputs <- list(
-  VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
-  pa_2016_imp = here::here("clean/input/pa2016_imported.rds"),
-  pa_2020_imp = here::here("clean/input/pa2020_imported.rds"),
-  census_imp = here::here("clean/input/census_imported.rds"),
-  counnzip_azscpa_imp = here::here("clean/input/counzip_azscpa_imported.rds")
+  VIPinlist_imp = here("clean/input/VIPdata_imported.rds"),
+  pa_2016_imp = here("clean/input/pa2016_imported.rds"),
+  pa_2020_imp = here("clean/input/pa2020_imported.rds"),
+  census_imp = here("clean/input/census_imported.rds"),
+  counnzip_azscpa_imp = here("clean/input/counzip_azscpa_imported.rds")
 )
 
 outputs <- list(
-  az_2016_clean = here::here("write/input/az_2016_clean.rds"),
-  az_2016_freq_clean = here::here("write/input/az_2016_freq_clean.rds"),
-  az_2020_clean = here::here("write/input/az_2020_clean.rds"),
-  az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
-  az_demo_clean = here::here("write/input/az_demo_clean.rds"),
-  az_2020_maricopa_clean = here::here("write/input/az_2020_maricopa_clean.rds"),
+  az_2016_clean = here("write/input/az_2016_clean.rds"),
+  az_2016_freq_clean = here("write/input/az_2016_freq_clean.rds"),
+  az_2020_clean = here("write/input/az_2020_clean.rds"),
+  az_2020_freq_clean = here("write/input/az_2020_freq_clean.rds"),
+  az_demo_clean = here("write/input/az_demo_clean.rds"),
+  az_2020_maricopa_clean = here("write/input/az_2020_maricopa_clean.rds"),
 
-  sc_2016_clean = here::here("write/input/sc_2016_clean.rds"),
-  sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
-  sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
-  sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
-  sc_demo_clean = here::here("write/input/sc_demo_clean.rds"),
+  sc_2016_clean = here("write/input/sc_2016_clean.rds"),
+  sc_2016_freq_clean = here("write/input/sc_2016_freq_clean.rds"),
+  sc_2020_clean = here("write/input/sc_2020_clean.rds"),
+  sc_2020_freq_clean = here("write/input/sc_2020_freq_clean.rds"),
+  sc_demo_clean = here("write/input/sc_demo_clean.rds"),
 
-  pa_2016_clean = here::here("write/input/pa_2016_clean.rds"),
-  pa_2016_freq_clean = here::here("write/input/pa_2016_freq_clean.rds"),
-  pa_2020_clean = here::here("write/input/pa_2020_clean.rds"),
-  pa_2020_freq_clean = here::here("write/input/pa_2020_freq_clean.rds"),
-  pa_demo_clean = here::here("write/input/pa_demo_clean.rds")
+  pa_2016_clean = here("write/input/pa_2016_clean.rds"),
+  pa_2016_freq_clean = here("write/input/pa_2016_freq_clean.rds"),
+  pa_2020_clean = here("write/input/pa_2020_clean.rds"),
+  pa_2020_freq_clean = here("write/input/pa_2020_freq_clean.rds"),
+  pa_demo_clean = here("write/input/pa_demo_clean.rds")
 )
 
 # VIP data Arizona and South Carolina ##########################################
@@ -221,7 +221,8 @@ az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
          address_line = as.character(gsub("07th ", "7th ", address_line)),
          address_line = as.character(gsub("08th ", "8th ", address_line)),
          address_line = as.character(gsub("09th ", "9th ", address_line)),
-         zipcode = as.character(substr(address_line, nchar(address_line) - n_last + 1,
+         zipcode =
+           as.character(substr(address_line, nchar(address_line) - n_last + 1,
                                        nchar(address_line)))) %>%
   filter(address_line != "az") %>%
   filter(!id %in% invalid_info) %>%
@@ -243,7 +244,8 @@ az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
   verify(ncol(.) == 3 & nrow(.) == 330) %>%
   verify(min(id) == 7700104067 & max(id) == 770099999)  %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
-  mutate(zipcode = as.factor(substr(address_line, nchar(address_line) - n_last + 1,
+  mutate(zipcode =
+           as.factor(substr(address_line, nchar(address_line) - n_last + 1,
                                     nchar(address_line))),
          address_line = make_clean_names(address_line, sep_out = " ",
                                          unique_sep = NULL),
@@ -306,7 +308,8 @@ az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
          address_line = as.character(gsub("07th ", "7th ", address_line)),
          address_line = as.character(gsub("08th ", "8th ", address_line)),
          address_line = as.character(gsub("09th ", "9th ", address_line)),
-         zipcode = as.factor(substr(address_line, nchar(address_line) - n_last + 1,
+         zipcode =
+           as.factor(substr(address_line, nchar(address_line) - n_last + 1,
                                     nchar(address_line)))) %>%
   verify(is.na(zipcode) == FALSE) %>%
   filter(zipcode != "12345") %>%
@@ -418,7 +421,8 @@ az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
                                 "yavapai county administration building",
                                 address_line),
          address_line = if_else(id == "770039620",
-                                "11711 williams st wellton az 85356", address_line),
+                                "11711 williams st wellton az 85356",
+                                address_line),
          address_line = if_else(id == "770040357",
                                 "1380 e patagonia hwy nogales az 85621",
                                 address_line),
@@ -494,7 +498,8 @@ az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
          address_line = as.character(gsub("07th ", "7th ", address_line)),
          address_line = as.character(gsub("08th ", "8th ", address_line)),
          address_line = as.character(gsub("09th ", "9th ", address_line)),
-         zipcode = as.character(substr(address_line, nchar(address_line) - n_last + 1,
+         zipcode =
+           as.character(substr(address_line, nchar(address_line) - n_last + 1,
                                        nchar(address_line)))) %>%
   verify(is.na(zipcode) == FALSE) %>%
   distinct(id, .keep_all = TRUE) %>%
@@ -653,7 +658,8 @@ sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
   verify(ncol(.) == 3 & nrow(.) == 1968) %>%
   verify(min(id) == 88801000 & max(id) == 8880999) %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
-  mutate(zipcode = as.character(substr(address_line, nchar(address_line) - n_last + 1,
+  mutate(zipcode =
+           as.character(substr(address_line, nchar(address_line) - n_last + 1,
                                        nchar(address_line)))) %>%
   verify(is.na(zipcode) == FALSE) %>%
   mutate(address_line = tolower(address_line),
@@ -743,7 +749,8 @@ sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
         address_line = as.character(gsub("07th ", "7th ", address_line)),
         address_line = as.character(gsub("08th ", "8th ", address_line)),
         address_line = as.character(gsub("09th ", "9th ", address_line)),
-        zipcode = as.character(substr(address_line, nchar(address_line) - n_last + 1,
+        zipcode =
+          as.character(substr(address_line, nchar(address_line) - n_last + 1,
                                       nchar(address_line)))) %>%
   filter(zipcode != "SC" |
            zipcode != "40 sc") %>%
@@ -783,7 +790,8 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
   clean_names() %>%
   mutate(
     street = tolower(if_else(street == "OLD ROUTE  30", "OLD ROUTE 30", street)),
-    name = as.character(make_clean_names(description, sep_out = " ", unique_sep = NULL)),
+    name = as.character(make_clean_names(description, sep_out = " ",
+                                         unique_sep = NULL)),
     name = as.character(sub("_.*", "", name)),
     comment = tolower(comment),
     prefix_direction_desc = tolower(prefix_direction_desc),
@@ -791,10 +799,12 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
     city = tolower(city),
     line2 = tolower(line2),
     zipcode = as.character(postal_code),
-    county = as.character(snakecase::to_any_case(county_name, case = "big_camel"))) %>%
+    county = as.character(snakecase::to_any_case(county_name,
+                                                 case = "big_camel"))) %>%
   select(county, name, house_num, street, street_type_desc, city, zipcode) %>%
   unite("address_line", house_num:zipcode, remove = FALSE, sep = " ") %>%
-  mutate(address_line = as.character(make_clean_names(address_line, sep_out = " ",
+  mutate(address_line = as.character(make_clean_names(address_line,
+                                                      sep_out = " ",
                                                       unique_sep = NULL)),
          address_line = as.character(sub("_.*", "", address_line)),
          address_line = as.character(gsub(" na ", " ", address_line)),
@@ -867,170 +877,167 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
                                 "x982 chestnut st derry 15627",address_line),
          name = if_else(name == "st marks ev ch miesel hall",
                         "st marks evan church",name),
-         address_line = if_else(address_line ==
-                                  "x933 briookline blvd pittsburgh 15226",
-                                "x933 brookline blvd pittsburgh 15226",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x915 linc ave west chester 19380",
-                                "x915 lincoln ave west chester 19380",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x91 commonwealth dr west mifflin 15122",
-                                "x91 commonwealth ave west mifflin 15122",
-                                address_line),
+         address_line = if_else(
+           address_line == "x933 briookline blvd pittsburgh 15226",
+           "x933 brookline blvd pittsburgh 15226", address_line),
+         address_line = if_else(
+           address_line == "x915 linc ave west chester 19380",
+           "x915 lincoln ave west chester 19380", address_line),
+         address_line = if_else(
+           address_line == "x91 commonwealth dr west mifflin 15122",
+           "x91 commonwealth ave west mifflin 15122", address_line),
          address_line = if_else(address_line == "x900 haslage ave liberty 15133",
                                 "x900 haslage st mckeesport 15133",address_line),
-         address_line = if_else(address_line ==
-                                  "x900 desdemont ave pittsburgh 15210",
-                                "x900 desmont ave pittsburgh 15210",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x889 milledgeville rd sandy lake 16145",
-                                "x889 milledgeville rd hadley 16130",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x8800 peebles rd pittsburgh 15137",
-                                "x8800 peebles rd allison park 15101",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x860 colonial manor large bldg rd n huntingdon 15642",
-                                "x860 colonial manor rd n huntingdon 15642", address_line),
-         address_line = if_else(address_line ==
-                                  "x850 cranberry woods rd sewickley 15066",
-                                "x850 cranberry woods rd warrendale 16066", address_line),
-         address_line = if_else(address_line ==
-                                  "x8711 old perry hwy pittsburgh 15237",
-                                "x8711 old perry hwy way mccandless 15237",
-                                address_line),
+         address_line = if_else(
+           address_line == "x900 desdemont ave pittsburgh 15210",
+           "x900 desmont ave pittsburgh 15210", address_line),
+         address_line = if_else(
+           address_line == "x889 milledgeville rd sandy lake 16145",
+           "x889 milledgeville rd hadley 16130", address_line),
+         address_line = if_else(
+           address_line == "x8800 peebles rd pittsburgh 15137",
+           "x8800 peebles rd allison park 15101", address_line),
+         address_line = if_else(
+           address_line == "x860 colonial manor large bldg rd n huntingdon 15642",
+           "x860 colonial manor rd n huntingdon 15642", address_line),
+         address_line = if_else(
+           address_line == "x850 cranberry woods rd sewickley 15066",
+           "x850 cranberry woods rd warrendale 16066", address_line),
+         address_line = if_else(
+           address_line == "x8711 old perry hwy pittsburgh 15237",
+           "x8711 old perry hwy way mccandless 15237", address_line),
          address_line = if_else(address_line == "x800 coopertown rd bryn mawr 19010",
-                                "x800 coopertown rd haverford 19041",address_line),
-         address_line = if_else(address_line ==
-                                  "x7605 saltsburg st pittsburgh 15239",
-                                "x7605 saltsburg rd pittsburgh 15239",
+                                "x800 coopertown rd haverford 19041",
                                 address_line),
+         address_line = if_else(
+           address_line == "x7605 saltsburg st pittsburgh 15239",
+           "x7605 saltsburg rd pittsburgh 15239", address_line),
          address_line = if_else(address_line == "x751 sugar run rd altoona 16602",
                                 "x751 sugar run rd altoona 16601", address_line),
-         address_line = if_else(address_line == "x718 wallace ave wilkinsburg 15221",
-                                "x718 wallace ave pittsburgh 15221",address_line),
-         address_line = if_else(address_line ==
-                                  "x700 york mitchell ave lansdale 19446",
-                                "x700 york ave lansdale 19446",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x695 freeeport rd freeport 16229",
-                                "x695 freeport rd freeport 16229",address_line),
+         address_line = if_else(
+           address_line == "x718 wallace ave wilkinsburg 15221",
+           "x718 wallace ave pittsburgh 15221",address_line),
+         address_line = if_else(
+           address_line == "x700 york mitchell ave lansdale 19446",
+           "x700 york ave lansdale 19446", address_line),
+         address_line = if_else(
+           address_line == "x695 freeeport rd freeport 16229",
+           "x695 freeport rd freeport 16229",address_line),
          address_line = if_else(address_line == "x660 noble rd west mifflin 15122",
                                 "x660 noble dr west mifflin 15122", address_line),
-         address_line = if_else(address_line ==
-                                  "x6051 west chester park newtown square 19073",
-                                "x6051 west chester pike newtown square 19073",
-                                address_line),
+         address_line = if_else(
+           address_line == "x6051 west chester park newtown square 19073",
+           "x6051 west chester pike newtown square 19073", address_line),
          address_line = if_else(address_line == "x602 ingomar rd sewickley 15090",
                                 "x602 ingomar rd pittsburgh 15237",address_line),
          address_line = if_else(address_line == "x60 ganaldo rd pittsburgh 15108",
                                 "x60 gawaldo dr coraopolis 15108",address_line),
-         address_line = if_else(address_line ==
-                                  "x5901 library hgts rd bethel park 15102",
-                                "x5901 library rd bethel park 15102", address_line),
+         address_line = if_else(
+           address_line == "x5901 library hgts rd bethel park 15102",
+           "x5901 library rd bethel park 15102", address_line),
          address_line = if_else(address_line == "x555 broadway ave stowe 15136",
                                 "x555 broadway ave mckees rocks 15136",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x551 ravensburg blvd pittsburgh 15025",
-                                "x551 ravensburg blvd clairton
-                                15025",address_line),
+         address_line = if_else(
+           address_line == "x551 ravensburg blvd pittsburgh 15025",
+           "x551 ravensburg blvd clairton 15025",address_line),
          address_line = if_else(address_line == "x537 bayne ave bellevue 15202",
-                                "x537 bayne ave pittsburgh 15202",address_line),
-         address_line = if_else(address_line ==
-                                  "x525 pleasant hill rd marshall 15090",
-                                "x525 pleasant hill rd wexford 15090",
+                                "x537 bayne ave pittsburgh 15202",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x5145 wexford run rd marshall 15090",
-                                "x5145 wexford run rd wexford 15090", address_line),
-         address_line = if_else(address_line ==
-                                  "x503 speer st n belle vern 15012",
-                                "x503 speer st belle vernon 15012", address_line),
+         address_line = if_else(
+           address_line == "x525 pleasant hill rd marshall 15090",
+           "x525 pleasant hill rd wexford 15090", address_line),
+         address_line = if_else(
+           address_line == "x5145 wexford run rd marshall 15090",
+           "x5145 wexford run rd wexford 15090", address_line),
+         address_line = if_else(
+           address_line == "x503 speer st n belle vern 15012",
+           "x503 speer st belle vernon 15012", address_line),
          address_line = if_else(address_line == "x480 ridge rd pottstown 19465",
-                                "x480 ridge rd spring city 19475",address_line),
-         address_line = if_else(address_line == "x4565 prestwick dr reading 19601",
-                                "x4565 prestwick dr reading 19606",address_line),
-         address_line = if_else(address_line == "x456 first st heidelberg 15106",
-                                "x456 first st carnegie 15106",address_line),
-         address_line = if_else(address_line == "x423 allegheny st h0llidaysburg 16648",
-                                "x423 allegheny st hollidaysburg 16648",address_line),
-         address_line = if_else(address_line == "x417 lincoln ave walnutport 18035",
-                                "x417 lincoln ave walnutport 18088",address_line),
-         address_line = if_else(address_line ==
-                                  "x415 three sq hollow rd newburg 17240",
-                                "x415 three square hollow rd newburg 17240", address_line),
-         address_line = if_else(address_line == "x415 brennan ave loyalhanna 15661",
-                                "x415 brennan ave latrobe 15650",address_line),
-         address_line = if_else(address_line == "x414 railroad st pittsburgh 15028" |
-                                  address_line == "x414 railroad st coulters 15028",
-                                "x414 railroad st white oak 15131",address_line),
-         address_line = if_else(address_line == "x411 babylon rd horsham 19002",
-                                "x411 babylon rd horsham 19044",address_line),
-         address_line = if_else(address_line == "x409 ashland ave primos 19018",
-                                "x409 ashland ave secane 19018",address_line),
-         address_line = if_else(address_line ==
-                                  "x403 fox chapel rd fox chapel 15238",
-                                "x403 fox chapel rd pittsburgh 15238",
+                                "x480 ridge rd spring city 19475",
                                 address_line),
-         address_line = if_else(address_line == "x401 washington rd mt lebanon 15228",
-                                "x401 washington rd pittsburgh 15228",address_line),
+         address_line = if_else(address_line == "x4565 prestwick dr reading 19601",
+                                "x4565 prestwick dr reading 19606",
+                                address_line),
+         address_line = if_else(address_line == "x456 first st heidelberg 15106",
+                                "x456 first st carnegie 15106",
+                                address_line),
+         address_line = if_else(
+           address_line == "x423 allegheny st h0llidaysburg 16648",
+                                "x423 allegheny st hollidaysburg 16648",
+                                address_line),
+         address_line = if_else(address_line == "x417 lincoln ave walnutport 18035",
+                                "x417 lincoln ave walnutport 18088",
+                                address_line),
+         address_line = if_else(
+           address_line == "x415 three sq hollow rd newburg 17240",
+           "x415 three square hollow rd newburg 17240", address_line),
+         address_line = if_else(
+           address_line == "x415 brennan ave loyalhanna 15661",
+                                "x415 brennan ave latrobe 15650",
+                                address_line),
+         address_line = if_else(
+           address_line == "x414 railroad st pittsburgh 15028" |
+             address_line == "x414 railroad st coulters 15028",
+                                "x414 railroad st white oak 15131",
+                                address_line),
+         address_line = if_else(address_line == "x411 babylon rd horsham 19002",
+                                "x411 babylon rd horsham 19044",
+                                address_line),
+         address_line = if_else(address_line == "x409 ashland ave primos 19018",
+                                "x409 ashland ave secane 19018",
+                                address_line),
+         address_line = if_else(
+           address_line == "x403 fox chapel rd fox chapel 15238",
+           "x403 fox chapel rd pittsburgh 15238", address_line),
+         address_line = if_else(
+           address_line == "x401 washington rd mt lebanon 15228",
+           "x401 washington rd pittsburgh 15228",address_line),
          address_line = if_else(address_line == "x400 sproul rd springield 19064",
                                 "x400 sproul rd springfield 19064",address_line),
          address_line = if_else(address_line == "x4 walnut st dunlevy 15342",
                                 "x4 walnut st dunlevy 15432",address_line),
-         address_line = if_else(address_line ==
-                                  "x3916 old wm penn murrysville 15668",
-                                "x3916 old william penn hwy murrysville 15668",
-                                address_line),
+         address_line = if_else(
+           address_line == "x3916 old wm penn murrysville 15668",
+           "x3916 old william penn hwy murrysville 15668", address_line),
          address_line = if_else(address_line == "x373 beaver rd leetsdale 15056",
                                 "x373 beaver st leetsdale 15056", address_line),
-         address_line = if_else(address_line ==
-                                  "x3710 saxonburg blvd indianola 15051",
-                                "x3710 saxonburg blvd indiana 15051",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x3640 old oakdale rd mc donald 15057",
-                                "x3640 old oakdale rd mcdonald 15057",
-                                address_line),
-         address_line = if_else(address_line == "x349 magee rd sewickley hl 15143",
-                                "x349 magee rd sewickley 15143",address_line),
-         address_line = if_else(address_line ==
-                                  "x3454 pleasantvue dr baldwin br 15227",
-                                "x3454 pleasantvue dr pittsburgh 15227",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x3436 windchester rd allentown 18104",
-                                "x3436 winchester rd allentown 18104", address_line),
-         address_line = if_else(name ==
-                                  "kerr elementary school multi purp" &
-                                  address_line != "x341 kittanning pike pittsburgh 15215",
-                                "x341 kittanning pike pittsburgh 15215",
-                                address_line),
+         address_line = if_else(
+           address_line == "x3710 saxonburg blvd indianola 15051",
+           "x3710 saxonburg blvd indiana 15051", address_line),
+         address_line = if_else(
+           address_line == "x3640 old oakdale rd mc donald 15057",
+           "x3640 old oakdale rd mcdonald 15057", address_line),
+         address_line = if_else(
+           address_line == "x349 magee rd sewickley hl 15143",
+           "x349 magee rd sewickley 15143",address_line),
+         address_line = if_else(
+           address_line == "x3454 pleasantvue dr baldwin br 15227",
+           "x3454 pleasantvue dr pittsburgh 15227", address_line),
+         address_line = if_else(
+           address_line == "x3436 windchester rd allentown 18104",
+           "x3436 winchester rd allentown 18104", address_line),
+         address_line = if_else(
+           name == "kerr elementary school multi purp" &
+             address_line != "x341 kittanning pike pittsburgh 15215",
+           "x341 kittanning pike pittsburgh 15215", address_line),
          address_line = if_else(address_line == "x330 hill top rd hummelstown
                                 17036","x330 hilltop rd hummelstown 17036",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x3260 queneshukney rd linden 17744",
-                                "x3260 queneshukeny rd linden 17744",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x325 nicholson rd pittsburgh 15143",
-                                "x325 nicholson rd sewickley 15143",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x325 fox chapel rd rd pittsburgh 15215",
-                                "x325 fox chapel rd pittsburgh 15238",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x320 fairies st wilcox 15870",
-                                "x320 faries st wilcox 15870", address_line),
-         address_line = if_else(address_line == "x315 susquehanst lancaster 17602",
+         address_line = if_else(
+           address_line == "x3260 queneshukney rd linden 17744",
+           "x3260 queneshukeny rd linden 17744", address_line),
+         address_line = if_else(
+           address_line == "x325 nicholson rd pittsburgh 15143",
+           "x325 nicholson rd sewickley 15143", address_line),
+         address_line = if_else(
+           address_line == "x325 fox chapel rd rd pittsburgh 15215",
+           "x325 fox chapel rd pittsburgh 15238", address_line),
+         address_line = if_else(
+           address_line == "x320 fairies st wilcox 15870",
+           "x320 faries st wilcox 15870", address_line),
+         address_line = if_else(
+           address_line == "x315 susquehanst lancaster 17602",
                                 "x315 susquehanna st lancaster 17602",
                                 address_line),
          address_line = if_else(address_line == "x3101 mccully rd hampton 15101",
@@ -1039,79 +1046,72 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(address_line == "x310 middleton rd carlisle 17013",
                                 "x310 n middleton rd carlisle 17013",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x306 st james ln n alexandria 15670",
-                                "x306 st james ln new alexandria 15670", address_line),
-         address_line = if_else(address_line ==
-                                  "x306 bessemer st e pittsburgh 15112",
-                                "x306 bessemer ave e pittsburgh 15112", address_line),
-         address_line = if_else(address_line ==
-                                  "x3054 howes run rd natroheights 15065",
-                                "x3054 howes run rd tarentum 15084", address_line),
-         address_line = if_else(address_line == "x301 station ave wilmerding 15148",
-                                "x301 station st wilmerding 15148", address_line),
-         address_line = if_else(address_line == "x30 charter way wilkes barre 18702",
-                                "x30 charter school way wilkes barre 18702",
+         address_line = if_else(
+           address_line == "x306 st james ln n alexandria 15670",
+           "x306 st james ln new alexandria 15670", address_line),
+         address_line = if_else(
+           address_line == "x306 bessemer st e pittsburgh 15112",
+           "x306 bessemer ave e pittsburgh 15112", address_line),
+         address_line = if_else(
+           address_line == "x3054 howes run rd natroheights 15065",
+           "x3054 howes run rd tarentum 15084", address_line),
+         address_line = if_else(
+           address_line == "x301 station ave wilmerding 15148",
+           "x301 station st wilmerding 15148",
                                 address_line),
-         address_line = if_else(address_line == "x3 keystone cmns white haven 18661",
-                                "x3 keystone commons white haven 18661",
+         address_line = if_else(
+           address_line == "x30 charter way wilkes barre 18702",
+           "x30 charter school way wilkes barre 18702",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x280 normal s green steast stroudsburg 18301",
-                                "x280 normal s green st e stroudsburg 18301",
+         address_line = if_else(
+           address_line == "x3 keystone cmns white haven 18661",
+           "x3 keystone commons white haven 18661",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x26 patterson st rlansford 18232",
-                                "x26 patterson st lansford 18232",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2565 susquehanna ave abington 19001",
-                                "x2565 susquehanna rd abington 19001",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2425 new falls rd newportville 19056",
-                                "x2425 new falls rd levittown 19054",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2415 allequippa st pittsburgh 152131",
-                                "x2415 allequippa st pittsburgh 15213",
-                                address_line),
+         address_line = if_else(
+           address_line == "x280 normal s green steast stroudsburg 18301",
+           "x280 normal s green st e stroudsburg 18301", address_line),
+         address_line = if_else(
+           address_line == "x26 patterson st rlansford 18232",
+           "x26 patterson st lansford 18232", address_line),
+         address_line = if_else(
+           address_line == "x2565 susquehanna ave abington 19001",
+           "x2565 susquehanna rd abington 19001", address_line),
+         address_line = if_else(
+           address_line == "x2425 new falls rd newportville 19056",
+           "x2425 new falls rd levittown 19054", address_line),
+         address_line = if_else(
+           address_line == "x2415 allequippa st pittsburgh 152131",
+           "x2415 allequippa st pittsburgh 15213", address_line),
          address_line = if_else(address_line == "x241 maple ave edgewood 15221",
-                                "x241 maple ave pittsburgh 15218", address_line),
+                                "x241 maple ave pittsburgh 15218",
+                                address_line),
          address_line = if_else(address_line == "x2344 ingomar rd wexford 15237",
                                 "x2344 ingomar rd pittsburgh 15237",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x2341 delaware dr mount bethel 18434",
-                                "x2341 delaware dr mount bethel 18343",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2336 brownsville rd ent rd pittsburgh 15210",
-                                "x2336 brownsville rd pittsburgh 15210",
-                                address_line),
+         address_line = if_else(
+           address_line == "x2341 delaware dr mount bethel 18434",
+           "x2341 delaware dr mount bethel 18343", address_line),
+         address_line = if_else(
+           address_line == "x2336 brownsville rd ent rd pittsburgh 15210",
+           "x2336 brownsville rd pittsburgh 15210", address_line),
          address_line = if_else(address_line == "x230 boquet st pittsburgh 15213",
                                 "x230 bouquet st pittsburgh 15213",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x227 meetinghouse rd horsham 19044",
-                                "x227 meeting house rd horsham 19044",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2200 haines rd levittown 19054",
-                                "x2200 haines rd levittown 19055",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2200 cornerstone ln delmont 15626",
-                                "x2200 cornerstone ln export 15632",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x211 sweet briar st pittsburgh 15211",
-                                "x211 sweetbriar st pittsburgh 15211",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2055 bedford ave pittsburgh 151219",
-                                "x2055 bedford ave pittsburgh 15219",
-                                address_line),
+         address_line = if_else(
+           address_line == "x227 meetinghouse rd horsham 19044",
+           "x227 meeting house rd horsham 19044", address_line),
+         address_line = if_else(
+           address_line == "x2200 haines rd levittown 19054",
+           "x2200 haines rd levittown 19055", address_line),
+         address_line = if_else(
+           address_line == "x2200 cornerstone ln delmont 15626",
+           "x2200 cornerstone ln export 15632", address_line),
+         address_line = if_else(
+           address_line == "x211 sweet briar st pittsburgh 15211",
+           "x211 sweetbriar st pittsburgh 15211", address_line),
+         address_line = if_else(
+           address_line == "x2055 bedford ave pittsburgh 151219",
+           "x2055 bedford ave pittsburgh 15219", address_line),
          address_line = if_else(address_line == "x2025 lincoln rd 15147",
                                 "x2025 lincoln rd penn hills 15147",
                                 address_line),
@@ -1119,55 +1119,48 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
                                 "x2021 20th st erie 16510", address_line),
          address_line = if_else(address_line == "x201 summit stnorth wales 19454",
                                 "x201 summit st n wales 19454", address_line),
-         address_line = if_else(address_line ==
-                                  "x201 center new texas roadpittsburgh 15239",
-                                "x201 center new texas rd pittsburgh 15239",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2000 ashbourne rd washington lnelkins park 19027",
-                                "x2000 ashbourne washington ln rd elkins park 19027",
-                                address_line),
+         address_line = if_else(
+           address_line == "x201 center new texas roadpittsburgh 15239",
+           "x201 center new texas rd pittsburgh 15239", address_line),
+         address_line = if_else(
+           address_line == "x2000 ashbourne rd washington lnelkins park 19027",
+           "x2000 ashbourne washington ln rd elkins park 19027", address_line),
          address_line = if_else(address_line == "x194 donahoe rd greensburg 15601",
                                 "x194 donohoe rd greensburg 15601",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x1919 8th st bethlehem 18017",
-                                "x1919 8th st bethlehem 18020", address_line),
-         address_line = if_else(address_line ==
-                                  "x1807 state rte 268east brady 16028",
-                                "x1807 state rte 268 e brady 16028", address_line),
-         address_line = if_else(address_line ==
-                                  "x1801 paper mill rd oreland 19075",
-                                "x1801 paper mill rd glenside 19038", address_line),
-         address_line = if_else(address_line ==
-                                  "x1800 7th st rd new kensingtn 15068",
-                                "x1800 7th st rd new kensington 15068",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x175 green la philadelphia 19127",
-                                "x175 green ln philadelphia 19127",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x17074 crogan pike shirleysburg 17260",
-                                "x17074 croghan pike shirleysburg 17260",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1701 15th st philadelphia 19146",
-                                "x1701 15th st philadelphia 19145",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x166 village dr williamsport 17702",
-                                "x166 village dr s williamsport 17702",
-                                address_line),
-         address_line = if_else(name == "eisenhower middle school",
-                                "x1601 markley st norristown 19401", address_line),
-         address_line = if_else(address_line ==
-                                  "x1414 beaver st osborne 15143",
-                                "x1414 beaver st sewickley 15143",
-                                address_line),
-         address_line = if_else(name ==
-                                  "barbush langloth muni corp by langloth ballfield",
-                                "x554 5th ave langeloth 15054",
+         address_line = if_else(
+           address_line == "x1919 8th st bethlehem 18017",
+           "x1919 8th st bethlehem 18020", address_line),
+         address_line = if_else(
+           address_line == "x1807 state rte 268east brady 16028",
+           "x1807 state rte 268 e brady 16028", address_line),
+         address_line = if_else(
+           address_line == "x1801 paper mill rd oreland 19075",
+           "x1801 paper mill rd glenside 19038", address_line),
+         address_line = if_else(
+           address_line == "x1800 7th st rd new kensingtn 15068",
+           "x1800 7th st rd new kensington 15068", address_line),
+         address_line = if_else(
+           address_line == "x175 green la philadelphia 19127",
+           "x175 green ln philadelphia 19127", address_line),
+         address_line = if_else(
+           address_line == "x17074 crogan pike shirleysburg 17260",
+           "x17074 croghan pike shirleysburg 17260", address_line),
+         address_line = if_else(
+           address_line == "x1701 15th st philadelphia 19146",
+           "x1701 15th st philadelphia 19145", address_line),
+         address_line = if_else(
+           address_line == "x166 village dr williamsport 17702",
+           "x166 village dr s williamsport 17702", address_line),
+         address_line = if_else(
+           name == "eisenhower middle school",
+           "x1601 markley st norristown 19401", address_line),
+         address_line = if_else(
+           address_line == "x1414 beaver st osborne 15143",
+           "x1414 beaver st sewickley 15143", address_line),
+         address_line = if_else(
+           name == "barbush langloth muni corp by langloth ballfield",
+           "x554 5th ave langeloth 15054",
                                 address_line),
          name = as.character(
            if_else(address_line == "x136 community building rd leechburg 15656",
@@ -1180,8 +1173,9 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(address_line == "x998 lloyd st nty glo ",
                                 "x998 lloyd st nty glo 15943",
                                 address_line),
-         address_line = if_else(address_line == "x9722 cumberland hwy pleasant hall ",
-                                "x9722 cumberland hwy pleasant hall 17246",
+         address_line = if_else(
+           address_line == "x9722 cumberland hwy pleasant hall ",
+           "x9722 cumberland hwy pleasant hall 17246",
                                 address_line),
          address_line = if_else(address_line == "x965 burtner rd harrison ",
                                 "x965 burtner rd natrona heights 15065",
@@ -1213,8 +1207,9 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(address_line == "x8800 peebles rd mccandless",
                                 "x8800 peebles rd allison park 15101",
                                 address_line),
-         address_line = if_else(address_line == "x8770 possum hollow rd shippensburg",
-                                "x8770 possum hollow rd shippensburg 17257",
+         address_line = if_else(
+           address_line == "x8770 possum hollow rd shippensburg",
+           "x8770 possum hollow rd shippensburg 17257",
                                 address_line),
          address_line = if_else(address_line == "x8724 crispin dr philadelphia",
                                 "x8724 crispin st philadelphia",
@@ -1249,8 +1244,9 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else( address_line == "x7911 wm penn hwy cresson",
                                  "x7911 wm penn hwy cresson 16630",
                                  address_line),
-         address_line = if_else(address_line == "x423 allegheny st h0llidaysburg 16648",
-                                "x423 allegheny st hollidaysburg 16648",
+         address_line = if_else(
+           address_line == "x423 allegheny st h0llidaysburg 16648",
+           "x423 allegheny st hollidaysburg 16648",
                                 address_line),
          address_line = if_else(address_line == "x764 beverly dr w mifflin",
                                 "x764 beverly dr w mifflin 15122",
@@ -1258,14 +1254,16 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(address_line == "x7600 evans st swissvale",
                                 "x7600 evans st pittsburgh 15218",
                                 address_line),
-         address_line = if_else(address_line == "x741 coldbrook ave chambersburg",
-                                "x741 coldbrook ave chambersburg 17201",
+         address_line = if_else(
+           address_line == "x741 coldbrook ave chambersburg",
+           "x741 coldbrook ave chambersburg 17201",
                                 address_line),
          address_line = if_else(address_line == "x736 railroad ave vero",
                                 "x736 railroad ave vero 15147",
                                 address_line),
-         address_line = if_else(address_line == "x7301 germantown ave philadelphia",
-                                "x7301 germantown ave philadelphia 19119",
+         address_line = if_else(
+           address_line == "x7301 germantown ave philadelphia",
+           "x7301 germantown ave philadelphia 19119",
                                 address_line),
          address_line = if_else(address_line == "x730 bloom st johnstown",
                                 "x730 bloom st johnstown 15902", address_line),
@@ -1318,20 +1316,15 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
            "x2 race st edgewood 15218",
            address_line),
          address_line = if_else(name == "boys girls club of allentown",
-                                "x720 n 6th st allentown 18102",
-                                address_line),
+                                "x720 n 6th st allentown 18102", address_line),
          address_line = if_else(address_line == "x1500 burchfield rd shaler",
-                                "x1500 burchfield rd 15101",
-                                address_line),
+                                "x1500 burchfield rd 15101", address_line),
          address_line = if_else(address_line == "x315 shady ave pittsburgh",
-                                "x315 shady ave pittsburgh 15206",
-                                address_line),
+                                "x315 shady ave pittsburgh 15206", address_line),
          address_line = if_else(address_line == "x220 37th st pittsburgh",
-                                "x220 37th st pittsburgh 15224",
-                                address_line),
+                                "x220 37th st pittsburgh 15224", address_line),
          address_line = if_else(address_line == "x301 franklin ave carnegie",
-                                "x301 franklin ave carnegie 15106",
-                                address_line),
+                                "x301 franklin ave carnegie 15106", address_line),
          address_line = if_else(
            name == "cheltenham school admin building" &
              address_line != "x2000 ashbourne rd elkins park 19027",
@@ -1339,7 +1332,7 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(
            address_line == "x551 ravensburg blvd clairton                                 15025",
            "x551 ravensburg blvd clairton 15025", address_line),
-         address_line = if_else( address_line == "main rd bedford",
+         address_line = if_else(address_line == "main rd bedford",
                                  "main rd bedford 15522", address_line),
          address_line = if_else(address_line == "x951 1st st coraopolis",
                                 "x951 1st ave coraopolis 15108",
@@ -1367,25 +1360,21 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(
            address_line == "x3710 saxonburg blvd india 15051",
            "x3710 saxonburg blvd indiana 15051", address_line),
-         address_line = if_else(address_line ==
-                                  "x26 patterson st r lansford 18232",
-                                "x26 patterson st lansford 18232",
-                                address_line),
-         address_line = if_else(address_line == "x13 nov robinson ave",
-                                "x13 nov robinson ave pen argyl 18072",
-                                address_line),
+         address_line = if_else(
+           address_line == "x26 patterson st r lansford 18232",
+           "x26 patterson st lansford 18232", address_line),
+         address_line = if_else(
+           address_line == "x13 nov robinson ave",
+           "x13 nov robinson ave pen argyl 18072", address_line),
          address_line = if_else(
            address_line == "x11 castle shanon blvd mt lebanon",
-                                "x11 castle shannon blvd mt lebanon 15228",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x8800 peebles rd mccandless",
-                                "x8800 peebles rd allison park 15101",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x6502 lilac st pittsburgh",
-                                "x6502 lilac st pittsburgh 15217",
-                                address_line),
+           "x11 castle shannon blvd mt lebanon 15228", address_line),
+         address_line = if_else(
+           address_line == "x8800 peebles rd mccandless",
+           "x8800 peebles rd allison park 15101", address_line),
+         address_line = if_else(
+           address_line == "x6502 lilac st pittsburgh",
+           "x6502 lilac st pittsburgh 15217", address_line),
          address_line = if_else(address_line == "x33 lonsdale st reserve",
                                 "x33 lonsdale st pittsburgh 15212", address_line),
          address_line = if_else(address_line == "x440 monogahela ave glassport",
@@ -1440,18 +1429,15 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(address_line == "x509 dallas ave pittsburgh",
                                 "x509 dallas ave pittsburgh 15208",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x1550 lincoln ave ave pittsburgh 15206",
-                                "x1550 lincoln ave pittsburgh 15206",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1550 lincoln ave pittsburgh 15208",
-                                "x1550 lincoln ave pittsburgh 15206",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x519 58th st altoona 16601",
-                                "x519 58th st altoona 16602",
-                                address_line),
+         address_line = if_else(
+           address_line == "x1550 lincoln ave ave pittsburgh 15206",
+           "x1550 lincoln ave pittsburgh 15206", address_line),
+         address_line = if_else(
+           address_line == "x1550 lincoln ave pittsburgh 15208",
+           "x1550 lincoln ave pittsburgh 15206", address_line),
+         address_line = if_else(
+           address_line == "x519 58th st altoona 16601",
+           "x519 58th st altoona 16602", address_line),
          address_line = if_else(address_line == "x418 unity center rd plum",
                                 "x418 unity center rd pittsburgh 15239",
                                 address_line),
@@ -1472,16 +1458,17 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
          address_line = if_else(name == "west homestead vfd",
                                 "x447 w 8th ave w homestead pa 15120",
                                 address_line),
-         zipcode = as.character(substr(address_line, nchar(address_line) - n_last + 1,
+         zipcode =
+           as.character(substr(address_line, nchar(address_line) - n_last + 1,
                                        nchar(address_line)))) %>%
   filter(!zipcode %in% odd_zips) %>%
   filter(is.na(zipcode) == FALSE) %>%
   select(name, address_line, zipcode) %>%
   filter(name != "election hse next to ed green") %>%
   distinct(address_line, .keep_all = TRUE) %>%
-  verify(n_distinct(address_line) == 7448) %>%
+  verify(n_distinct(address_line) == 7447) %>%
   arrange(address_line) %>%
-  verify(nrow(.) == 7448 & ncol(.) == 3)
+  verify(nrow(.) == 7447 & ncol(.) == 3)
 
 # nrows = number of unique zip codes in 2016
 pa_zips_freq_2016 <- as.data.frame(table(pa_2016_df$zipcode)) %>%
@@ -1503,7 +1490,8 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
     city = tolower(city),
     line2 = tolower(line2),
     zipcode = as.character(postal_code),
-    county = as.character(snakecase::to_any_case(county_name, case = "big_camel"))) %>%
+    county = as.character(snakecase::to_any_case(county_name,
+                                                 case = "big_camel"))) %>%
     select(county, name, house_num, street, street_type, city, zipcode) %>%
     unite("address_line", house_num:zipcode, remove = FALSE, sep = " ") %>%
   mutate(address_line = as.character(make_clean_names(address_line, sep_out = " ",
@@ -1517,8 +1505,7 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
          name = as.character(gsub(" na", "", name)),
          address_line = as.character(gsub(" pitsburgh ", " pittsburgh ",
                                           address_line)),
-         address_line = as.character(gsub(" altoo ", " altoona ",
-                                          address_line)),
+         address_line = as.character(gsub(" altoo ", " altoona ", address_line)),
          address_line = as.character(gsub(" street ", " st ", address_line)),
          address_line = as.character(gsub(" sts ", " st ", address_line)),
          address_line = as.character(gsub(" avenue ", " ave ", address_line)),
@@ -1575,116 +1562,113 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
          address_line = as.character(gsub("07th ", "7th ", address_line)),
          address_line = as.character(gsub("08th ", "8th ", address_line)),
          address_line = as.character(gsub("09th ", "9th ", address_line)),
-         address_line = if_else(address_line ==
-         "x95 center circle rd west hickory 16370",
+         address_line = if_else(
+           address_line == "x95 center circle rd west hickory 16370",
          "x95 center circle st west hickory 16370", address_line),
-         name = if_else(name == "hickory township","harmony township building",
-                                name),
-         address_line = if_else(address_line ==
-         "x9151 old newton rd philadelphia 19115",
+         name = if_else(
+           name == "hickory township","harmony township building", name),
+         address_line = if_else(
+           address_line == "x9151 old newton rd philadelphia 19115",
          "x9151 old newtown rd philadelphia 19115", address_line),
-         address_line = if_else(address_line ==
-                                  "x860 colonial manor large bldg rd n huntingdon 15642",
-                                "x860 colonial manor rd n huntingdon 15642",
-                                address_line),
+         address_line = if_else(
+           address_line == "x860 colonial manor large bldg rd n huntingdon 15642",
+           "x860 colonial manor rd n huntingdon 15642", address_line),
          address_line = if_else(address_line == "x825 poplar ave pittsburgh 15220",
                                 "x825 poplar st pittsburgh 15220",address_line),
-         address_line = if_else(address_line ==
-         "x81 commonwealth dr west mifflin 15122",
-         "x81 commonwealth ave west mifflin 15122",address_line),
-         address_line = if_else(address_line ==
-         "x800 coopertown rd bryn mawr 19010",
+         address_line = if_else(
+           address_line == "x81 commonwealth dr west mifflin 15122",
+           "x81 commonwealth ave west mifflin 15122",address_line),
+         address_line = if_else(
+           address_line == "x800 coopertown rd bryn mawr 19010",
          "x800 coopertown rd haverford 19041", address_line),
-         address_line = if_else(address_line ==
-                                  "x7701 mansfield ave philadelphia 19138",
-                                "x7701 mansfield ave philadelphia 19150",
-                                address_line),
+         address_line = if_else(
+           address_line == "x7701 mansfield ave philadelphia 19138",
+           "x7701 mansfield ave philadelphia 19150", address_line),
          address_line = if_else(address_line == "x761 47th st philadelphia 19104",
                                 "x761 47th st philadelphia 19139",address_line),
          address_line = if_else(address_line == "x7600 evans st swissvale",
                                 "x7600 evans st pittsburgh 15218",address_line),
          address_line = if_else(address_line == "x75 evas st pringle 18704",
                                 "x75 evans st pringle 18704",address_line),
-         address_line = if_else(address_line ==
-         "x703 stevenson blvd new kensingtn 15068",
+         address_line = if_else(
+           address_line == "x703 stevenson blvd new kensingtn 15068",
          "x703 stevenson blvd new kensington 15068", address_line),
-         address_line = if_else(address_line ==
-         "x700 york mitchell ave lansdale 19446",
+         address_line = if_else(
+           address_line == "x700 york mitchell ave lansdale 19446",
          "x700 york ave lansdale 19446", address_line),
-         address_line = if_else(address_line ==
-                                  "x6841 19th st philadelphia 19137",
-                                "x6841 19th st philadelphia 19126", address_line),
-         address_line = if_else(address_line ==
-         "x6801 grovers st philadelphia 19142",
+         address_line = if_else(
+           address_line == "x6841 19th st philadelphia 19137",
+           "x6841 19th st philadelphia 19126", address_line),
+         address_line = if_else(
+           address_line == "x6801 grovers st philadelphia 19142",
          "x6801 grovers ave philadelphia 19142",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x661 newberry st 17404",
-                                "x661 newberry st york 17404", address_line),
-         address_line = if_else(address_line ==
-         "x6501 limekiln pk philadelphia 19138",
+         address_line = if_else(
+           address_line == "x661 newberry st 17404",
+           "x661 newberry st york 17404", address_line),
+         address_line = if_else(
+           address_line == "x6501 limekiln pk philadelphia 19138",
          "x6501 limekiln pike philadelphia 19138", address_line),
-         address_line = if_else(address_line ==
-         "x6435 frankstown rd pittsburgh 15206",
+         address_line = if_else(
+           address_line == "x6435 frankstown rd pittsburgh 15206",
          "x6435 frankstown ave pittsburgh 15206", address_line),
-         address_line = if_else(address_line ==
-         "x6001 cedar ave philadelphia 19139",
+         address_line = if_else(
+           address_line == "x6001 cedar ave philadelphia 19139",
          "x6001 cedar ave philadelphia 19143", address_line),
-         address_line = if_else(address_line ==
-                                  "x60 gawaldo rd pittsburgh 15108" |
-                                  address_line == "x60 gawaldo rd coraopolis 15108",
+         address_line = if_else(
+           address_line == "x60 gawaldo rd pittsburgh 15108" |
+             address_line == "x60 gawaldo rd coraopolis 15108",
                                 "x60 gawaldo dr coraopolis 15108", address_line),
          address_line = if_else(address_line == "x590 crane a pittsburgh 15216",
                                 "x590 crane ave pittsburgh 15216", address_line),
-         address_line = if_else(address_line ==
-         "x5898 lancaster ave philadelphia 19124",
+         address_line = if_else(
+           address_line == "x5898 lancaster ave philadelphia 19124",
          "x5898 lancaster ave philadelphia 19131", address_line),
-         address_line = if_else(address_line ==
-         "x5801 media st philadelphia 19146",
+         address_line = if_else(
+           address_line == "x5801 media st philadelphia 19146",
          "x5801 media st philadelphia 19131", address_line),
-         address_line = if_else(address_line ==
-         "x5800 chester ave philadelphia 19142",
+         address_line = if_else(
+           address_line == "x5800 chester ave philadelphia 19142",
          "x5800 chester ave philadelphia 19143", address_line),
-         address_line = if_else(address_line ==
-                                  "x5799 hampton st pittsburgh 15201",
-                                "x5799 hampton st pittsburgh 15206",address_line),
-         address_line = if_else(address_line ==
-         "x551 ravensburg blvd pittsburgh 15025",
+         address_line = if_else(
+           address_line == "x5799 hampton st pittsburgh 15201",
+           "x5799 hampton st pittsburgh 15206",address_line),
+         address_line = if_else(
+           address_line == "x551 ravensburg blvd pittsburgh 15025",
          "x551 ravensburg blvd clairton 15025", address_line),
-         address_line = if_else(address_line ==
-         "x5470 mcalevy fort rd huntingdon 16652",
+         address_line = if_else(
+           address_line == "x5470 mcalevy fort rd huntingdon 16652",
          "x5470 mcalevys fort rd petersburg 16669",address_line),
-         address_line = if_else(address_line ==
-         "x545 ppermastone drive northumberland 17857",
+         address_line = if_else(
+           address_line == "x545 ppermastone drive northumberland 17857",
          "x545 permastone drive northumberland 17857",address_line),
-         address_line = if_else(address_line ==
-                                  "x522 rock run rd pittsburgh 15037",
-                                "x522 rock run rd elizabeth 15037",address_line),
-         address_line = if_else(address_line ==
-         "x506 bessemer st e pittsburgh 15112",
+         address_line = if_else(
+           address_line == "x522 rock run rd pittsburgh 15037",
+           "x522 rock run rd elizabeth 15037",address_line),
+         address_line = if_else(
+           address_line == "x506 bessemer st e pittsburgh 15112",
          "x506 bessemer ave e pittsburgh 15112", address_line),
-         address_line = if_else(address_line ==
-         "x503 speer st n belle vern 15012",
+         address_line = if_else(
+           address_line == "x503 speer st n belle vern 15012",
          "x503 speer st belle vernon 15012", address_line),
-         address_line = if_else(address_line ==
-                                  "x503 main st meadville 16335",
-                                "x503 main st ext meadville 16335", address_line),
+         address_line = if_else(
+           address_line == "x503 main st meadville 16335",
+           "x503 main st ext meadville 16335", address_line),
          address_line = if_else(address_line == "x501 butler st springdale 15144",
                                 "x501 butler rd springdale 15144",address_line),
-         address_line = if_else(address_line ==
-                                  "x4901 parrish philadelphia 19139",
-                                "x4901 parrish st philadelphia 19139", address_line),
-         address_line = if_else(address_line ==
-                                  "x4901 chestnut st philadelphia 19104",
-                                "x4901 chestnut st philadelphia 19139",
-                                address_line),
+         address_line = if_else(
+           address_line == "x4901 parrish philadelphia 19139",
+           "x4901 parrish st philadelphia 19139", address_line),
+         address_line = if_else(
+           address_line == "x4901 chestnut st philadelphia 19104",
+           "x4901 chestnut st philadelphia 19139", address_line),
          address_line = if_else(address_line == "x4565 prestwick dr reading 19601",
                                 "x4565 prestwick dr reading 19606",address_line),
-         address_line = if_else(address_line ==
-         "x4300 ave of republice philadelphia 19131",
+         address_line = if_else(
+           address_line == "x4300 ave of republice philadelphia 19131",
          "x4300 ave of republic philadelphia 19131", address_line),
-         address_line = if_else(address_line ==
-         "x429 berwick hazleton hwy nescopeck 18635",
+         address_line = if_else(
+           address_line == "x429 berwick hazleton hwy nescopeck 18635",
          "x429 berwick hazelton hwy nescopeck 18635", address_line),
          address_line = if_else(
            address_line == "x423 allegheny st h0llidaysburg 16648",
@@ -1693,47 +1677,45 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
                                 "x419 pierson rd lititz 17543",address_line),
          address_line = if_else(address_line == "x416 lincoln ave pittsburgh 15209",
                                 "x416 lincoln ave millvale 15209",address_line),
-         address_line = if_else(address_line ==
-         "x415 brennan ave loyalhanna 15661",
+         address_line = if_else(
+           address_line == "x415 brennan ave loyalhanna 15661",
          "x415 brennan ave latrobe 15650", address_line),
-         address_line = if_else(address_line ==
-         "x414 railroad st pittsburgh 15028" |
+         address_line = if_else(
+           address_line == "x414 railroad st pittsburgh 15028" |
          address_line == "x414 railroad st coulters 15028",
          "x414 railroad st white oak 15131",address_line),
-         address_line = if_else(address_line ==
-                                  "x400 sproul rd springfield 19064",
-                                "x400 sproul rd springield 19064",address_line),
+         address_line = if_else(
+           address_line == "x400 sproul rd springfield 19064",
+           "x400 sproul rd springield 19064",address_line),
          address_line = if_else(address_line == "x40 prospect ave pitsburgh 15205",
                                 "x40 prospect ave pittsburgh 15205",address_line),
-         address_line = if_else(address_line ==
-         "x4 westtown thornton rd thornton 19373",
+         address_line = if_else(
+           address_line == "x4 westtown thornton rd thornton 19373",
          "x4 westtown rd thornton 19373",address_line),
          address_line = if_else(address_line == "x3856 10 th st erie 16505",
                                 "x3856 10th st erie 16505",address_line),
-         address_line = if_else(address_line ==
-         "x3501 midvale ave philadelphia 19125" |
+         address_line = if_else(
+           address_line == "x3501 midvale ave philadelphia 19125" |
          address_line == "x3501 midvale ave philadelphia 19121",
          "x3501 midvale ave philadelphia 19129",address_line),
-         address_line = if_else(address_line ==
-         "x3436 windchester rd allentown 18104",
+         address_line = if_else(
+           address_line == "x3436 windchester rd allentown 18104",
          "x3436 winchester rd allentown 18104", address_line),
-         address_line = if_else(name ==
-                                  "kerr elementary school" &
-                                  address_line !=
-                                  "x341 kittanning pike pittsburgh 15215",
-                                  "x341 kittanning pike pittsburgh 15215",
-                                address_line),
+         address_line = if_else(
+           name == "kerr elementary school" &
+             address_line != "x341 kittanning pike pittsburgh 15215",
+           "x341 kittanning pike pittsburgh 15215", address_line),
          address_line = if_else(address_line == "x338 28th st philadelphia 19103",
                                 "x338 26th st philadelphia 19103", address_line),
-         address_line = if_else(address_line ==
-         "x3351 millers run rd mcdonald 15057","x3351 millers run rd cecil 15321",
-                                address_line),
-         address_line = if_else(address_line ==
-         "x3344 churchview ave ext ave pittsburgh 15227",
+         address_line = if_else(
+           address_line == "x3351 millers run rd mcdonald 15057",
+           "x3351 millers run rd cecil 15321", address_line),
+         address_line = if_else(
+           address_line == "x3344 churchview ave ext ave pittsburgh 15227",
          "x3344 churchview ave pittsburgh 15227", address_line),
-         address_line = if_else(address_line ==
-         "x330 hill top rd hummelstown 17036",
-         "x330 hilltop rd hummelstown 17036", address_line),
+         address_line = if_else(
+           address_line == "x330 hill top rd hummelstown 17036",
+           "x330 hilltop rd hummelstown 17036", address_line),
          address_line = if_else(address_line == "x33 lonsdale st pittsburgh 15214",
                                 "x33 lonsdale st pittsburgh 15212", address_line),
          name = if_else(name == "reserve township volunteer fire department",
@@ -1748,250 +1730,196 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
                                 "x3245 oakland rd bethlehem 18020", address_line),
          address_line = if_else(address_line == "x320 hawkins ave braddock 15104",
                                 "x320 hawkins ave rankin 15104", address_line),
-         address_line = if_else(address_line ==
-         "x306 st james ln n alexandria 15670",
+         address_line = if_else(
+           address_line == "x306 st james ln n alexandria 15670",
          "x306 st james ln new alexandria 15670", address_line),
-         address_line = if_else(address_line == "x3010 route 212 springtown 18055",
-                                "x3010 route 212 springtown 18081", address_line),
-         address_line = if_else(address_line ==
-                                  "x2940 sheraden blvd pittsburgh 15205",
-                                "x2940 sheraden blvd pittsburgh 15204",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x281 mountain st mountain top 18707",
-                                "x281 mountain blvd mountain top 18707",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2604 4th philadelphia 19148",
-                                "x2604 4th st philadelphia 19148",
-                                address_line),
-         address_line = if_else(name == "x31 15 cione recreation center" |
-                                  name == "x31 18 cione recreation center" |
-                                  name == "x31 06 cione recreation center",
-                                "x2600 aramingo ave philadelphia 19125",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x26 patterson st r lansford 18232",
-                                "x26 patterson st lansford 18232",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2565 susquehanna ave abington 19001",
-                                "x2565 susquehanna rd abington 19001",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2551 murray rd huntingdon vly 19006",
-                                "x2551 murray ave huntingdon vly 19006",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2501 63rd st philadelphia 19153" |
-                                  address_line ==
-                                  "x2501 63rd st philadelphia 19104",
-                                "x2501 63rd st philadelphia 19142",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x243 thiorne hill rd shickshinny 18655",
-                                "x243 thorne hill rd shickshinny 18655",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2425 new falls rd newportville 19056",
-                                "x2425 new falls rd levittown 19054",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x241 maple ave pittsburgh 15221",
-                                "x241 maple ave pittsburgh 15218",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2409 shady ave pittsburgh 15207",
-                                "x2409 shady ave pittsburgh 15217",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x230 righters mill rd rd gladwyne 19035",
-                                "x230 righters mill rd gladwyne 19035",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x227 meetinghouse rd horsham 19044",
-                                "x227 meeting house rd horsham 19044",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2250 center ave pittsburgh 15219",
-                                "x2250 centre ave pittsburgh 15219",
-                                address_line),
-         address_line = if_else(name == "ross township public works building" &
-                                  address_line !=
-                                  "x225 cemetery ln pittsburgh 15237",
-                                "x225 cemetery ln pittsburgh 15237",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x2201 16th st philadelphia 19144",
-                                "x2201 16th st philadelphia 19145",
-                                address_line),
+         address_line = if_else(
+           address_line == "x3010 route 212 springtown 18055",
+           "x3010 route 212 springtown 18081", address_line),
+         address_line = if_else(
+           address_line == "x2940 sheraden blvd pittsburgh 15205",
+           "x2940 sheraden blvd pittsburgh 15204", address_line),
+         address_line = if_else(
+           address_line == "x281 mountain st mountain top 18707",
+           "x281 mountain blvd mountain top 18707", address_line),
+         address_line = if_else(
+           address_line == "x2604 4th philadelphia 19148",
+           "x2604 4th st philadelphia 19148", address_line),
+         address_line = if_else(
+           name == "x31 15 cione recreation center" |
+             name == "x31 18 cione recreation center" ,
+             "x2600 aramingo ave philadelphia 19125", address_line),
+         address_line = if_else(
+           address_line == "x26 patterson st r lansford 18232",
+           "x26 patterson st lansford 18232", address_line),
+         address_line = if_else(
+           address_line == "x2565 susquehanna ave abington 19001",
+           "x2565 susquehanna rd abington 19001", address_line),
+         address_line = if_else(
+           address_line == "x2551 murray rd huntingdon vly 19006",
+           "x2551 murray ave huntingdon vly 19006", address_line),
+         address_line = if_else(
+           address_line == "x2501 63rd st philadelphia 19153" |
+             address_line == "x2501 63rd st philadelphia 19104",
+           "x2501 63rd st philadelphia 19142", address_line),
+         address_line = if_else(
+           address_line == "x243 thiorne hill rd shickshinny 18655",
+           "x243 thorne hill rd shickshinny 18655", address_line),
+         address_line = if_else(
+           address_line == "x2425 new falls rd newportville 19056",
+           "x2425 new falls rd levittown 19054", address_line),
+         address_line = if_else(
+           address_line == "x241 maple ave pittsburgh 15221",
+           "x241 maple ave pittsburgh 15218", address_line),
+         address_line = if_else(
+           address_line == "x2409 shady ave pittsburgh 15207",
+           "x2409 shady ave pittsburgh 15217", address_line),
+         address_line = if_else(
+           address_line == "x230 righters mill rd rd gladwyne 19035",
+           "x230 righters mill rd gladwyne 19035", address_line),
+         address_line = if_else(
+           address_line == "x227 meetinghouse rd horsham 19044",
+           "x227 meeting house rd horsham 19044", address_line),
+         address_line = if_else(
+           address_line == "x2250 center ave pittsburgh 15219",
+           "x2250 centre ave pittsburgh 15219", address_line),
+         address_line = if_else(
+           name == "ross township public works building" &
+             address_line != "x225 cemetery ln pittsburgh 15237",
+           "x225 cemetery ln pittsburgh 15237", address_line),
+         address_line = if_else(
+           address_line == "x2201 16th st philadelphia 19144",
+           "x2201 16th st philadelphia 19145", address_line),
          address_line = if_else(address_line == "x2200 haines rd levittown 19054",
-                                "x2200 haines rd levittown 19055",
-                                address_line),
+                                "x2200 haines rd levittown 19055", address_line),
          address_line = if_else(address_line == "x2021 20 st erie 16510",
                                 "x2021 20th st erie 16510", address_line),
          address_line = if_else(address_line == "x201 lysle st mckeesport 15132",
                                 "201 lysle blvd mckeesport 15132", address_line),
          address_line = if_else(address_line == "x201 18th st homestead 15120",
                                 "x201 18th ave homestead 15120", address_line),
-         address_line = if_else(address_line == "x2001 wylie ave pittsburgh 15213",
-                                "x2001 wylie ave pittsburgh 15219", address_line),
-         address_line = if_else(address_line ==
-                                  "x1919 ontario ave philadelphia 19140",
-                                "x1919 ontario st philadelphia 19140",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1832 howard st philadelphia 19132",
-                                "x1832 howard st philadelphia 19122",
-                                address_line),
-         address_line = if_else(name ==
-                                  "munhall number 5 volunteer fire department",
-                                "x1817 whitaker st munhall 15120",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1801 22nd st philadelphia 19146",
-                                "x1801 22nd st philadelphia 19145", address_line),
-         address_line = if_else(name == "shaler area middle school",
-                                "x1800 mt royal blvd glenshaw 15116",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1800 7th st rd new kensingtn 15068",
-                                "x1800 7th st rd new kensington 15068",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1796 lower heckman rd mckeesport 15131",
-                                "x1796 lower heckman rd white oak 15131",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x17920 main st corry 16407",
-                                "x17920 main st elgin 16413",
-                                address_line),
+         address_line = if_else(
+           address_line == "x2001 wylie ave pittsburgh 15213",
+           "x2001 wylie ave pittsburgh 15219", address_line),
+         address_line = if_else(
+           address_line == "x1919 ontario ave philadelphia 19140",
+           "x1919 ontario st philadelphia 19140", address_line),
+         address_line = if_else(
+           address_line == "x1832 howard st philadelphia 19132",
+           "x1832 howard st philadelphia 19122", address_line),
+         address_line = if_else(
+           name == "munhall number 5 volunteer fire department",
+           "x1817 whitaker st munhall 15120", address_line),
+         address_line = if_else(
+           address_line == "x1801 22nd st philadelphia 19146",
+           "x1801 22nd st philadelphia 19145", address_line),
+         address_line = if_else(
+           name == "shaler area middle school",
+           "x1800 mt royal blvd glenshaw 15116", address_line),
+         address_line = if_else(
+           address_line == "x1800 7th st rd new kensingtn 15068",
+           "x1800 7th st rd new kensington 15068", address_line),
+         address_line = if_else(
+           address_line == "x1796 lower heckman rd mckeesport 15131",
+           "x1796 lower heckman rd white oak 15131", address_line),
+         address_line = if_else(
+           address_line == "x17920 main st corry 16407",
+           "x17920 main st elgin 16413", address_line),
          address_line = if_else(address_line == "x1761 26 st erie 16502",
-                                "x1761 26th st erie 16508",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x175 green la philadelphia 19127"
-                                | address_line ==
-                                  "x175 green la philadelphia 19128",
-                                "x175 green ln philadelphia 19127",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x17074 crogan pike shirleysburg 17260",
-                                "x17074 croghan pike shirleysburg 17260",
-                                address_line),
+                                "x1761 26th st erie 16508", address_line),
+         address_line = if_else(
+           address_line == "x175 green la philadelphia 19127" |
+             address_line == "x175 green la philadelphia 19128",
+           "x175 green ln philadelphia 19127", address_line),
+         address_line = if_else(
+           address_line == "x17074 crogan pike shirleysburg 17260",
+           "x17074 croghan pike shirleysburg 17260", address_line),
          address_line = if_else(name == "deer lakes middle school",
-                                "x17 e union rd tarentum 15024",
-                                address_line),
-         address_line = if_else(address_line == "x1621 54th philadelphia 19131",
-                                "x1621 54th st philadelphia 19131",
-                                address_line),
-         address_line = if_else(address_line == "x1612 manhattan st pittsburgh 15212",
-                                "x1612 manhattan st pittsburgh 15233",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1610 chelten ave philadelphia 19123"
-                                | address_line ==
-                                  "x1610 chelten ave philadelphia 19126",
-                                "x1610 chelten ave philadelphia 19141",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1606 sullivan easton 18040",
-                                "x1606 sullivan trail easton 18040",
-                                address_line),
+                                "x17 e union rd tarentum 15024", address_line),
+         address_line = if_else(
+           address_line == "x1621 54th philadelphia 19131",
+           "x1621 54th st philadelphia 19131", address_line),
+         address_line = if_else(
+           address_line == "x1612 manhattan st pittsburgh 15212",
+           "x1612 manhattan st pittsburgh 15233", address_line),
+         address_line = if_else(
+           address_line == "x1610 chelten ave philadelphia 19123" |
+             address_line == "x1610 chelten ave philadelphia 19126",
+           "x1610 chelten ave philadelphia 19141", address_line),
+         address_line = if_else(
+           address_line == "x1606 sullivan easton 18040",
+           "x1606 sullivan trail easton 18040", address_line),
          address_line = if_else(name == "eisenhower middle school",
-                                "x1601 markley st norristown 19401",
-                                address_line),
+                                "x1601 markley st norristown 19401", address_line),
          address_line = if_else(name == "hanover area high school",
                                 "x1600 sans souci pkwy hanover twnshp 18706",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x1500 boyce rd upper st clair 15241",
-                                "x1500 boyce rd pittsburgh 15241",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x150 wadham ave plymouth 18651",
-                                "x150 wadham st plymouth 18651",
-                                address_line),
-         address_line = if_else(name ==
-                                  "x17 21 widener school",
-                                "x17 16 widener school",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1445 lincoln hwy coatesville 19320",
-                                "x1445 linc hwy coatesville 19320",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x1414 beaver rd osborne 15143",
-                                "x1414 beaver st sewickley 15143",
-                                address_line),
+         address_line = if_else(
+           address_line == "x1500 boyce rd upper st clair 15241",
+           "x1500 boyce rd pittsburgh 15241", address_line),
+         address_line = if_else(
+           address_line == "x150 wadham ave plymouth 18651",
+           "x150 wadham st plymouth 18651", address_line),
+         address_line = if_else(
+           name == "x17 21 widener school", "x17 16 widener school", address_line),
+         address_line = if_else(
+           address_line == "x1445 lincoln hwy coatesville 19320",
+           "x1445 linc hwy coatesville 19320", address_line),
+         address_line = if_else(
+           address_line == "x1414 beaver rd osborne 15143",
+           "x1414 beaver st sewickley 15143", address_line),
          address_line = if_else(name == "north versailles community center",
                                 "x1401 greensburg ave n versailles 15137",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x139 muncipal st e freedom 16637",
-                                "x139 municipal st e freedom 16637",
-                                address_line),
+         address_line = if_else(
+           address_line == "x139 muncipal st e freedom 16637",
+           "x139 municipal st e freedom 16637", address_line),
          address_line = if_else(name == "langeloth community center",
                                 "x1375 langeloth rd burgettstown 15021",
                                 address_line),
-         address_line = if_else(address_line ==
-                                  "x136 community bldg rd leechburg 15656",
-                                  "x136 community building rd leechburg 15656",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "carpenter and miller st schaefferstown 17088",
-                                  "carpenter miller st schaefferstown 17088",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "echo lake 652 laurel dr tobyhan18466",
-                                "echo lake 652 laurel dr tobyhanna 18466",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x982 chestnut st ext derry 15627",
-                                "x982 chestnut st derry 15627",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x965 burtner rd pittsburgh 15065" |
-                                  address_line ==
-                                  "x965 burtner rd tro heights 15065",
-                                "x965 burtner rd natrona heights 15065",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "x95 circle center rd w hickory 16370",
-                                "x965 burtner rd natrona heights 15065",
-                                address_line),
-         address_line = if_else(address_line ==
-                                  "xx95 circle center rd w hickory 16370" |
-                                  address_line ==
-                                  "x95 center circle rd w hickory 16370",
+         address_line = if_else(
+           address_line == "x136 community bldg rd leechburg 15656",
+           "x136 community building rd leechburg 15656", address_line),
+         address_line = if_else(
+           address_line == "carpenter and miller st schaefferstown 17088",
+           "carpenter miller st schaefferstown 17088", address_line),
+         address_line = if_else(
+           address_line == "echo lake 652 laurel dr tobyhan18466",
+           "echo lake 652 laurel dr tobyhanna 18466", address_line),
+         address_line = if_else(
+           address_line == "x982 chestnut st ext derry 15627",
+           "x982 chestnut st derry 15627", address_line),
+         address_line = if_else(
+           address_line == "x965 burtner rd pittsburgh 15065" |
+             address_line == "x965 burtner rd tro heights 15065",
+           "x965 burtner rd natrona heights 15065", address_line),
+         address_line = if_else(
+           address_line == "x95 circle center rd w hickory 16370",
+           "x965 burtner rd natrona heights 15065", address_line),
+         address_line = if_else(
+           address_line == "xx95 circle center rd w hickory 16370" |
+             address_line == "x95 center circle rd w hickory 16370",
                                 "x95 center circle st w hickory 16370",
                                 address_line),
          address_line = if_else(address_line == "x927 freeport rd tarentum 15030",
-                                "x927 freeport rd creighton 15030",
-                                address_line),
+                                "x927 freeport rd creighton 15030", address_line),
          address_line = if_else(address_line == "x915 linc ave w chester 19380",
                                 "x915 lincoln ave w chester 19380",address_line),
          address_line = if_else(
            address_line == "x81 commonwealth dr w mifflin 15122",
-           "x81 commonwealth ave w mifflin 15122",
-                                address_line),
+           "x81 commonwealth ave w mifflin 15122", address_line),
          address_line = if_else(
            address_line == "x800 mac dade blvd collingdale 19023",
-           "x800 macdade blvd collingdale 19023",
-           address_line),
+           "x800 macdade blvd collingdale 19023", address_line),
          address_line = if_else( address_line == "x80 jones st shickshinny 18655",
-           "x80 jones st wilkes barre 18702",
-           address_line),
+           "x80 jones st wilkes barre 18702", address_line),
          address_line = if_else( address_line == "x7911 wm penn hwy cresson",
-                                 "x7911 wm penn hwy cresson 16630",
-                                 address_line),
+                                 "x7911 wm penn hwy cresson 16630", address_line),
          address_line = if_else( address_line == "x200 04 3rd ave altoona 16602",
-                                 "x200 3rd ave altoona 16602",
-                                 address_line),
+                                 "x200 3rd ave altoona 16602", address_line),
          address_line = if_else(
            address_line == "x1030 cochrans mill rd s park 15236",
-           "x1030 cochrans mill rd pittsburgh 15236",
-                                 address_line),
+           "x1030 cochrans mill rd pittsburgh 15236", address_line),
          address_line = if_else(
            address_line == "x751 sugar run rd altoona 16602",
            "x751 sugar run rd altoona 16601",address_line),
@@ -2047,40 +1975,35 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
          address_line = if_else(name == "martin l mattei middle school" &
            address_line != "x120 new st pittston 18640",
            "x120 new st pittston 18640", address_line),
-         address_line = if_else(name == "mckeesport public safety building" &
-                                   address_line != "x201 lysle blvd mckeesport 15132",
-                                 "x201 lysle blvd mckeesport 15132", address_line),
+         address_line = if_else(
+           name == "mckeesport public safety building" &
+             address_line != "x201 lysle blvd mckeesport 15132",
+           "x201 lysle blvd mckeesport 15132", address_line),
          address_line = if_else(address_line == "x10th st jim thorpe 18229",
                                  "x101 10th st jim thorpe 18229", address_line),
          address_line = if_else(address_line == "x223 clever rd pittsburgh 15136",
                                 "x225 clever rd mckees rocks 15136", address_line),
-         address_line = if_else(address_line == "x940 beaver grade rd coraopolis 15108",
-                                "x904 beaver grade rd coraopolis 15108",
-                                address_line),
+         address_line = if_else(
+           address_line == "x940 beaver grade rd coraopolis 15108",
+           "x904 beaver grade rd coraopolis 15108", address_line),
          address_line = if_else(name == "mother cabrini church hall",
                                 "x214 n shamokin st shamokin 17872", address_line),
          address_line = if_else(address_line == "x1500 lincoln ave scranton 18504",
                                 "x1500 n lincoln ave scranton 18504",
                                 address_line),
          address_line = if_else(address_line == "x2375 levans rd coplay 18036",
-                                "x2375 levans rd coplay 18037",
-                                address_line),
+                                "x2375 levans rd coplay 18037", address_line),
          address_line = if_else(address_line == "x1504 bedford st johnstown",
-                                "x1504 bedford st johnstown 15902",
-                                address_line),
+                                "x1504 bedford st johnstown 15902", address_line),
          address_line = if_else(address_line == "x608 main st lilly",
-                                "x608 main st lilly 15938",
-                                address_line),
+                                "x608 main st lilly 15938", address_line),
          address_line = if_else(name == "penn hills library",
-                                "x1037 stotler rd pittsburgh 15235",
-                                address_line),
+                                "x1037 stotler rd pittsburgh 15235", address_line),
          address_line = if_else(
            address_line == "x2875 perrysville ave pittsburgh 15214",
-           "x3875 perrysville ave pittsburgh 15214",
-                                address_line),
+           "x3875 perrysville ave pittsburgh 15214", address_line),
          address_line = if_else(name == "pioneer hose company",
-                                "x124 morgan st brackenridge 15014",
-                                address_line),
+                                "x124 morgan st brackenridge 15014", address_line),
          address_line = if_else(name == "roslyn elementary school",
                                 "x2565 susquehanna rd abington 19001",
                                 address_line),
@@ -2091,8 +2014,7 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
            address_line == "x1231 meetinghouse rd jenkintown 19046",
            "x1231 meeting house rd jenkintown 19046", address_line),
          address_line = if_else(name == "sacred heart church",
-                                "x154 orchard ave emsworth 15202",
-                                address_line),
+                                "x154 orchard ave emsworth 15202", address_line),
          address_line = if_else(
            address_line == "x1220 bridge st honesdale 18431",
            "x1200 bridge st honesdale 18431", address_line),
@@ -2103,14 +2025,11 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
                                 "x11505 susquehanna trail s glen rock trl 17327",
                                 address_line),
          address_line = if_else(name == "springtown fire company",
-                                "x3010 rte 212 coopersburg 18055",
-                                address_line),
+                                "x3010 rte 212 coopersburg 18055", address_line),
          address_line = if_else(address_line == "x7911 wm penn hwy cresson",
-                                "x7911 wm penn hwy cresson 16630",
-                                address_line),
+                                "x7911 wm penn hwy cresson 16630", address_line),
          address_line = if_else(address_line == "x33 lewin la pittsburgh 15235",
-                                "x33 lewin ln pittsburgh 15235",
-                                address_line),
+                                "x33 lewin ln pittsburgh 15235", address_line),
          address_line = if_else(
            address_line == "x1315 marshall selma st norristown 19401",
            "x1315 marshall st norristown 19401", address_line),
@@ -2127,31 +2046,30 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
                                 "x4700 drexelbrook dr drexel hill 19026",
                                 address_line),
          address_line = if_else(address_line == "pine st whitehall 18052",
-                                "x2301 pine st whitehall 18052",
-                                address_line),
+                                "x2301 pine st whitehall 18052", address_line),
          address_line = if_else(
            address_line == "x110 vaneer ave greensburg 15601",
-                                "x110 vannear ave greensburg 15601",
-                                address_line),
-         address_line = if_else(name == "west homestead volunteer fire department",
-                                "x447 w 8th ave w homestead pa 15120",
-                                address_line),
-         address_line = if_else(address_line == "x395 perry hwy pittsburgh 15229",
-                                "x398 perry hwy pittsburgh 15229",
-                                address_line),
-         address_line = if_else(address_line == "x1400 weston way w chester 19380",
-                                "x1402 weston way w chester 19380",
-                                address_line),
-         address_line = if_else(address_line == "x110 peffer rd pittsburgh 15145",
-                                "x110 peffer rd turtle creek 15145",
-                                address_line),
-         address_line = if_else(address_line == "x7600 evans st swissvale 15218",
-                                "x7600 evans st pittsburgh 15218",
-                                address_line),
-         address_line = if_else(address_line == "x28 memorial st exeter 18643",
-                                "x20 memorial st exeter 18643",
-                                address_line),
-         zipcode = as.character(substr(address_line, nchar(address_line) - n_last + 1,
+           "x110 vannear ave greensburg 15601", address_line),
+         address_line = if_else(
+           name == "west homestead volunteer fire department",
+           "x447 w 8th ave w homestead pa 15120", address_line),
+         address_line = if_else(
+           address_line == "x395 perry hwy pittsburgh 15229",
+           "x398 perry hwy pittsburgh 15229", address_line),
+         address_line = if_else(
+           address_line == "x1400 weston way w chester 19380",
+           "x1402 weston way w chester 19380", address_line),
+         address_line = if_else(
+           address_line == "x110 peffer rd pittsburgh 15145",
+           "x110 peffer rd turtle creek 15145", address_line),
+         address_line = if_else(
+           address_line == "x7600 evans st swissvale 15218",
+           "x7600 evans st pittsburgh 15218", address_line),
+         address_line = if_else(
+           address_line == "x28 memorial st exeter 18643",
+           "x20 memorial st exeter 18643", address_line) ,
+         zipcode = as.character(substr(address_line,
+                                       nchar(address_line) - n_last + 1,
                                        nchar(address_line)))) %>%
   filter(!zipcode %in% odd_zips) %>%
   filter(address_line != "x285 pine run church rd apollo 15613") %>%
@@ -2184,11 +2102,6 @@ n_places_pa <- full_join(pa_zips_freq_2020, pa_zips_freq_2016, by = "zipcode") %
   verify(!zipcode %in% odd_zips == TRUE) %>%
   verify(ncol(.) == 5 & nrow(.) == 1791)
 
-# start here to clean lists for determining new places in 2020
-
-places_16_20 <- full_join(pa_2020_df, pa_2016_df, by = "address_line",
-                          suffix = c("2020", "2016"))
-
 ##########################################################################
 # add in county information
 az_cos <- read_rds(inputs$counnzip_azscpa_imp) %>%
@@ -2213,8 +2126,6 @@ pa_cos <- read_rds(inputs$counnzip_azscpa_imp) %>%
 
 ###############################################################################
 
-# add in census race data and link to each state/year data set grouped by zip
-# geometry information for mapping is breaking the code
 az_demo <- read_rds(inputs$census_imp) %>%
   filter(geoid %in% n_places_az$zipcode) %>%
   spread(key = "variable", value = "estimate") %>%
@@ -2241,7 +2152,8 @@ az_demo <- read_rds(inputs$census_imp) %>%
   filter(county != "Missing County") %>%
   mutate(county = if_else(county == "McKinley County", "Apache County", county),
          county = if_else(county == "San Juan County", "Coconino County", county)) %>%
-  verify(ncol(.) == 20 & nrow(.) == 287) %>%
+  filter(is.na(total) == FALSE) %>%
+  verify(ncol(.) == 20 & nrow(.) == 285) %>%
   verify(county != "McKinley County" | county != "San Juan County" |
            county != "Missing County")
 
@@ -2270,8 +2182,9 @@ sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
   full_join(sc_cos, by = c("geoid" = "zip")) %>%
   mutate(county = if_else(is.na(county) == TRUE, "Missing County", county)) %>%
   filter(county != "Missing County") %>%
-  verify(ncol(.) == 20 & nrow(.) == 383) %>%
-  verify(county != "Missing County")
+  filter(is.na(total) == FALSE) %>%
+  verify(county != "Missing County") %>%
+  verify(ncol(.) == 20 & nrow(.) == 379)
 
 pa_demo <- pluck(read_rds(inputs$census_imp)) %>%
   filter(geoid %in% n_places_pa$zipcode) %>%
@@ -2294,18 +2207,9 @@ pa_demo <- pluck(read_rds(inputs$census_imp)) %>%
   verify(is.na(gp_total) == FALSE) %>%
   verify(is.na(name) == FALSE) %>%
   verify(is.na(geoid) == FALSE) %>%
-  full_join(n_places_pa, by = c("geoid" = "zipcode"))%>%
-  verify(ncol(.) == 18 & nrow(.) == 1791)
-
-# there are 271 zip codes for which we have polling data but they aren't in the
-# PA census data, no demographic info and no geometry
-missing_demopa <- pa_demo %>%
-  filter(is.na(name) == TRUE & is.na(delta_cat) == FALSE)
-
-pa_demo <- pa_demo %>%
-  filter(!name %in% missing_demopa$name) %>%
-  full_join(pa_cos, by = c("geoid" = "zip")) %>%
-  verify(ncol(.) == 20 & nrow(.) == 1580)
+  full_join(n_places_pa, by = c("geoid" = "zipcode")) %>%
+  filter(is.na(total) == FALSE) %>%
+  verify(ncol(.) == 18 & nrow(.) == 1520)
 
 # export all objects for write task here so as not to have null objects
 # q1a
