@@ -6,48 +6,47 @@
 # ============================================
 # HRW_pollingplaces/import/src/import.R
 #
-pacman::p_load("tidyverse", "janitor", "assertr", "tidycensus", "textreadr")
+pacman::p_load("here", "tidyverse", "janitor",
+               "assertr", "tidycensus", "textreadr")
 
 # AZ and SC zipcode and county data obtained here
 # https://www.unitedstateszipcodes.org/az/#zips-list and
 # https://www.unitedstateszipcodes.org/sc/#zips-list
 
 inputs <- list(
-  az_2016 = here::here("import/input/vip_az_2016primary/polling_location.txt"),
-  az_2020 = here::here("import/input/vip_az_2020primary/polling_location.txt"),
-  az_2020_maricopa = here::here("import/input/vip_az_maricopa_2020primary/polling_location.txt"),
+  az_2016 = here("import/input/vip_az_2016primary/polling_location.txt"),
+  az_2020 = here("import/input/vip_az_2020primary/polling_location.txt"),
+  az_2020_maricopa = here("import/input/vip_az_maricopa_2020primary/polling_location.txt"),
 
-  sc_2016 = here::here("import/input/vip_sc_2016primary/polling_location.txt"),
-  sc_2020 = here::here("import/input/vip_sc_2020primary/polling_location.txt"),
+  sc_2016 = here("import/input/vip_sc_2016primary/polling_location.txt"),
+  sc_2020 = here("import/input/vip_sc_2020primary/polling_location.txt"),
 
-  zip_counties = here::here("import/input/zips/zip_code_database.csv"),
+  zip_counties = here("import/input/zips/zip_code_database.csv"),
 
-  pa_2016 = here::here("import/input/penn/CopyofPollingPlacesList_20160425.csv"),
-  pa_2020 = here::here("import/input/penn/PollingPlaceList20200601(1).csv")
+  pa_2016 = here("import/input/penn/CopyofPollingPlacesList_20160425.csv"),
+  pa_2020 = here("import/input/penn/PollingPlaceList20200601(1).csv")
 
 )
 outputs <- list(
-  VIPinlist_imp = here::here("clean/input/VIPdata_imported.rds"),
+  VIPinlist_imp = here("clean/input/VIPdata_imported.rds"),
 
-  pa_2016_imp = here::here("clean/input/pa2016_imported.rds"),
-  pa_2016_2_imp = here::here("clean/input/pa2016_2_imported.rds"),
-  pa_2020_imp = here::here("clean/input/pa2020_imported.rds"),
+  pa_2016_imp = here("clean/input/pa2016_imported.rds"),
+  pa_2016_2_imp = here("clean/input/pa2016_2_imported.rds"),
+  pa_2020_imp = here("clean/input/pa2020_imported.rds"),
 
-  census_imp = here::here("clean/input/census_imported.rds"),
-  counnzip_azscpa_imp = here::here("clean/input/counzip_azscpa_imported.rds")
+  census_imp = here("clean/input/census_imported.rds"),
+  counnzip_azscpa_imp = here("clean/input/counzip_azscpa_imported.rds")
 )
 
 # import VIP data
 ## creates a list of VIP files as connections
-inputslist <- list(inputs$az_2016, inputs$az_2020,
-                   inputs$az_2020_maricopa,inputs$sc_2016, inputs$sc_2020)
+inputslist <- list(inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa,
+                   inputs$sc_2016, inputs$sc_2020)
 
 names(inputslist) <- c("az_2016", "az_2020", "az_2020_maricopa",
                        "sc_2016", "sc_2020")
 
 stopifnot(length(inputslist) == 5)
-
-# verification won't break with new data yet
 
 inlist <- lapply(inputslist, function(x) {
 
@@ -66,10 +65,11 @@ stopifnot(length(inlist) == 5)
 saveRDS(inlist, outputs$VIPinlist_imp)
 
 
-expected_colspa2016 <- c("county_name","precinct_code","precinct_name","description",
-                     "house_num","prefix_direction_desc","street","street_type_desc",
-                     "suffix_direction_desc","city","state_desc","postal_code",
-                     "line2","comment","day_phone")
+expected_colspa2016 <- c("county_name","precinct_code","precinct_name",
+                         "description", "house_num","prefix_direction_desc",
+                         "street","street_type_desc", "suffix_direction_desc",
+                         "city","state_desc","postal_code", "line2","comment",
+                         "day_phone")
 
 pa2016_df <- read_csv(inputs$pa_2016, col_names = TRUE,
                       na = "NULL", col_types =
@@ -108,8 +108,6 @@ zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
 
 # import census data for SC and AZ ending in 2018
 # data come from 2014-2018 5 year ACS
-# bring in the geometry data with write task, it's messing up
-# the clean task
 jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c")
 expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
