@@ -2208,7 +2208,7 @@ pa_demo <- pluck(read_rds(inputs$census_imp)) %>%
   verify(is.na(name) == FALSE) %>%
   verify(is.na(geoid) == FALSE) %>%
   full_join(n_places_pa, by = c("geoid" = "zipcode")) %>%
-  full_join(sc_cos, by = c("geoid" = "zip")) %>%
+  full_join(pa_cos, by = c("geoid" = "zip")) %>%
   filter(is.na(total) == FALSE) %>%
   verify(ncol(.) == 20 & nrow(.) == 1520)
 
