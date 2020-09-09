@@ -2128,7 +2128,7 @@ pa_cos <- read_rds(inputs$counnzip_azscpa_imp) %>%
 
 az_demo <- read_rds(inputs$census_imp) %>%
   filter(geoid %in% n_places_az$zipcode) %>%
-  spread(key = "variable", value = "estimate") %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
   select(c(starts_with("nhl_"), starts_with("total"), "geoid", "name")) %>%
   verify(sum(total) == sum(total_nhl) + sum(total_hl)) %>%
   mutate(nhl_ao = as.numeric(nhl_sor + nhl_tom),
@@ -2160,7 +2160,7 @@ az_demo <- read_rds(inputs$census_imp) %>%
 
 sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
   filter(geoid %in% n_places_sc$zipcode) %>%
-  spread(key = "variable", value = "estimate") %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
   select(c(starts_with("nhl_"), starts_with("total"), "geoid", "name")) %>%
   verify(sum(total) == sum(total_nhl) + sum(total_hl)) %>%
   mutate(nhl_ao = as.numeric(nhl_sor + nhl_tom),
@@ -2190,7 +2190,7 @@ sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
 
 pa_demo <- pluck(read_rds(inputs$census_imp)) %>%
   filter(geoid %in% n_places_pa$zipcode) %>%
-  spread(key = "variable", value = "estimate") %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
   verify(sum(total) == sum(total_nhl) + sum(total_hl)) %>%
   mutate(nhl_ao = as.numeric(nhl_sor + nhl_tom),
          gp_total =
@@ -2212,7 +2212,7 @@ pa_demo <- pluck(read_rds(inputs$census_imp)) %>%
   full_join(n_places_pa, by = c("geoid" = "zipcode")) %>%
   full_join(pa_cos, by = c("geoid" = "zip")) %>%
   filter(is.na(total) == FALSE) %>%
-  verify(ncol(.) == 26 & nrow(.) == 1520)
+  verify(ncol(.) == 21 & nrow(.) == 1520)
 
 # export all objects for write task here so as not to have null objects
 # q1a

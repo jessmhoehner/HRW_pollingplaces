@@ -46,7 +46,6 @@ sc_2020_df <- read_rds(files$sc_2020_clean)
 pa_2016_df <- read_rds(files$pa_2016_clean)
 pa_2020_df <- read_rds(files$pa_2020_clean)
 
-
 az <- read_rds(files$az_demo_clean) %>%
   filter(is.na(total) == FALSE)
 sc <- read_rds(files$sc_demo_clean) %>%
@@ -174,6 +173,16 @@ pa_g <- pa %>%
 pa_m <- pa %>%
   filter(delta_cat == "Maintained Polling Locations")
 
+# incomes
+pa_inc_lost <- pa_lost %>%
+  drop_na(med_income_byhh)
+
+pa_inc_g <- pa_g %>%
+  drop_na(med_income_byhh)
+
+pa_inc_m <- pa_m %>%
+  drop_na(med_income_byhh)
+
 pa_phil <- pa %>%
   filter(county == "Philadelphia")
 
@@ -183,6 +192,16 @@ pa_g_phil <- pa_phil  %>%
   filter(delta_cat == "Gained Polling Locations")
 pa_m_phil <- pa_phil  %>%
   filter(delta_cat == "Maintained Polling Locations")
+
+# incomes
+phil_inc_lost <- pa_lost_phil %>%
+  drop_na(med_income_byhh)
+
+phil_inc_g <- pa_g_phil %>%
+  drop_na(med_income_byhh)
+
+phil_inc_m <- pa_m_phil %>%
+  drop_na(med_income_byhh)
 
 # zip codes within the City of Philadelphia
 city_zips <- c("08102", "08103", "08105", "08110","19004", "19012", "19027", 
@@ -201,6 +220,13 @@ city_g_phil <- city_phil  %>%
   filter(delta_cat == "Gained Polling Locations")
 city_m_phil <- city_phil  %>%
   filter(delta_cat == "Maintained Polling Locations")
+
+# incomes
+city_inc_lost <- city_lost_phil %>%
+  drop_na(med_income_byhh)
+
+city_inc_g <- city_g_phil %>%
+  drop_na(med_income_byhh)
 
 #############################################################################
 
@@ -490,12 +516,19 @@ who lived in zip codes which lost polling locations. Black people comprise
 Pennsylvania, and `r round_half_up((sum(pa_lost$nhl_black)/sum(pa_lost$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations.
 American Indian people comprise less than 1% of the population of Pennsylvania, 
-and fewer than 1 % of people who lived in zip codes which lost polling locations.
+and fewer than 1% of people who lived in zip codes which lost polling locations.
 Asian people comprise 
 `r round_half_up((sum(pa$nhl_asian)/sum(pa$total))*100,0)`% 
 of the population of Pennsylvania, and 
 `r round_half_up((sum(pa_lost$nhl_asian)/sum(pa_lost$total))*100,0)`% of people 
 who lived in zip codes which lost polling locations.
+
+The weighted median income in the previous year of all zip codes which lost 
+polling places between 2016 and 2020 was 
+\$`r comma(median(pa_inc_lost$med_income_byhh))` and the weighted median income 
+of all zip codes in Pennsylvania which gained polling locations was 
+\$`r comma(median(pa_inc_g$med_income_byhh))` and among those which
+maintained polling locations it was \$`r comma(median(pa_inc_m$med_income_byhh))`.
 
 *Philadelphia County*
 
@@ -538,6 +571,13 @@ of the population of Philadelphia County, and
 `r round_half_up((sum(pa_lost_phil$nhl_asian)/sum(pa_lost_phil$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations.
 
+The weighted median income in the previous year of all zip codes which lost 
+polling places between 2016 and 2020 was 
+\$`r comma(median(phil_inc_lost$med_income_byhh))` and the weighted median 
+income of all zip codes in Philadelphia County which gained polling locations was 
+\$`r comma(median(phil_inc_g$med_income_byhh))` and among those which
+maintained polling locations it was \$`r comma(median(phil_inc_m$med_income_byhh))`.
+
 *City of Philadelphia*
 
 In total, `r comma(sum(city_lost_phil$total))`, or 
@@ -579,7 +619,13 @@ of the population of City of Philadelphia, and
 `r round_half_up((sum(pa_lost_phil$nhl_asian)/sum(pa_lost_phil$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations.
 
-\newpage
+The weighted median income in the previous year of all zip codes which lost 
+polling places between 2016 and 2020 was 
+\$`r comma(median(city_inc_lost$med_income_byhh))` and the weighted median 
+income of all zip codes in the City of Philadelphia which gained polling 
+locations was \$`r comma(median(city_inc_g$med_income_byhh))` and there were no 
+zip codes within the City of Philadelphia which maintained the same number of 
+polling locations between 2016 and 2020.
 
 ## Polling location changes by population {-} 
 
@@ -726,6 +772,13 @@ not Hispanic or Latino by specific group: White alone, Black or African American
 Alone, American Indian and Alaska Native alone, Asian alone, Native Hawaiian and 
 Other Pacific Islander alone, and All other races alone (Including Some other 
 race alone and Two or more races alone).
+
+Weighted median household income calculations were estimated by taking the 
+median of the median household incomes by household size as estimated in the 
+American Community Survey table B19019_001. Only zip codes with complete information
+on median income by household size were included in income calculations so these
+numbers may differ from total number of zip codes which saw changes in numbers 
+of polling locations.
 
 Zip code and county data were obtained from unitedstateszipcodes.org. 
 While many zip codes map directly to specific counties, the relationship between 
