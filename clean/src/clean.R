@@ -18,23 +18,19 @@ inputs <- list(
 
 outputs <- list(
   az_2016_clean = here("write/input/az_2016_clean.rds"),
-  az_2016_freq_clean = here("write/input/az_2016_freq_clean.rds"),
   az_2020_clean = here("write/input/az_2020_clean.rds"),
-  az_2020_freq_clean = here("write/input/az_2020_freq_clean.rds"),
   az_demo_clean = here("write/input/az_demo_clean.rds"),
-  az_2020_maricopa_clean = here("write/input/az_2020_maricopa_clean.rds"),
+  az_places = here::here("write/input/az_places.rds"),
 
   sc_2016_clean = here("write/input/sc_2016_clean.rds"),
-  sc_2016_freq_clean = here("write/input/sc_2016_freq_clean.rds"),
   sc_2020_clean = here("write/input/sc_2020_clean.rds"),
-  sc_2020_freq_clean = here("write/input/sc_2020_freq_clean.rds"),
   sc_demo_clean = here("write/input/sc_demo_clean.rds"),
+  sc_places = here::here("write/input/sc_places.rds"),
 
   pa_2016_clean = here("write/input/pa_2016_clean.rds"),
-  pa_2016_freq_clean = here("write/input/pa_2016_freq_clean.rds"),
   pa_2020_clean = here("write/input/pa_2020_clean.rds"),
-  pa_2020_freq_clean = here("write/input/pa_2020_freq_clean.rds"),
-  pa_demo_clean = here("write/input/pa_demo_clean.rds")
+  pa_demo_clean = here("write/input/pa_demo_clean.rds"),
+  pa_places = here::here("write/input/pa_places.rds")
 )
 
 # VIP data Arizona and South Carolina ##########################################
@@ -602,6 +598,7 @@ n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
   verify(ncol(.) == 5 & nrow(.) == 307)
+
 
 ### south carolina ###
 # nrows = unique polling places were open in 2016
@@ -2745,9 +2742,6 @@ pa_demo <- pluck(read_rds(inputs$census_imp)) %>%
 az_2016_df <- az_2016_df %>%
   saveRDS(outputs$az_2016_clean)
 
-az_2020_maricopa_df <- az_2020_maricopa_df %>%
-  saveRDS(outputs$az_2020_maricopa_clean)
-
 az_2020_df_full <- az_2020_df_full %>%
   saveRDS(outputs$az_2020_clean)
 
@@ -2773,22 +2767,13 @@ pa_demo <- pa_demo %>%
   saveRDS(outputs$pa_demo_clean)
 
 # q1b
-az_zips_freq_2016 <- az_zips_freq_2016 %>%
-  saveRDS(outputs$az_2016_freq_clean)
+n_places_az %>%
+  saveRDS(outputs$az_places)
 
-az_zips_freq_2020 <- az_zips_freq_2020 %>%
-  saveRDS(outputs$az_2020_freq_clean)
+n_places_sc %>%
+  saveRDS(outputs$sc_places)
 
-sc_zips_freq_2016 <- sc_zips_freq_2016 %>%
-  saveRDS(outputs$sc_2016_freq_clean)
-
-sc_zips_freq_2020 <- sc_zips_freq_2020 %>%
-  saveRDS(outputs$sc_2020_freq_clean)
-
-pa_zips_freq_2016 <- pa_zips_freq_2016 %>%
-  saveRDS(outputs$pa_2016_freq_clean)
-
-pa_zips_freq_2020 <- pa_zips_freq_2020 %>%
-  saveRDS(outputs$pa_2020_freq_clean)
+n_places_pa %>%
+  saveRDS(outputs$pa_places)
 
 # done.

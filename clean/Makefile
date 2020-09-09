@@ -11,21 +11,17 @@ HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')
 
 clean_data = \
 				 $(HERE)/write/input/az_2016_clean.rds \
-				 $(HERE)/write/input/az_2016_freq_clean.rds \
 				 $(HERE)/write/input/az_2020_clean.rds \
-				 $(HERE)/write/input/az_2020_freq_clean.rds \
 				 $(HERE)/write/input/az_demo_clean.rds \
-				 $(HERE)/write/input/az_2020_maricopa_clean.rds \
+				 $(HERE)/write/input/az_places.rds \
 				 $(HERE)/write/input/sc_2016_clean.rds \
-				 $(HERE)/write/input/sc_2016_freq_clean.rds \
 				 $(HERE)/write/input/sc_2020_clean.rds \
-				 $(HERE)/write/input/sc_2020_freq_clean.rds \
 				 $(HERE)/write/input/sc_demo_clean.rds \
+				 $(HERE)/write/input/sc_places.rds \
 				 $(HERE)/write/input/pa_2016_clean.rds \
-				 $(HERE)/write/input/pa_2016_freq_clean.rds \
 				 $(HERE)/write/input/pa_2020_clean.rds \
-				 $(HERE)/write/input/pa_2020_freq_clean.rds \
-				 $(HERE)/write/input/pa_demo_clean.rds
+				 $(HERE)/write/input/pa_demo_clean.rds \
+				 $(HERE)/write/input/pa_places.rds
 				 
 .PHONY:	all clean
 
