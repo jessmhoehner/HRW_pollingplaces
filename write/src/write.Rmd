@@ -17,8 +17,7 @@ knitr::opts_chunk$set(tidy = "styler")
 pacman::p_load(
   tidyverse, knitr, janitor,
   tinytex, scales, kableExtra,
-  tidycensus, stringr, sf, here
-)
+  tidycensus, stringr, sf, here)
 
 # Disable sci. notation in output
 options(scipen = 999)
@@ -40,7 +39,7 @@ files <- list(
   pa_2020_clean = here("write/input/pa_2020_clean.rds"),
   pa_demo_clean = here("write/input/pa_demo_clean.rds"),
   pa_places = here("write/input/pa_places.rds")
-)
+  )
 
 ```
 
