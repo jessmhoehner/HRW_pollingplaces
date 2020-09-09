@@ -11,11 +11,15 @@ output:
 
 ```{r setup, message = FALSE, include= FALSE, echo=FALSE}
 
-pacman::p_load(tidyverse, knitr, janitor, 
-               tinytex, scales, kableExtra, 
-               tidycensus, stringr, sf)
+knitr::opts_chunk$set(tidy = "styler")
 
-#disable sci. notation
+pacman::p_load(
+  tidyverse, knitr, janitor,
+  tinytex, scales, kableExtra,
+  tidycensus, stringr, sf
+)
+
+# disable sci. notation
 options(scipen = 999)
 
 files <- list(
@@ -24,19 +28,18 @@ files <- list(
   az_2020_clean = here::here("write/input/az_2020_clean.rds"),
   az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
   az_demo_clean = here::here("write/input/az_demo_clean.rds"),
-  
+
   sc_2016_clean = here::here("write/input/sc_2016_clean.rds"),
   sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
   sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
   sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
-  sc_demo_clean = here::here("write/input/sc_demo_clean.rds"), 
-  
+  sc_demo_clean = here::here("write/input/sc_demo_clean.rds"),
+
   pa_2016_clean = here::here("write/input/pa_2016_clean.rds"),
   pa_2016_freq_clean = here::here("write/input/pa_2016_freq_clean.rds"),
   pa_2020_clean = here::here("write/input/pa_2020_clean.rds"),
   pa_2020_freq_clean = here::here("write/input/pa_2020_freq_clean.rds"),
   pa_demo_clean = here::here("write/input/pa_demo_clean.rds")
-  
 )
 
 az_2016_df <- read_rds(files$az_2016_clean)
