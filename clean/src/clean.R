@@ -55,9 +55,13 @@ pa_cos <- read_rds(inputs$counnzip_azscpa_imp) %>%
 # VIP data AZ and SC -----------------------------------------------------------
 # AZ ---------------------------------------------------------------------------
 n_last <- 5
+# these ids contain statements about voting rather than addresses
+#   ex: "PLEASE CHECK THE COUNTY WEBSITE FOR THE VOTE" or
+#   "NO POLLING PLACES - A BALLOT WILL BE MAILED  AZ", or zip codes like "0 AZ"
 invalid_info <- c(
   "4600331", "46002736", "4600617", "4600618",
-  "4610205126", "46002463", "4600178", "46003124"
+  "4610205126", "46002463", "4600178", "46003124", "46001645",
+  "46002418", "46002423", "46002453", "46002446"
 )
 
 az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
@@ -65,9 +69,8 @@ az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
   verify(min(id) == 401333310112 & max(id) == 4610933) %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
   mutate(zipcode = as.character(substr(
-    address_line, nchar(address_line) - n_last + 1, nchar(address_line)
-  ))) %>%
-  filter(address_line != "PLEASE CHECK THE COUNTY WEBSITE FOR THE VOTE") %>%
+    address_line, nchar(address_line) - n_last + 1, nchar(address_line)))) %>%
+  filter(!id %in% invalid_info) %>%
   mutate(
     zipcode = if_else(id == "46002418", "85142", zipcode),
     zipcode = if_else(id == "46002423", "85544", zipcode),
@@ -261,15 +264,12 @@ az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
     address_line = as.character(gsub("06th ", "6th ", address_line)),
     address_line = as.character(gsub("07th ", "7th ", address_line)),
     address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line))
-  ) %>%
-  filter(!address_line %in% c("az", "60 az")) %>%
-  filter(!id %in% invalid_info) %>%
-  verify(is.na(zipcode) == FALSE) %>%
-  verify((zipcode %in% az_cos$zip) == TRUE) %>%
+    address_line = as.character(gsub("09th ", "9th ", address_line))) %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
-  verify(nrow(.) == 324 & ncol(.) == 4) %>%
+  verify(is.na(zipcode) == FALSE) %>%
+  verify((zipcode %in% az_cos$zip) == TRUE) %>%
+  verify(nrow(.) == 322 & ncol(.) == 4) %>%
   arrange(address_line)
 
 az_zips_freq_2016 <- as.data.frame(table(az_2016_df$zipcode)) %>%
@@ -277,21 +277,19 @@ az_zips_freq_2016 <- as.data.frame(table(az_2016_df$zipcode)) %>%
     zipcode = Var1,
     n_pp_2016 = as.numeric(Freq)
   ) %>%
-  verify(ncol(.) == 4 & nrow(.) == 195)
+  verify(ncol(.) == 4 & nrow(.) == 193)
 
 az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
   verify(ncol(.) == 3 & nrow(.) == 330) %>%
   verify(min(id) == 7700104067 & max(id) == 770099999) %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
   mutate(
-    zipcode = as.factor(substr(
+    zipcode = as.character(substr(
       address_line, nchar(address_line) - n_last + 1,
-      nchar(address_line)
-    )),
+      nchar(address_line))),
     address_line = make_clean_names(address_line,
       sep_out = " ",
-      unique_sep = NULL
-    ),
+      unique_sep = NULL),
     address_line = sub("_.*", "", address_line),
     name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
     name = sub("_.*", "", name),
@@ -350,13 +348,19 @@ az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
     address_line = as.character(gsub("06th ", "6th ", address_line)),
     address_line = as.character(gsub("07th ", "7th ", address_line)),
     address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line))
-  ) %>%
-  verify(is.na(zipcode) == FALSE) %>%
+    address_line = as.character(gsub("09th ", "9th ", address_line)),
+    zipcode = if_else(zipcode == "89501", "85901", zipcode),
+    zipcode = if_else(zipcode == "85491", "85941", zipcode),
+    zipcode = if_else(zipcode == "86529", "85925", zipcode)
+    ) %>%
   filter(zipcode != "12345") %>%
-  filter(unique(id, address_line) != FALSE) %>%
-  verify(n_distinct(id, address_line) == 329) %>%
-  verify(nrow(.) == 329 & ncol(.) == 4)
+  distinct(id, .keep_all = TRUE) %>%
+  distinct(address_line, .keep_all = TRUE) %>%
+  verify(is.na(zipcode) == FALSE) %>%
+  verify((zipcode %in% az_cos$zip) == TRUE) %>%
+  verify(n_distinct(id, address_line) == 318) %>%
+  verify(nrow(.) == 318 & ncol(.) == 4) %>%
+  arrange(address_line)
 
 az_2020_maricopa_df <- pluck(read_rds(inputs$VIPinlist_imp), 3) %>%
   verify(ncol(.) == 3 & nrow(.) == 151) %>%
@@ -431,13 +435,16 @@ az_2020_maricopa_df <- pluck(read_rds(inputs$VIPinlist_imp), 3) %>%
     address_line = as.character(gsub("08th ", "8th ", address_line)),
     address_line = as.character(gsub("09th ", "9th ", address_line))
   ) %>%
+  distinct(id, .keep_all = TRUE) %>%
+  distinct(address_line, .keep_all = TRUE) %>%
   verify(is.na(zipcode) == FALSE) %>%
-  distinct(id, address_line, .keep_all = TRUE) %>%
-  verify(n_distinct(id) == 151) %>%
-  verify(nrow(.) == 151 & ncol(.) == 4)
+  verify((zipcode %in% az_cos$zip) == TRUE) %>%
+  verify(n_distinct(id, address_line) == 151) %>%
+  verify(nrow(.) == 151 & ncol(.) == 4) %>%
+  arrange(address_line)
 
 az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
-  verify(ncol(.) == 4 & nrow(.) == 480) %>%
+  verify(ncol(.) == 4 & nrow(.) == 469) %>%
   verify(min(id) == 7700104067 & max(id) == 8850015622) %>%
   mutate_at(c("id", "name", "address_line"), as.character) %>%
   mutate(
@@ -561,12 +568,12 @@ az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
     address_line = as.character(gsub("08th ", "8th ", address_line)),
     address_line = as.character(gsub("09th ", "9th ", address_line))
   ) %>%
-  verify(is.na(zipcode) == FALSE) %>%
   distinct(id, .keep_all = TRUE) %>%
-  verify(n_distinct(id) == 471) %>%
-  verify((zipcode %in% az_cos$zip) == TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
-  verify(nrow(.) == 470 & ncol(.) == 4) %>%
+  verify(is.na(zipcode) == FALSE) %>%
+  verify((zipcode %in% az_cos$zip) == TRUE) %>%
+  verify(n_distinct(id, address_line) == 469) %>%
+  verify(nrow(.) == 469 & ncol(.) == 4) %>%
   arrange(address_line)
 
 az_zips_freq_2020 <- as.data.frame(table(az_2020_df_full$zipcode)) %>%
@@ -599,10 +606,7 @@ sc_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 4) %>%
   mutate(zipcode = as.character(substr(
     address_line,
     nchar(address_line) - n_last + 1,
-    nchar(address_line)
-  ))) %>%
-  verify(is.na(zipcode) == FALSE) %>%
-  mutate(
+    nchar(address_line))),
     address_line = tolower(address_line),
     name = tolower(name),
     zipcode = as.character(if_else(zipcode == "23222", "29532", zipcode)),
@@ -707,9 +711,11 @@ sc_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 4) %>%
   filter(zipcode != "SC") %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
-  arrange(address_line) %>%
+  verify(is.na(zipcode) == FALSE) %>%
   verify(zipcode %in% sc_cos$zip) %>%
-  verify(nrow(.) == 2066 & ncol(.) == 4)
+  verify(n_distinct(id, address_line) == 2066) %>%
+  verify(nrow(.) == 2066 & ncol(.) == 4) %>%
+  arrange(address_line)
 
 sc_zips_freq_2016 <- as.data.frame(table(sc_2016_df$zipcode)) %>%
   mutate(
@@ -734,11 +740,7 @@ sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
     zipcode =
       as.character(substr(
         address_line, nchar(address_line) - n_last + 1,
-        nchar(address_line)
-      ))
-  ) %>%
-  verify(is.na(zipcode) == FALSE) %>%
-  mutate(
+        nchar(address_line))),
     address_line = tolower(address_line),
     name = tolower(name),
     zipcode = as.character(if_else(zipcode == "40 SC", "29840", zipcode)),
@@ -831,14 +833,14 @@ sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
     address_line = as.character(gsub("08th ", "8th ", address_line)),
     address_line = as.character(gsub("09th ", "9th ", address_line))
   ) %>%
-  filter(zipcode != "SC" |
-    zipcode != "40 sc") %>%
+  filter(zipcode != "SC" | zipcode != "40 sc") %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
+  verify(is.na(zipcode) == FALSE) %>%
   verify((zipcode %in% sc_cos$zip)) %>%
   verify(n_distinct(address_line) == 1919) %>%
-  arrange(address_line) %>%
-  verify(nrow(.) == 1919 & ncol(.) == 4)
+  verify(nrow(.) == 1919 & ncol(.) == 4) %>%
+  arrange(address_line)
 
 sc_zips_freq_2020 <- as.data.frame(table(sc_2020_df$zipcode)) %>%
   mutate(
@@ -868,7 +870,6 @@ n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %
 # Invalid zip codes in PA data
 odd_zips <- c("0", "1", "13235", "1910", "191", "190", "191119", "194")
 
-# Started with 9155 rows and 7448 unique, accurate, and valid addresses
 pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
   clean_names() %>%
   mutate(
@@ -1779,8 +1780,8 @@ pa_2016_df <- read_rds(inputs$pa_2016_imp) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify((zipcode %in% pa_cos$zip) == TRUE) %>%
   verify(n_distinct(address_line) == 5667) %>%
-  arrange(address_line) %>%
-  verify(nrow(.) == 5667 & ncol(.) == 3)
+  verify(nrow(.) == 5667 & ncol(.) == 3) %>%
+  arrange(address_line)
 
 pa_zips_freq_2016 <- as.data.frame(table(pa_2016_df$zipcode)) %>%
   mutate(
@@ -2593,10 +2594,10 @@ pa_2020_df <- read_rds(inputs$pa_2020) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify((zipcode %in% pa_cos$zip) == TRUE) %>%
   verify(n_distinct(address_line) == 5061) %>%
-  arrange(address_line) %>%
-  verify(nrow(.) == 5061 & ncol(.) == 3)
+  verify(nrow(.) == 5061 & ncol(.) == 3) %>%
+  arrange(address_line)
 
-# The one address removed in line 2568 is a random empty house
+# The one address removed in line 2593 is a random empty house
 
 pa_zips_freq_2020 <- as.data.frame(table(pa_2020_df$zipcode)) %>%
   mutate(
@@ -2657,8 +2658,8 @@ az_demo <- read_rds(inputs$census_imp) %>%
   ) %>%
   filter(is.na(total) == FALSE) %>%
   verify(county != "McKinley County" | county != "San Juan County" |
-    county != "Missing County")
-verify(ncol(.) == 20 & nrow(.) == 282)
+    county != "Missing County") %>%
+  verify(ncol(.) == 20 & nrow(.) == 284)
 
 sc_demo <- pluck(read_rds(inputs$census_imp)) %>%
   filter(geoid %in% n_places_sc$zipcode) %>%
