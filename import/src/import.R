@@ -6,11 +6,14 @@
 # ============================================
 # HRW_pollingplaces/import/src/import.R
 #
+
+# Load libraries ---------------------------------------------------------------
 pacman::p_load(
   "here", "tidyverse", "janitor",
   "assertr", "tidycensus", "textreadr"
 )
 
+# Specify file locations -------------------------------------------------------
 # AZ and SC zipcode and county data obtained here
 # https://www.unitedstateszipcodes.org/az/#zips-list and
 # https://www.unitedstateszipcodes.org/sc/#zips-list
@@ -39,8 +42,7 @@ outputs <- list(
   counnzip_azscpa_imp = here("clean/input/counzip_azscpa_imported.rds")
 )
 
-# import VIP data
-## creates a list of VIP files as connections
+# import VIP data --------------------------------------------------------------
 inputslist <- list(
   inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa,
   inputs$sc_2016, inputs$sc_2020
@@ -70,7 +72,6 @@ inlist <- lapply(inputslist, function(x) {
 
 stopifnot(length(inlist) == 5)
 saveRDS(inlist, outputs$VIPinlist_imp)
-
 
 expected_colspa2016 <- c(
   "county_name", "precinct_code", "precinct_name",
@@ -114,7 +115,7 @@ pa2020_df <- read_csv(inputs$pa_2020,
   verify(ncol(.) == 17 & nrow(.) == 9234) %>%
   saveRDS(outputs$pa_2020_imp)
 
-# zips in SC, AZ, and PA
+# import zip code data ---------------------------------------------------------
 zc <- read_csv(inputs$zip_counties,
   col_names = TRUE, na = "",
   col_types = cols_only(
@@ -129,7 +130,7 @@ zc <- read_csv(inputs$zip_counties,
   verify(ncol(.) == 3 & nrow(.) == 3318) %>%
   verify(min(zip) == 15001 & max(zip) == 86556)
 
-# import census data for SC and AZ ending in 2018
+# import ACS data --------------------------------------------------------------
 # data come from 2014-2018 5 year ACS
 expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 

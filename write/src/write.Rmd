@@ -11,6 +11,7 @@ output:
 
 ```{r setup, message = FALSE, include= FALSE, echo=FALSE}
 
+# Setup ------------------------------------------------------------------------
 knitr::opts_chunk$set(tidy = "styler")
 
 pacman::p_load(
@@ -21,6 +22,8 @@ pacman::p_load(
 
 # disable sci. notation
 options(scipen = 999)
+
+# Specify file locations -------------------------------------------------------
 
 files <- list(
   az_2016_clean = here("write/input/az_2016_clean.rds"),
@@ -45,33 +48,39 @@ files <- list(
 
 ```{r nlocationsa, message=FALSE, echo=FALSE}
 
+# how many lost, and how many gained, maintained? ------------------------------
+
 # az
-# how many lost, and how many gained, maintained?
 az_table <- read_rds(files$az_places) %>%
   group_by(delta_cat) %>%
-  summarise(.groups = "keep", 
-            count = n(),
-            percent_of_zips = ((count/nrow(.))*100))
-#sc
-# how many lost, and how many gained, maintained?
+  summarise(
+    .groups = "keep",
+    count = n(),
+    percent_of_zips = ((count / nrow(.)) * 100)
+  )
+# sc
 sc_table <- read_rds(files$sc_places) %>%
   group_by(delta_cat) %>%
-  summarise(.groups = "keep", 
-            count = n(),
-            percent_of_zips = ((count/nrow(.))*100))
+  summarise(
+    .groups = "keep",
+    count = n(),
+    percent_of_zips = ((count / nrow(.)) * 100)
+  )
 # pa
-# how many lost, and how many gained, maintained?
 pa_table <- read_rds(files$pa_places) %>%
   group_by(delta_cat) %>%
-  summarise(.groups = "keep", 
-            count = n(),
-            percent_of_zips = ((count/nrow(.))*100))
+  summarise(
+    .groups = "keep",
+    count = n(),
+    percent_of_zips = ((count / nrow(.)) * 100)
+  )
 
 ```
 
 ```{r changes_demo, message=FALSE, echo=FALSE}
 
-# AZ 
+# location changes and demography ----------------------------------------------
+# AZ
 az <- read_rds(files$az_demo_clean)
 
 az_lost <- az %>%
@@ -82,7 +91,7 @@ az_m <- az %>%
   filter(delta_cat == "Maintained Polling Locations")
 
 az_maricopa <- az %>%
-  filter(county == "Maricopa County") 
+  filter(county == "Maricopa County")
 
 az_lost_maricopa <- az_maricopa %>%
   filter(delta_cat == "Lost Polling Locations")
@@ -104,11 +113,11 @@ sc_m <- sc %>%
 sc_rland <- sc %>%
   filter(county == "Richland")
 
-sc_lost_rland <- sc_rland  %>%
+sc_lost_rland <- sc_rland %>%
   filter(delta_cat == "Lost Polling Locations")
-sc_g_rland <- sc_rland  %>%
+sc_g_rland <- sc_rland %>%
   filter(delta_cat == "Gained Polling Locations")
-sc_m_rland <- sc_rland  %>%
+sc_m_rland <- sc_rland %>%
   filter(delta_cat == "Maintained Polling Locations")
 
 ncountiessc <- sc %>%
@@ -126,58 +135,53 @@ pa_g <- pa %>%
 pa_m <- pa %>%
   filter(delta_cat == "Maintained Polling Locations")
 
-# incomes
 pa_inc_lost <- pa_lost %>%
   drop_na(med_income_byhh)
-
 pa_inc_g <- pa_g %>%
   drop_na(med_income_byhh)
-
 pa_inc_m <- pa_m %>%
   drop_na(med_income_byhh)
 
+# Philadelphia
 pa_phil <- pa %>%
   filter(county == "Philadelphia")
 
-pa_lost_phil <- pa_phil  %>%
+pa_lost_phil <- pa_phil %>%
   filter(delta_cat == "Lost Polling Locations")
-pa_g_phil <- pa_phil  %>%
+pa_g_phil <- pa_phil %>%
   filter(delta_cat == "Gained Polling Locations")
-pa_m_phil <- pa_phil  %>%
+pa_m_phil <- pa_phil %>%
   filter(delta_cat == "Maintained Polling Locations")
 
-# incomes
 phil_inc_lost <- pa_lost_phil %>%
   drop_na(med_income_byhh)
-
 phil_inc_g <- pa_g_phil %>%
   drop_na(med_income_byhh)
-
 phil_inc_m <- pa_m_phil %>%
   drop_na(med_income_byhh)
 
 # zip codes within the City of Philadelphia
-city_zips <- c("08102", "08103", "08105", "08110","19004", "19012", "19027", 
-               "19102", "19103", "19104", "19106", "19107", "19109", "19111", 
-               "19119", "19120", "19121", "19122", "19123", "19124", "19125", 
-               "19126", "19129", "19130", "19131", "19132", "19133", "19134", 
-               "19135", "19137", "19138", "19140", "19141", "19144", "19147", 
-               "19149", "19150")
+city_zips <- c(
+  "08102", "08103", "08105", "08110", "19004", "19012", "19027",
+  "19102", "19103", "19104", "19106", "19107", "19109", "19111",
+  "19119", "19120", "19121", "19122", "19123", "19124", "19125",
+  "19126", "19129", "19130", "19131", "19132", "19133", "19134",
+  "19135", "19137", "19138", "19140", "19141", "19144", "19147",
+  "19149", "19150"
+)
 
 city_phil <- pa_phil %>%
   filter(geoid %in% city_zips)
 
-city_lost_phil <- city_phil  %>%
+city_lost_phil <- city_phil %>%
   filter(delta_cat == "Lost Polling Locations")
-city_g_phil <- city_phil  %>%
+city_g_phil <- city_phil %>%
   filter(delta_cat == "Gained Polling Locations")
-city_m_phil <- city_phil  %>%
+city_m_phil <- city_phil %>%
   filter(delta_cat == "Maintained Polling Locations")
 
-# incomes
 city_inc_lost <- city_lost_phil %>%
   drop_na(med_income_byhh)
-
 city_inc_g <- city_g_phil %>%
   drop_na(med_income_byhh)
 
@@ -185,25 +189,25 @@ city_inc_g <- city_g_phil %>%
 
 ```{r new_locs, message=FALSE, echo=FALSE}
 
-# az 
+# new locations in 2016 vs 2020 ------------------------------------------------
+
+# az
 az_2016_df <- read_rds(files$az_2016_clean)
 az_2020_df <- read_rds(files$az_2020_clean)
 
 new_addsaz <- anti_join(az_2020_df, az_2016_df, by = "address_line")
 
-# how many polling locations did maricopa have in 2016 vs 2020?
 maricopa_zips <- as.character(az_maricopa$geoid)
 
 mar_2020 <- az_2020_df %>%
   filter(zipcode %in% maricopa_zips) %>%
   distinct(address_line, .keep_all = TRUE)
-# mountain vista middle azhool gym at 
-# 33622 north mountain vista blvd san tan valley az 85142 
+# mountain vista middle azhool gym at
+# 33622 north mountain vista blvd san tan valley az 85142
 # is not in original maricopa 2020 data
 mar_2016 <- az_2016_df %>%
   filter(zipcode %in% maricopa_zips)
 
-# maricopa
 new_addsaz_mar <- anti_join(mar_2020, mar_2016, by = "address_line")
 
 # how many polling places persisted overall between 2016 and 2020?
@@ -218,7 +222,6 @@ sc_2020_df <- read_rds(files$sc_2020_clean)
 
 new_addssc <- anti_join(sc_2020_df, sc_2016_df, by = "address_line")
 
-# how many polling locations did richland have in 2016 vs 2020?
 richland_zips <- as.character(sc_rland$geoid)
 
 rch_2020 <- sc_2020_df %>%
@@ -238,7 +241,6 @@ sc_both <- semi_join(sc_2020_df, sc_2016_df, by = "address_line")
 sc_both_rch <- semi_join(rch_2020, rch_2016, by = "address_line")
 
 # pa
-
 pa_2016_df <- read_rds(files$pa_2016_clean)
 pa_2020_df <- read_rds(files$pa_2020_clean)
 
@@ -701,6 +703,8 @@ people lost no locations.
 ## Methodology
 
 ``` {r ncounties, echo=FALSE, message=FALSE}
+
+# for how many counties do we have data? ---------------------------------------
 
 ncountiesaz <- az %>%
   group_by(county) %>%
