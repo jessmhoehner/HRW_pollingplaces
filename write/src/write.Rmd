@@ -16,52 +16,28 @@ knitr::opts_chunk$set(tidy = "styler")
 pacman::p_load(
   tidyverse, knitr, janitor,
   tinytex, scales, kableExtra,
-  tidycensus, stringr, sf
+  tidycensus, stringr, sf, here
 )
 
 # disable sci. notation
 options(scipen = 999)
 
 files <- list(
-  az_2016_clean = here::here("write/input/az_2016_clean.rds"),
-  az_2016_freq_clean = here::here("write/input/az_2016_freq_clean.rds"),
-  az_2020_clean = here::here("write/input/az_2020_clean.rds"),
-  az_2020_freq_clean = here::here("write/input/az_2020_freq_clean.rds"),
-  az_demo_clean = here::here("write/input/az_demo_clean.rds"),
+  az_2016_clean = here("write/input/az_2016_clean.rds"),
+  az_2020_clean = here("write/input/az_2020_clean.rds"),
+  az_demo_clean = here("write/input/az_demo_clean.rds"),
+  az_places = here("write/input/az_places.rds"),
 
-  sc_2016_clean = here::here("write/input/sc_2016_clean.rds"),
-  sc_2016_freq_clean = here::here("write/input/sc_2016_freq_clean.rds"),
-  sc_2020_clean = here::here("write/input/sc_2020_clean.rds"),
-  sc_2020_freq_clean = here::here("write/input/sc_2020_freq_clean.rds"),
-  sc_demo_clean = here::here("write/input/sc_demo_clean.rds"),
+  sc_2016_clean = here("write/input/sc_2016_clean.rds"),
+  sc_2020_clean = here("write/input/sc_2020_clean.rds"),
+  sc_demo_clean = here("write/input/sc_demo_clean.rds"),
+  sc_places = here("write/input/sc_places.rds"),
 
-  pa_2016_clean = here::here("write/input/pa_2016_clean.rds"),
-  pa_2016_freq_clean = here::here("write/input/pa_2016_freq_clean.rds"),
-  pa_2020_clean = here::here("write/input/pa_2020_clean.rds"),
-  pa_2020_freq_clean = here::here("write/input/pa_2020_freq_clean.rds"),
-  pa_demo_clean = here::here("write/input/pa_demo_clean.rds")
+  pa_2016_clean = here("write/input/pa_2016_clean.rds"),
+  pa_2020_clean = here("write/input/pa_2020_clean.rds"),
+  pa_demo_clean = here("write/input/pa_demo_clean.rds"),
+  pa_places = here("write/input/pa_places.rds")
 )
-
-az_2016_df <- read_rds(files$az_2016_clean)
-az_2020_df <- read_rds(files$az_2020_clean)
-sc_2016_df <- read_rds(files$sc_2016_clean)
-sc_2020_df <- read_rds(files$sc_2020_clean)
-pa_2016_df <- read_rds(files$pa_2016_clean)
-pa_2020_df <- read_rds(files$pa_2020_clean)
-
-az <- read_rds(files$az_demo_clean) %>%
-  filter(is.na(total) == FALSE)
-sc <- read_rds(files$sc_demo_clean) %>%
-  filter(is.na(name) == FALSE)
-pa <- read_rds(files$pa_demo_clean) %>%
-  filter(is.na(name) == FALSE)
-
-az_zips_freq_2016 <- read_rds(files$az_2016_freq_clean)
-az_zips_freq_2020 <- read_rds(files$az_2020_freq_clean)
-sc_zips_freq_2016 <- read_rds(files$sc_2016_freq_clean)
-sc_zips_freq_2020 <- read_rds(files$sc_2020_freq_clean)
-pa_zips_freq_2016 <- read_rds(files$pa_2016_freq_clean)
-pa_zips_freq_2020 <- read_rds(files$pa_2020_freq_clean)
 
 ```
 
@@ -70,62 +46,33 @@ pa_zips_freq_2020 <- read_rds(files$pa_2020_freq_clean)
 ```{r nlocationsa, message=FALSE, echo=FALSE}
 
 # az
-n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %>%
-  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
-  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
-         delta_cat = case_when(
-           delta_n_places == 0 ~ "Maintained Polling Locations",
-           delta_n_places < 0 ~ "Lost Polling Locations",
-           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
-  arrange(delta_n_places) %>%
-  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
-
 # how many lost, and how many gained, maintained?
-az_table <- n_places_az %>%
+az_table <- read_rds(files$az_places) %>%
   group_by(delta_cat) %>%
   summarise(.groups = "keep", 
             count = n(),
-            percent_of_zips = ((count/nrow(n_places_az))*100))
-
-# which zip codes saw an increase, decrease, or maintenance in polling places?
-n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
-  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
-  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
-         delta_cat = case_when(
-           delta_n_places == 0 ~ "Maintained Polling Locations",
-           delta_n_places < 0 ~ "Lost Polling Locations",
-           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
-  filter(zipcode != "SC") %>%
-  arrange(delta_n_places) %>%
-  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
-
+            percent_of_zips = ((count/nrow(.))*100))
+#sc
 # how many lost, and how many gained, maintained?
-sc_table <- n_places_sc %>%
+sc_table <- read_rds(files$sc_places) %>%
   group_by(delta_cat) %>%
   summarise(.groups = "keep", 
             count = n(),
-            percent_of_zips = (count/nrow(n_places_sc)*100))
-# PA
-# which zip codes saw an increase, decrease, or maintenance in polling places?
-n_places_pa <- full_join(pa_zips_freq_2020, pa_zips_freq_2016, by = "zipcode") %>%
-  replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
-  mutate(delta_n_places = as.numeric(n_pp_2020 - n_pp_2016),
-         delta_cat = case_when(
-           delta_n_places == 0 ~ "Maintained Polling Locations",
-           delta_n_places < 0 ~ "Lost Polling Locations",
-           delta_n_places > 0 ~ "Gained Polling Locations")) %>%
-  filter(zipcode != "pa") %>%
-  arrange(delta_n_places) %>%
-  select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat)
-
+            percent_of_zips = ((count/nrow(.))*100))
+# pa
 # how many lost, and how many gained, maintained?
-pa_table <- n_places_pa %>%
+pa_table <- read_rds(files$pa_places) %>%
   group_by(delta_cat) %>%
   summarise(.groups = "keep", 
             count = n(),
-            percent_of_zips = (count/nrow(n_places_pa)*100))
+            percent_of_zips = ((count/nrow(.))*100))
 
-################################################################################
+```
+
+```{r changes_demo, message=FALSE, echo=FALSE}
+
+# AZ 
+az <- read_rds(files$az_demo_clean)
 
 az_lost <- az %>%
   filter(delta_cat == "Lost Polling Locations")
@@ -145,6 +92,8 @@ az_m_maricopa <- az_maricopa %>%
   filter(delta_cat == "Maintained Polling Locations")
 
 # SC
+sc <- read_rds(files$sc_demo_clean)
+
 sc_lost <- sc %>%
   filter(delta_cat == "Lost Polling Locations")
 sc_g <- sc %>%
@@ -168,6 +117,7 @@ ncountiessc <- sc %>%
   arrange(county)
 
 # PA
+pa <- read_rds(files$pa_demo_clean)
 
 pa_lost <- pa %>%
   filter(delta_cat == "Lost Polling Locations")
@@ -231,9 +181,14 @@ city_inc_lost <- city_lost_phil %>%
 city_inc_g <- city_g_phil %>%
   drop_na(med_income_byhh)
 
-#############################################################################
+```
+
+```{r new_locs, message=FALSE, echo=FALSE}
 
 # az 
+az_2016_df <- read_rds(files$az_2016_clean)
+az_2020_df <- read_rds(files$az_2020_clean)
+
 new_addsaz <- anti_join(az_2020_df, az_2016_df, by = "address_line")
 
 # how many polling locations did maricopa have in 2016 vs 2020?
@@ -257,7 +212,9 @@ az_both <- semi_join(az_2020_df, az_2016_df, by = "address_line")
 # how many polling places persisted in maricopa between 2016 and 2020?
 az_both_mar <- semi_join(mar_2020, mar_2016, by = "address_line")
 
-# South Carolina
+# sc
+sc_2016_df <- read_rds(files$sc_2016_clean)
+sc_2020_df <- read_rds(files$sc_2020_clean)
 
 new_addssc <- anti_join(sc_2020_df, sc_2016_df, by = "address_line")
 
@@ -279,6 +236,11 @@ sc_both <- semi_join(sc_2020_df, sc_2016_df, by = "address_line")
 
 # how many polling places persisted in richland between 2016 and 2020?
 sc_both_rch <- semi_join(rch_2020, rch_2016, by = "address_line")
+
+# pa
+
+pa_2016_df <- read_rds(files$pa_2016_clean)
+pa_2020_df <- read_rds(files$pa_2020_clean)
 
 ```
 
