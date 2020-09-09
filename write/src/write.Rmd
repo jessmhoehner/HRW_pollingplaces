@@ -17,7 +17,8 @@ knitr::opts_chunk$set(tidy = "styler")
 pacman::p_load(
   tidyverse, knitr, janitor,
   tinytex, scales, kableExtra,
-  tidycensus, stringr, sf, here)
+  tidycensus, stringr, sf, here
+)
 
 # Disable sci. notation in output
 options(scipen = 999)
@@ -39,8 +40,7 @@ files <- list(
   pa_2020_clean = here("write/input/pa_2020_clean.rds"),
   pa_demo_clean = here("write/input/pa_demo_clean.rds"),
   pa_places = here("write/input/pa_places.rds")
-  )
-
+)
 ```
 
 ## Polling locations open in 2016 and 2020 {-} 
@@ -74,7 +74,6 @@ pa_table <- read_rds(files$pa_places) %>%
     count = n(),
     percent_of_zips = ((count / nrow(.)) * 100)
   )
-
 ```
 
 ```{r changes_demo, message=FALSE, echo=FALSE}
@@ -184,7 +183,6 @@ city_inc_lost <- city_lost_phil %>%
   drop_na(med_income_byhh)
 city_inc_g <- city_g_phil %>%
   drop_na(med_income_byhh)
-
 ```
 
 ```{r new_locs, message=FALSE, echo=FALSE}
@@ -243,7 +241,6 @@ sc_both_rch <- semi_join(rch_2020, rch_2016, by = "address_line")
 # PA
 pa_2016_df <- read_rds(files$pa_2016_clean)
 pa_2020_df <- read_rds(files$pa_2020_clean)
-
 ```
 
 ### Arizona
@@ -272,8 +269,8 @@ In South Carolina, there was a `r abs(round_half_up((sum((nrow(sc_2020_df) - nro
 locations between the 2016 and 2020 PPEs. In total, about 
 `r comma(sum(sc_lost$total))` or 
 `r round_half_up(sum(sum(sc_lost$total)/sum(sc$total))*100, 0)`% of the 
-population of South Carolina, lives in a zip code that saw a reduction in the number of 
-polling places.
+population of South Carolina, lives in a zip code that saw a reduction in the 
+number of polling places.
 
 Compared to 2016, there were `r nrow(new_addssc)` new polling places opened in 
 South Carolina statewide in 2020, `r nrow(new_addssc_rch)` of these were opened in
@@ -291,8 +288,8 @@ In about `r round_half_up(pa_table$percent_of_zips[2])`% of the
 `r comma(sum(pa_table$count))` zip codes in Pennsylvania there was a reduction 
 in the number of polling places. In total, about `r comma(sum(pa_lost$total))` or 
 `r round_half_up(sum(sum(pa_lost$total)/sum(pa$total))*100, 0)`% of the 
-population of Pennsylvania, lives in a zip code that saw a reduction in the number 
-of polling places.
+population of Pennsylvania, lives in a zip code that saw a reduction in the 
+number of polling places.
 
 ## Polling location changes by demographics {-} 
 
@@ -338,9 +335,9 @@ who lived in zip codes which lost polling locations.
 *Maricopa County*
 
 In total, `r comma(sum(az_lost$total))`, or 
-`r round_half_up(sum(sum(az_lost_maricopa$total)/sum(az_maricopa$total))*100,0)`% of people 
-who lived in Maricopa County, Arizona lived in zip codes which lost polling 
-locations during the 2020 PPE.
+`r round_half_up(sum(sum(az_lost_maricopa$total)/sum(az_maricopa$total))*100,0)`% 
+of people who lived in Maricopa County, Arizona lived in zip codes which lost 
+polling locations during the 2020 PPE.
 
 `r round_half_up(sum(sum(az_lost_maricopa$total_hl)/sum(az_maricopa$total_hl)) * 100, 0)`% of
 the Hispanic or Latino population lives in a zip code which lost polling locations. 
@@ -364,15 +361,15 @@ of people who lived in zip codes which lost polling locations.
 White people comprise `r round_half_up((sum(az_maricopa$nhl_white)/sum(az_maricopa$total))*100,0)`% 
 of the population of Maricopa County, and 
 `r round_half_up((sum(az_lost_maricopa$nhl_white)/sum(az_lost_maricopa$total))*100,0)`% 
-of people who lived in zip codes which lost polling locations. Black people comprise 
-`r round_half_up((sum(az_maricopa$nhl_black)/sum(az_maricopa$total))*100,0)`% of 
+of people who lived in zip codes which lost polling locations. Black people 
+comprise `r round_half_up((sum(az_maricopa$nhl_black)/sum(az_maricopa$total))*100,0)`% of 
 the population of Maricopa County, and `r round_half_up((sum(az_lost_maricopa$nhl_black)/sum(az_lost_maricopa$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations. American Indian 
 people comprise `r round_half_up((sum(az_maricopa$nhl_ai_an)/sum(az_maricopa$total))*100,0)`% 
 of the population of Maricopa County, and 
 `r round_half_up((sum(az_lost_maricopa$nhl_ai_an)/sum(az_lost_maricopa$total))*100,0)`% 
-of people who lived in zip codes which lost polling locations. Asian people comprise 
-`r round_half_up((sum(az_maricopa$nhl_asian)/sum(az_maricopa$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Asian people 
+comprise `r round_half_up((sum(az_maricopa$nhl_asian)/sum(az_maricopa$total))*100,0)`% 
 of the population of Maricopa County, and 
 `r round_half_up((sum(az_lost_maricopa$nhl_asian)/sum(az_lost_maricopa$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations.
@@ -416,9 +413,9 @@ who lived in zip codes which lost polling locations.
 *Richland County*
 
 In total, `r comma(sum(sc_lost$total))`, or 
-`r round_half_up(sum(sum(sc_lost_rland$total)/sum(sc_rland$total))*100,0)`% of people 
-who lived in Richland County, South Carolina lived in zip codes which lost polling 
-locations during the 2020 PPE.
+`r round_half_up(sum(sum(sc_lost_rland$total)/sum(sc_rland$total))*100,0)`% of 
+people who lived in Richland County, South Carolina lived in zip codes which 
+lost polling locations during the 2020 PPE.
 
 `r round_half_up(sum(sum(sc_lost_rland$total_hl)/sum(sc_rland$total_hl)) * 100, 0)`% of
 the Hispanic or Latino population lives in a zip code which lost polling locations. 
@@ -442,8 +439,8 @@ of people who lived in zip codes which lost polling locations.
 White people comprise `r round_half_up((sum(sc_rland$nhl_white)/sum(sc_rland$total))*100,0)`% 
 of the population of Richland County, and 
 `r round_half_up((sum(sc_lost_rland$nhl_white)/sum(sc_lost_rland$total))*100,0)`% 
-of people who lived in zip codes which lost polling locations. Black people comprise 
-`r round_half_up((sum(sc_rland$nhl_black)/sum(sc_rland$total))*100,0)`% of 
+of people who lived in zip codes which lost polling locations. Black people 
+comprise `r round_half_up((sum(sc_rland$nhl_black)/sum(sc_rland$total))*100,0)`% of 
 the population of Richland County, and `r round_half_up((sum(sc_lost_rland$nhl_black)/sum(sc_lost_rland$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations. American Indian 
 people comprise less than 1% of the population of Richland County and fewer 
@@ -500,9 +497,9 @@ maintained polling locations it was \$`r comma(median(pa_inc_m$med_income_byhh))
 *Philadelphia County*
 
 In total, `r comma(sum(pa_lost$total))`, or 
-`r round_half_up(sum(sum(pa_lost_phil$total)/sum(pa_phil$total))*100,0)`% of people 
-who lived in Philadelphia County, Pennsylvania lived in zip codes which lost polling 
-locations during the 2020 PPE.
+`r round_half_up(sum(sum(pa_lost_phil$total)/sum(pa_phil$total))*100,0)`% of 
+people who lived in Philadelphia County, Pennsylvania lived in zip codes which 
+lost polling locations during the 2020 PPE.
 
 `r round_half_up(sum(sum(pa_lost_phil$total_hl)/sum(pa_phil$total_hl)) * 100, 0)`% of
 the Hispanic or Latino population lives in a zip code which lost polling locations. 
@@ -526,9 +523,9 @@ of people who lived in zip codes which lost polling locations.
 White people comprise `r round_half_up((sum(pa_phil$nhl_white)/sum(pa_phil$total))*100,0)`% 
 of the population of Philadelphia County, and 
 `r round_half_up((sum(pa_lost_phil$nhl_white)/sum(pa_lost_phil$total))*100,0)`% 
-of people who lived in zip codes which lost polling locations. Black people comprise 
-`r round_half_up((sum(pa_phil$nhl_black)/sum(pa_phil$total))*100,0)`% of 
-the population of Philadelphia County, and `r round_half_up((sum(pa_lost_phil$nhl_black)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Black people 
+comprise `r round_half_up((sum(pa_phil$nhl_black)/sum(pa_phil$total))*100,0)`% 
+of the population of Philadelphia County, and `r round_half_up((sum(pa_lost_phil$nhl_black)/sum(pa_lost_phil$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations. American Indian 
 people comprise less than 1% of the population of Philadelphia County, and fewer 
 than 1 % of people who lived in zip codes which lost polling locations. 
@@ -541,16 +538,16 @@ of people who lived in zip codes which lost polling locations.
 The weighted median income in the previous year of all zip codes which lost 
 polling places between 2016 and 2020 was 
 \$`r comma(median(phil_inc_lost$med_income_byhh))` and the weighted median 
-income of all zip codes in Philadelphia County which gained polling locations was 
-\$`r comma(median(phil_inc_g$med_income_byhh))` and among those which
+income of all zip codes in Philadelphia County which gained polling locations 
+was \$`r comma(median(phil_inc_g$med_income_byhh))` and among those which
 maintained polling locations it was \$`r comma(median(phil_inc_m$med_income_byhh))`.
 
 *City of Philadelphia*
 
 In total, `r comma(sum(city_lost_phil$total))`, or 
-`r round_half_up(sum(sum(city_lost_phil$total)/sum(pa_phil$total))*100,0)`% of people 
-who lived within the City of Philadelphia lived in zip codes which lost polling 
-locations during the 2020 PPE.
+`r round_half_up(sum(sum(city_lost_phil$total)/sum(pa_phil$total))*100,0)`% of 
+people who lived within the City of Philadelphia lived in zip codes which lost 
+polling locations during the 2020 PPE.
 
 `r round_half_up(sum(sum(city_lost_phil$total_hl)/sum(pa_phil$total_hl)) * 100, 0)`% of
 the Hispanic or Latino population lives in a zip code which lost polling locations. 
@@ -574,12 +571,12 @@ of people who lived in zip codes which lost polling locations.
 White people comprise `r round_half_up((sum(city_phil$nhl_white)/sum(city_phil$total))*100,0)`% 
 of the population of City of Philadelphia, and 
 `r round_half_up((sum(pa_lost_phil$nhl_white)/sum(pa_lost_phil$total))*100,0)`% 
-of people who lived in zip codes which lost polling locations. Black people comprise 
-`r round_half_up((sum(city_phil$nhl_black)/sum(city_phil$total))*100,0)`% of 
-the population of City of Philadelphia, and `r round_half_up((sum(pa_lost_phil$nhl_black)/sum(pa_lost_phil$total))*100,0)`% 
+of people who lived in zip codes which lost polling locations. Black people 
+comprise `r round_half_up((sum(city_phil$nhl_black)/sum(city_phil$total))*100,0)`% 
+of the population of City of Philadelphia, and `r round_half_up((sum(pa_lost_phil$nhl_black)/sum(pa_lost_phil$total))*100,0)`% 
 of people who lived in zip codes which lost polling locations. American Indian 
-people comprise less than 1% of the population of City of Philadelphia, and fewer 
-than 1 % of people who lived in zip codes which lost polling locations. 
+people comprise less than 1% of the population of City of Philadelphia, and 
+fewer than 1 % of people who lived in zip codes which lost polling locations. 
 Asian people comprise 
 `r round_half_up((sum(city_phil$nhl_asian)/sum(city_phil$total))*100,0)`% 
 of the population of City of Philadelphia, and 
@@ -612,10 +609,11 @@ az_t1 <- az %>%
   adorn_totals("row") %>%
   adorn_title("combined")
 
-kable(az_t1, "latex", booktabs = T, row.names = TRUE, 
-      caption = "Arizona") %>%
+kable(az_t1, "latex",
+  booktabs = T, row.names = TRUE,
+  caption = "Arizona"
+) %>%
   kable_styling(position = "center", latex_options = "HOLD_position")
-
 ```
 
 Zip codes with between 0 -- 10,000 people gained the greatest number of polling 
@@ -625,8 +623,9 @@ between 70,001 -- 80,000 people gained the fewest polling locations.
 
 Zip codes with between 0 -- 10,000 people maintained the greatest number of 
 polling locations between the 2016 and 2020 PPE, those with between 
-10,001 -- 20,000 people maintained the second highest number of polling locations, 
-and zip codes with between 70,001 -- 80,000 people maintained no polling locations. 
+10,001 -- 20,000 people maintained the second highest number of polling 
+locations, and zip codes with between 70,001 -- 80,000 people maintained no 
+polling locations. 
 
 Zip codes with between 0 -- 10,000 people lost the greatest number of polling 
 locations between the 2016 and 2020 PPE, those with between 10,001 -- 20,000 
@@ -643,10 +642,11 @@ sc_t1 <- sc %>%
   adorn_totals("row") %>%
   adorn_title("combined")
 
-kable(sc_t1, "latex", booktabs = T, row.names = TRUE, 
-      caption = "South Carolina") %>%
+kable(sc_t1, "latex",
+  booktabs = T, row.names = TRUE,
+  caption = "South Carolina"
+) %>%
   kable_styling(position = "center", latex_options = "HOLD_position")
-
 ```
 
 Zip codes with between 0 -- 10,000 people and those with between 
@@ -658,11 +658,12 @@ gained no polling locations.
 
 Zip codes with between 0 -- 10,000 people maintained the greatest number of 
 polling locations between the 2016 and 2020 PPE, those with between 
-10,001 -- 20,000 people maintained the second highest number of polling locations, 
-and zip codes with between 80,001 -- 90,000 people maintained no locations. 
+10,001 -- 20,000 people maintained the second highest number of polling 
+locations, and zip codes with between 80,001 -- 90,000 people maintained no 
+locations. 
 
-Zip codes with between 10,001 -- 20,000 people lost the greatest number of polling 
-locations between the 2016 and 2020 PPE, those with between 0 -- 10,000 
+Zip codes with between 10,001 -- 20,000 people lost the greatest number of 
+polling locations between the 2016 and 2020 PPE, those with between 0 -- 10,000 
 people lost the second highest number of polling locations, and zip codes with 
 between 60,001 -- 70,000 people and those with between 80,001 -- 90,000 people
 lost the fewest locations. 
@@ -672,14 +673,15 @@ lost the fewest locations.
 ```{r pakable, echo=FALSE, message=FALSE}
 
 pa_t1 <- pa %>%
-   tabyl(gp_total, delta_cat) %>%
+  tabyl(gp_total, delta_cat) %>%
   adorn_totals("row") %>%
   adorn_title("combined")
 
-kable(pa_t1, "latex", booktabs = T, row.names = TRUE, 
-      caption = "Pennsylvania") %>%
+kable(pa_t1, "latex",
+  booktabs = T, row.names = TRUE,
+  caption = "Pennsylvania"
+) %>%
   kable_styling(position = "center", latex_options = "HOLD_position")
-
 ```
 
 Zip codes with between 0 -- 10,000 people gained the greatest number of polling 
@@ -694,11 +696,11 @@ polling locations between the 2016 and 2020 PPE, those with between
 and zip codes with between both 60,001 -- 70,000 people and those with between 
 70,001 -- 80,000 people maintained no locations. 
 
-Zip codes with between 10,001 -- 20,000 people lost the greatest number of polling 
-locations between the 2016 and 2020 PPE, those with between 10,001 -- 20,000 
-people lost the second highest number of polling locations, and zip codes with 
-between both 60,001 -- 70,000 people and those with between 70,001 -- 80,000 
-people lost no locations. 
+Zip codes with between 10,001 -- 20,000 people lost the greatest number of 
+polling locations between the 2016 and 2020 PPE, those with between 
+10,001 -- 20,000 people lost the second highest number of polling locations, and 
+zip codes with between both 60,001 -- 70,000 people and those with between 
+70,001 -- 80,000 people lost no locations. 
 
 ## Methodology
 
@@ -720,7 +722,6 @@ ncountiespa <- pa %>%
   group_by(county) %>%
   distinct(county) %>%
   arrange(county)
-
 ```
 
 This report examines polling location data from `r nrow(ncountiesaz)`
@@ -744,10 +745,10 @@ race alone and Two or more races alone).
 
 Weighted median household income calculations were estimated by taking the 
 median of the median household incomes by household size as estimated in the 
-American Community Survey table B19019_001. Only zip codes with complete information
-on median income by household size were included in income calculations so these
-numbers may differ from total number of zip codes which saw changes in numbers 
-of polling locations.
+American Community Survey table B19019_001. Only zip codes with complete 
+information on median income by household size were included in income 
+calculations so these numbers may differ from total number of zip codes which 
+saw changes in numbers of polling locations.
 
 Zip code and county data were obtained from unitedstateszipcodes.org. 
 While many zip codes map directly to specific counties, the relationship between 

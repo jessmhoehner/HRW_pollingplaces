@@ -5,13 +5,11 @@
 # Copyright:   2020, HRW, GPL v3 or later
 # ============================================
 # HRW_pollingplaces/import/src/import.R
-#
 
 # Load libraries ---------------------------------------------------------------
 pacman::p_load(
   "here", "tidyverse", "janitor",
-  "assertr", "tidycensus", "textreadr"
-)
+  "assertr", "tidycensus", "textreadr")
 
 # Specify file locations -------------------------------------------------------
 # Zip code and county data obtained here
@@ -50,8 +48,7 @@ inputslist <- list(
 
 names(inputslist) <- c(
   "az_2016", "az_2020", "az_2020_maricopa",
-  "sc_2016", "sc_2020"
-)
+  "sc_2016", "sc_2020")
 
 stopifnot(length(inputslist) == 5)
 
@@ -62,13 +59,11 @@ inlist <- lapply(inputslist, function(x) {
     col_names = TRUE, na = "NA",
     col_types = cols_only(
       id = "c",
-      name = "c", address_line = "c"
-    )
-  ) %>%
+      name = "c", address_line = "c"))%>%
     clean_names() %>%
     verify(colnames(.) == expected_cols) %>%
     verify(ncol(.) == 3)
-})
+  })
 
 stopifnot(length(inlist) == 5)
 saveRDS(inlist, outputs$VIPinlist_imp)
@@ -78,17 +73,14 @@ expected_colspa2016 <- c(
   "description", "house_num", "prefix_direction_desc",
   "street", "street_type_desc", "suffix_direction_desc",
   "city", "state_desc", "postal_code", "line2", "comment",
-  "day_phone"
-)
+  "day_phone")
 
 pa2016_df <- read_csv(inputs$pa_2016,
   col_names = TRUE,
   na = "NULL", col_types =
     c(
       Comment = "c", HouseNum = "c",
-      PostalCode = "n", PrecinctCode = "c"
-    )
-) %>%
+      PostalCode = "n", PrecinctCode = "c")) %>%
   clean_names() %>%
   verify(colnames(.) == expected_colspa2016) %>%
   verify(ncol(.) == 15 & nrow(.) == 9155) %>%
@@ -107,9 +99,7 @@ pa2020_df <- read_csv(inputs$pa_2020,
   na = "NULL", col_types =
     c(
       SuffixDirection = "c",
-      Comment = "c", HouseNum = "c", PostalCode = "n"
-    )
-) %>%
+      Comment = "c", HouseNum = "c", PostalCode = "n")) %>%
   clean_names() %>%
   verify(colnames(.) == expected_colspa2020) %>%
   verify(ncol(.) == 17 & nrow(.) == 9234) %>%
@@ -121,9 +111,7 @@ zc <- read_csv(inputs$zip_counties,
   col_types = cols_only(
     zip = "n",
     state = "c",
-    county = "c"
-  )
-) %>%
+    county = "c")) %>%
   clean_names() %>%
   filter(state == "AZ" | state == "SC" | state == "PA") %>%
   filter(is.na(county) != TRUE) %>%
@@ -147,11 +135,9 @@ demo_income_1418 <- get_acs(
     nhl_sor = "B03002_008",
     nhl_tom = "B03002_009",
     total_hl = "B03002_012",
-    med_income_byhh = "B19019_001"
-  ),
+    med_income_byhh = "B19019_001"),
   year = 2018,
-  geometry = FALSE
-) %>%
+  geometry = FALSE) %>%
   clean_names() %>%
   verify(colnames(.) == expected_cols3) %>%
   select(geoid, name, variable, estimate) %>%
