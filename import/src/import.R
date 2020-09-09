@@ -14,7 +14,7 @@ pacman::p_load(
 )
 
 # Specify file locations -------------------------------------------------------
-# AZ and SC zipcode and county data obtained here
+# Zip code and county data obtained here
 # https://www.unitedstateszipcodes.org/az/#zips-list and
 # https://www.unitedstateszipcodes.org/sc/#zips-list
 
@@ -42,7 +42,7 @@ outputs <- list(
   counnzip_azscpa_imp = here("clean/input/counzip_azscpa_imported.rds")
 )
 
-# import VIP data --------------------------------------------------------------
+# Import VIP data --------------------------------------------------------------
 inputslist <- list(
   inputs$az_2016, inputs$az_2020, inputs$az_2020_maricopa,
   inputs$sc_2016, inputs$sc_2020
@@ -115,7 +115,7 @@ pa2020_df <- read_csv(inputs$pa_2020,
   verify(ncol(.) == 17 & nrow(.) == 9234) %>%
   saveRDS(outputs$pa_2020_imp)
 
-# import zip code data ---------------------------------------------------------
+# Import zip code data ---------------------------------------------------------
 zc <- read_csv(inputs$zip_counties,
   col_names = TRUE, na = "",
   col_types = cols_only(
@@ -130,8 +130,8 @@ zc <- read_csv(inputs$zip_counties,
   verify(ncol(.) == 3 & nrow(.) == 3318) %>%
   verify(min(zip) == 15001 & max(zip) == 86556)
 
-# import ACS data --------------------------------------------------------------
-# data come from 2014-2018 5 year ACS
+# Import ACS data --------------------------------------------------------------
+# Data come from 2014-2018 5 year ACS
 expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
 demo_income_1418 <- get_acs(

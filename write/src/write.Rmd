@@ -20,7 +20,7 @@ pacman::p_load(
   tidycensus, stringr, sf, here
 )
 
-# disable sci. notation
+# Disable sci. notation in output
 options(scipen = 999)
 
 # Specify file locations -------------------------------------------------------
@@ -49,8 +49,7 @@ files <- list(
 ```{r nlocationsa, message=FALSE, echo=FALSE}
 
 # how many lost, and how many gained, maintained? ------------------------------
-
-# az
+# AZ
 az_table <- read_rds(files$az_places) %>%
   group_by(delta_cat) %>%
   summarise(
@@ -58,7 +57,8 @@ az_table <- read_rds(files$az_places) %>%
     count = n(),
     percent_of_zips = ((count / nrow(.)) * 100)
   )
-# sc
+
+# SC
 sc_table <- read_rds(files$sc_places) %>%
   group_by(delta_cat) %>%
   summarise(
@@ -66,7 +66,8 @@ sc_table <- read_rds(files$sc_places) %>%
     count = n(),
     percent_of_zips = ((count / nrow(.)) * 100)
   )
-# pa
+
+# PA
 pa_table <- read_rds(files$pa_places) %>%
   group_by(delta_cat) %>%
   summarise(
@@ -191,7 +192,7 @@ city_inc_g <- city_g_phil %>%
 
 # new locations in 2016 vs 2020 ------------------------------------------------
 
-# az
+# AZ
 az_2016_df <- read_rds(files$az_2016_clean)
 az_2020_df <- read_rds(files$az_2020_clean)
 
@@ -216,7 +217,7 @@ az_both <- semi_join(az_2020_df, az_2016_df, by = "address_line")
 # how many polling places persisted in maricopa between 2016 and 2020?
 az_both_mar <- semi_join(mar_2020, mar_2016, by = "address_line")
 
-# sc
+# SC
 sc_2016_df <- read_rds(files$sc_2016_clean)
 sc_2020_df <- read_rds(files$sc_2020_clean)
 
@@ -240,7 +241,7 @@ sc_both <- semi_join(sc_2020_df, sc_2016_df, by = "address_line")
 # how many polling places persisted in richland between 2016 and 2020?
 sc_both_rch <- semi_join(rch_2020, rch_2016, by = "address_line")
 
-# pa
+# PA
 pa_2016_df <- read_rds(files$pa_2016_clean)
 pa_2020_df <- read_rds(files$pa_2020_clean)
 
