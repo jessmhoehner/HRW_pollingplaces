@@ -111,7 +111,7 @@ zc <- read_csv(inputs$zip_counties, col_names = TRUE, na = "",
 jrkey <- census_api_key("0e50711a6878668e3244305cfdd42faaa9e7a66c")
 expected_cols3 <- c("geoid", "name", "variable", "estimate", "moe")
 
-demo_1418 <- get_acs(geography = "zcta",
+demo_income_1418 <- get_acs(geography = "zcta",
                      variables = c(total = "B03002_001",
                                    total_nhl = "B03002_002",
                                    nhl_white = "B03002_003",
@@ -121,7 +121,13 @@ demo_1418 <- get_acs(geography = "zcta",
                                    nhl_nhi_pi = "B03002_007",
                                    nhl_sor = "B03002_008",
                                    nhl_tom = "B03002_009",
-                                   total_hl = "B03002_012"),
+                                   total_hl = "B03002_012",
+                                   mu_income_lq = "B19081_001",
+                                   mu_income_sq = "B19081_002",
+                                   mu_income_tq = "B19081_003",
+                                   mu_income_fq = "B19081_004",
+                                   mu_income_hq = "B19081_005",
+                                   mu_income_5pct = "B19081_006"),
                      year = 2018,
                      geometry = FALSE,
                      key = jrkey) %>%
@@ -129,7 +135,7 @@ demo_1418 <- get_acs(geography = "zcta",
   verify(colnames(.) == expected_cols3) %>%
   select(geoid, name, variable, estimate) %>%
   filter(geoid %in% zc$zip) %>%
-  verify(ncol(.) == 4 & nrow(.) == 26270) %>%
+  verify(ncol(.) == 4 & nrow(.) == 42032) %>%
   saveRDS(outputs$census_imp)
 
 zc <- zc %>%
