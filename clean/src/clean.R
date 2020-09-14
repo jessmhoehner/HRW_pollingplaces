@@ -17,7 +17,8 @@ inputs <- list(
   pa_2020_imp = here("clean/input/pa2020_imported.rds"),
   census_imp = here("clean/input/census_imported.rds"),
   counnzip_azscpa_imp = here("clean/input/counzip_azscpa_imported.rds"),
-  az_adds = here("hand/az_addresses.txt")
+  az_adds = here("hand/az_addresses.txt"),
+  sc_adds = here("hand/sc_addresses.txt")
 )
 outputs <- list(
   az_2016_clean = here("write/input/az_2016_clean.rds"),
@@ -253,122 +254,34 @@ n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %
   verify(ncol(.) == 5 & nrow(.) == 284)
 
 # SC ---------------------------------------------------------------------------
+
+sc_address_data <- read_delim(inputs$sc_adds, delim = "|") %>%
+  mutate_all(as.character)
+
 sc_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 4) %>%
   verify(ncol(.) == 3 & nrow(.) == 2194) %>%
   verify(min(id) == 88801000 & max(id) == 8880999) %>%
-  mutate_at(c("id", "name", "address_line"), as.character) %>%
-  mutate(zipcode = as.character(substr(
-    address_line,
-    nchar(address_line) - n_last + 1,
-    nchar(address_line))),
-    address_line = tolower(address_line),
-    name = tolower(name),
-    zipcode = as.character(if_else(zipcode == "23222", "29532", zipcode)),
-    zipcode = as.character(if_else(zipcode == "40 SC", "29840", zipcode)),
-    zipcode = if_else(id == "88801220", "29410", zipcode),
-    zipcode = if_else(id == "88802414", "29036", zipcode),
-    zipcode = if_else(id == "8880132", "29302", zipcode),
-    zipcode = if_else(id == "88801207", "29849", zipcode),
-    address_line = if_else(id == "8880526",
-      "1 brams point rd hilton head island sc 29926",
-      address_line
-    ),
-    address_line = if_else(id == "8880108",
-      "1001 longtown rd columbia sc 29229",
-      address_line
-    ),
-    id = if_else(id == "8880802", "8880955", id),
-    id = if_else(id == "88801932", "88802078", id),
-    address_line = if_else(id == "88802078",
-      "110 winter st winnsboro sc 29180",
-      address_line
-    ),
-    id = if_else(id == "8880745", "88801163", id),
-    address_line = if_else(id == "88801163",
-      "1139 hillsboro rd orangeburg sc 29118",
-      address_line
-    ),
-    address_line = if_else(id == "8880140",
-      "2001 spann rd batesburg sc 29006",
-      address_line
-    ),
-    address_line = if_else(id == "8880203",
-      "201 school house ln summerville sc 29486",
-      address_line
-    ),
-    address_line = if_else(id == "8880990",
-      "2345 state highway 41/51 s hemingway sc 29554",
-      address_line
-    ),
-    id = if_else(id == "88801752", "88801333", id),
-    id = if_else(id == "88801582", "8880924", id),
-    id = if_else(id == "88801220", "8880333", id),
-    address_line = as.character(gsub(" s ", " south ", address_line)),
-    address_line = as.character(gsub(" n ", " north ", address_line)),
-    address_line = as.character(gsub(" w ", " west ", address_line)),
-    address_line = as.character(gsub(" e ", " east ", address_line)),
-    address_line = as.character(gsub(" street ", " st ", address_line)),
-    address_line = as.character(gsub(" sts ", " st ", address_line)),
-    address_line = as.character(gsub(" avenue ", " ave ", address_line)),
-    address_line = as.character(gsub(" av ", " ave ", address_line)),
-    address_line = as.character(gsub(" road ", " rd ", address_line)),
-    address_line = as.character(gsub(" drive ", " dr ", address_line)),
-    address_line = as.character(gsub(" boulevard ", " blvd ", address_line)),
-    address_line = as.character(gsub(" blv ", " blvd ", address_line)),
-    address_line = as.character(gsub(" route ", " rte ", address_line)),
-    address_line = as.character(gsub(" hiway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" highway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" rt ", " rte ", address_line)),
-    address_line = as.character(gsub(" lane ", " ln ", address_line)),
-    address_line = as.character(gsub(" parkway ", " pkwy ", address_line)),
-    address_line = as.character(gsub(" first ", " 1st ", address_line)),
-    address_line = as.character(gsub(" second ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" third ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" fourth ", " 4th ", address_line)),
-    address_line = as.character(gsub(" fifth ", " 5th ", address_line)),
-    address_line = as.character(gsub(" sixth ", " 6th ", address_line)),
-    address_line = as.character(gsub(" seventh ", " 7th ", address_line)),
-    address_line = as.character(gsub(" eigth ", " 8th ", address_line)),
-    address_line = as.character(gsub(" ninth ", " 9th ", address_line)),
-    address_line = as.character(gsub(" tenth ", " 10th ", address_line)),
-    address_line = as.character(gsub(" 01st ", " 1st ", address_line)),
-    address_line = as.character(gsub(" 02nd ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" 03rd ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" 04th ", " 4th ", address_line)),
-    address_line = as.character(gsub(" 05th ", " 5th ", address_line)),
-    address_line = as.character(gsub(" 06th ", " 6th ", address_line)),
-    address_line = as.character(gsub(" 07th ", " 7th ", address_line)),
-    address_line = as.character(gsub(" 08th ", " 8th ", address_line)),
-    address_line = as.character(gsub(" 09th ", " 9th ", address_line)),
-    address_line = as.character(gsub("first ", "1st ", address_line)),
-    address_line = as.character(gsub("second ", "2nd ", address_line)),
-    address_line = as.character(gsub("third ", "3rd ", address_line)),
-    address_line = as.character(gsub("fourth ", "4th ", address_line)),
-    address_line = as.character(gsub("fifth ", "5th ", address_line)),
-    address_line = as.character(gsub("sixth ", "6th ", address_line)),
-    address_line = as.character(gsub("seventh ", "7th ", address_line)),
-    address_line = as.character(gsub("eigth ", "8th ", address_line)),
-    address_line = as.character(gsub("ninth ", "9th ", address_line)),
-    address_line = as.character(gsub("tenth ", "10th ", address_line)),
-    address_line = as.character(gsub("01st ", "1st ", address_line)),
-    address_line = as.character(gsub("02nd ", "2nd ", address_line)),
-    address_line = as.character(gsub("03rd ", "3rd ", address_line)),
-    address_line = as.character(gsub("04th ", "4th ", address_line)),
-    address_line = as.character(gsub("05th ", "5th ", address_line)),
-    address_line = as.character(gsub("06th ", "6th ", address_line)),
-    address_line = as.character(gsub("07th ", "7th ", address_line)),
-    address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line)),
-    zipcode = if_else(zipcode == "28138", "29138", zipcode),
-    zipcode = as.character(zipcode)
-  ) %>%
-  filter(zipcode != "SC") %>%
+  mutate_all(as.character) %>%
+  full_join(sc_address_data, by = "id") %>%
+  mutate(
+    zipcode = as.character(substr(address_line,
+                                  nchar(address_line) - n_last + 1,
+                                  nchar(address_line))),
+    address_line = make_clean_names(address_line, sep_out = " ", unique_sep = NULL),
+    address_line = sub("_.*", "", address_line),
+    name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
+    name = sub("_.*", "", name),
+    address_line = if_else(is.na(new_address) == TRUE, address_line, new_address),
+    zipcode = if_else(is.na(new_zip) == TRUE, zipcode, new_zip),
+    address_line = stn_adds(., address_line),
+    id = if_else(is.na(new_id) == TRUE, id, new_id)) %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify(is.na(zipcode) == FALSE) %>%
+  filter(!zipcode == "SC") %>%
   verify(zipcode %in% sc_cos$zip) %>%
-  verify(n_distinct(id, address_line) == 2066) %>%
-  verify(nrow(.) == 2066 & ncol(.) == 4) %>%
+  verify(n_distinct(id, address_line) == 2062) %>%
+  verify(nrow(.) == 2062 & ncol(.) == 7) %>%
   arrange(address_line)
 
 sc_zips_freq_2016 <- as.data.frame(table(sc_2016_df$zipcode)) %>%
@@ -378,7 +291,7 @@ sc_zips_freq_2016 <- as.data.frame(table(sc_2016_df$zipcode)) %>%
   ) %>%
   filter(zipcode != "SC") %>%
   verify(zipcode != "SC") %>%
-  verify(ncol(.) == 4 & nrow(.) == 376)
+  verify(ncol(.) == 4 & nrow(.) == 377)
 
 # Summerville is now in zipcode 29483 not 29486
 summerville <- c(
@@ -389,111 +302,26 @@ summerville <- c(
 sc_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 5) %>%
   verify(ncol(.) == 3 & nrow(.) == 1968) %>%
   verify(min(id) == 88801000 & max(id) == 8880999) %>%
-  mutate_at(c("id", "name", "address_line"), as.character) %>%
+  mutate_all(as.character) %>%
+  full_join(sc_address_data, by = "id") %>%
   mutate(
-    zipcode =
-      as.character(substr(
-        address_line, nchar(address_line) - n_last + 1,
-        nchar(address_line))),
-    address_line = tolower(address_line),
-    name = tolower(name),
-    zipcode = as.character(if_else(zipcode == "40 SC", "29840", zipcode)),
-    zipcode = if_else(id == "88801220", "29410", zipcode),
-    zipcode = if_else(id == "88802414", "29036", zipcode),
-    zipcode = if_else(id == "8880132", "29302", zipcode),
-    zipcode = if_else(id == "88801207", "29849", zipcode),
-    zipcode = if_else(id %in% summerville, "29483", zipcode),
-    id = if_else(id == "8880960", "88802013", id),
-    id = if_else(id == "88801932", "88802078", id),
-    address_line = if_else(id == "88802078",
-      "110 winter st winnsboro sc 29180",
-      address_line
-    ),
-    id = if_else(id == "8880768", "	88802203", id),
-    id = if_else(id == "8880745", "88801163", id),
-    address_line = if_else(id == "88801163",
-      "1139 hillsboro rd orangeburg sc 29118",
-      address_line
-    ),
-    id = if_else(id == "88801440", "88802442", id),
-    id = if_else(id == "8880189", "88801108", id),
-    address_line = if_else(id == "88801693",
-      "13255 ashevelle hwy inman sc 29349",
-      address_line
-    ),
-    id = if_else(id == "88801893", "88802149", id),
-    address_line = if_else(id == "88801067",
-      "200 powe st cherawd sc 29520",
-      address_line
-    ),
-    id = if_else(id == "88801434", "88802218", id),
-    id = if_else(id == "88802030", "88801168", id),
-    id = if_else(id == "88802100", "88801710", id),
-    id = if_else(id == "8880672", "88801930", id),
-    address_line = as.character(gsub(" s ", " south ", address_line)),
-    address_line = as.character(gsub(" n ", " north ", address_line)),
-    address_line = as.character(gsub(" w ", " west ", address_line)),
-    address_line = as.character(gsub(" e ", " east ", address_line)),
-    address_line = as.character(gsub(" street ", " st ", address_line)),
-    address_line = as.character(gsub(" sts ", " st ", address_line)),
-    address_line = as.character(gsub(" avenue ", " ave ", address_line)),
-    address_line = as.character(gsub(" av ", " ave ", address_line)),
-    address_line = as.character(gsub(" road ", " rd ", address_line)),
-    address_line = as.character(gsub(" drive ", " dr ", address_line)),
-    address_line = as.character(gsub(" boulevard ", " blvd ", address_line)),
-    address_line = as.character(gsub(" blv ", " blvd ", address_line)),
-    address_line = as.character(gsub(" route ", " rte ", address_line)),
-    address_line = as.character(gsub(" hiway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" highway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" rt ", " rte ", address_line)),
-    address_line = as.character(gsub(" lane ", " ln ", address_line)),
-    address_line = as.character(gsub(" parkway ", " pkwy ", address_line)),
-    address_line = as.character(gsub(" first ", " 1st ", address_line)),
-    address_line = as.character(gsub(" second ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" third ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" fourth ", " 4th ", address_line)),
-    address_line = as.character(gsub(" fifth ", " 5th ", address_line)),
-    address_line = as.character(gsub(" sixth ", " 6th ", address_line)),
-    address_line = as.character(gsub(" seventh ", " 7th ", address_line)),
-    address_line = as.character(gsub(" eigth ", " 8th ", address_line)),
-    address_line = as.character(gsub(" ninth ", " 9th ", address_line)),
-    address_line = as.character(gsub(" tenth ", " 10th ", address_line)),
-    address_line = as.character(gsub(" 01st ", " 1st ", address_line)),
-    address_line = as.character(gsub(" 02nd ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" 03rd ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" 04th ", " 4th ", address_line)),
-    address_line = as.character(gsub(" 05th ", " 5th ", address_line)),
-    address_line = as.character(gsub(" 06th ", " 6th ", address_line)),
-    address_line = as.character(gsub(" 07th ", " 7th ", address_line)),
-    address_line = as.character(gsub(" 08th ", " 8th ", address_line)),
-    address_line = as.character(gsub(" 09th ", " 9th ", address_line)),
-    address_line = as.character(gsub("first ", "1st ", address_line)),
-    address_line = as.character(gsub("second ", "2nd ", address_line)),
-    address_line = as.character(gsub("third ", "3rd ", address_line)),
-    address_line = as.character(gsub("fourth ", "4th ", address_line)),
-    address_line = as.character(gsub("fifth ", "5th ", address_line)),
-    address_line = as.character(gsub("sixth ", "6th ", address_line)),
-    address_line = as.character(gsub("seventh ", "7th ", address_line)),
-    address_line = as.character(gsub("eigth ", "8th ", address_line)),
-    address_line = as.character(gsub("ninth ", "9th ", address_line)),
-    address_line = as.character(gsub("tenth ", "10th ", address_line)),
-    address_line = as.character(gsub("01st ", "1st ", address_line)),
-    address_line = as.character(gsub("02nd ", "2nd ", address_line)),
-    address_line = as.character(gsub("03rd ", "3rd ", address_line)),
-    address_line = as.character(gsub("04th ", "4th ", address_line)),
-    address_line = as.character(gsub("05th ", "5th ", address_line)),
-    address_line = as.character(gsub("06th ", "6th ", address_line)),
-    address_line = as.character(gsub("07th ", "7th ", address_line)),
-    address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line))
-  ) %>%
-  filter(zipcode != "SC" | zipcode != "40 sc") %>%
+    zipcode = as.character(substr(address_line,
+                                  nchar(address_line) - n_last + 1,
+                                  nchar(address_line))),
+    address_line = make_clean_names(address_line, sep_out = " ", unique_sep = NULL),
+    address_line = sub("_.*", "", address_line),
+    name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
+    name = sub("_.*", "", name),
+    address_line = if_else(is.na(new_address) == TRUE, address_line, new_address),
+    zipcode = if_else(is.na(new_zip) == TRUE, zipcode, new_zip),
+    address_line = stn_adds(., address_line),
+    id = if_else(is.na(new_id) == TRUE, id, new_id)) %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify(is.na(zipcode) == FALSE) %>%
   verify((zipcode %in% sc_cos$zip)) %>%
-  verify(n_distinct(address_line) == 1919) %>%
-  verify(nrow(.) == 1919 & ncol(.) == 4) %>%
+  verify(n_distinct(address_line) == 1920) %>%
+  verify(nrow(.) == 1920 & ncol(.) == 7) %>%
   arrange(address_line)
 
 sc_zips_freq_2020 <- as.data.frame(table(sc_2020_df$zipcode)) %>%
@@ -503,7 +331,7 @@ sc_zips_freq_2020 <- as.data.frame(table(sc_2020_df$zipcode)) %>%
   ) %>%
   filter(zipcode != "SC") %>%
   verify(zipcode != "SC") %>%
-  verify(ncol(.) == 4 & nrow(.) == 378)
+  verify(ncol(.) == 4 & nrow(.) == 379)
 
 n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %>%
   replace_na(list(n_pp_2016 = 0, n_pp_2020 = 0)) %>%
@@ -517,7 +345,7 @@ n_places_sc <- full_join(sc_zips_freq_2020, sc_zips_freq_2016, by = "zipcode") %
   ) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
-  verify(ncol(.) == 5 & nrow(.) == 380)
+  verify(ncol(.) == 5 & nrow(.) == 381)
 
 # PA data from state election officials ----------------------------------------
 

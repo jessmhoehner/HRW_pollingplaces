@@ -29,41 +29,6 @@ id|new_address|new_zip|new_id
 46001808|||46001809
 4600183|||4600186
 46002737|||46002718
-46001811|cornfields chapter house ganado az 86505|86505|
-46001812|cottonwood chapter house chinle az 86503|86503|
-46001206|black mesa chapter house black mesa az 86033|86033|
-46001841|st. michaels chapter house st. michaels az|85611|
-46001828|mexican water chapter mexican water az 86514|86514|
-46001822|kinlichee chapter house st michaels az 86511|86511|
-46001213|forest lake chapter house forest lake az 86033|86033|
-46003069|federal route 15 & saint  augustine street sells az 85122|85122|
-46003018|962 w gila bend highway casa grande az 85122|85122|
-46003017|8470 n overfield rd  coolidge az 85128|85128|
-46002483|824 thorn avenue winkelman az 85192|85192|
-46003056|5782 s mountainbrook dr gold canyon az 85118|85118|
-46003047|575 n idaho rd apache junction az 85119|85119|
-46003011|550 s ironwood drive apache junction az 85120|85120|
-46003324|50 bridge road tubac az 85646|85646|
-46002412|4621 south 9th street canyon day az 85491|85491|
-46003096|39315 n cortona dr san tan valley az 85140|85140|
-46003078|3650 w shedd road eloy az 85131|85131|
-46003082|3496 w casa blanca rd bapchule az 85121|85121|
-46003314|346 duquesne ave. patagonia az 85624|85624|
-4600205063|33622 n mountain vista blvd san tan valley az 85142|85142|
-46003039|28479 n main street san tan valley az 85143|85143|
-40133334004|222 e javelina ave mesa az 85210|85210|
-4600911|1730 kino ave kingman az 86409|86409|
-46003071|1084 w san tan hills dr san tan valley az 85143|85143|
-46003049|100 sunset drive superior az 85173|85173|
-46002418|100 sunset drive superior az 85173|85173|
-770039850||85901|
-770039624||85941|
-770039622||85941|
-770039481||85925|
-770039781||86336|
-770040157||85925|
-770039899||86001|
-770039783||86001|
 770039554|||7700237255
 770039639|||770040368
 770040370|||770039702
@@ -73,13 +38,48 @@ id|new_address|new_zip|new_id
 770040396|||770040397
 770040077|||7700237271
 770039484|||770039485
-7700237255|10 s 6th st cottonwood az 86326|86326|
-770039620|11711 williams st wellton az 85356|85356|
-770040357|1380 e patagonia hwy nogales az 85621|85621|
-770040018|1478 queen valley dr queen valley az 85118|85118|
-8850012015|16402 n fort mcdowell rd fort mcdowell az 85264|85264|
+770039850||85901|
+770039624||85941|
+770039622||85941|
+770039481||85925|
+770039781||86336|
+770040157||85925|
+770039899||86001|
+770039783||86001|
+46001811|cornfields chapter house ganado az 86505|86505|
+46001812|cottonwood chapter house chinle az 86503|86503|
+46001206|black mesa chapter house black mesa az 86033|86033|
+46001841|st. michaels chapter house st. michaels az|85611|
+46001828|mexican water chapter mexican water az 86514|86514|
+46001822|kinlichee chapter house st michaels az 86511|86511|
+46001213|forest lake chapter house forest lake az 86033|86033|
+46003069|federal route 15 & saint  augustine street sells az 85122|85122|
+46003018|x962 w gila bend highway casa grande az 85122|85122|
+46003017|x8470 n overfield rd  coolidge az 85128|85128|
+46002483|x824 thorn avenue winkelman az 85192|85192|
+46003056|x5782 s mountainbrook dr gold canyon az 85118|85118|
+46003047|x575 n idaho rd apache junction az 85119|85119|
+46003011|x550 s ironwood drive apache junction az 85120|85120|
+46003324|x50 bridge road tubac az 85646|85646|
+46002412|x4621 south 9th street canyon day az 85491|85491|
+46003096|x39315 n cortona dr san tan valley az 85140|85140|
+46003078|x3650 w shedd road eloy az 85131|85131|
+46003082|x3496 w casa blanca rd bapchule az 85121|85121|
+46003314|x346 duquesne ave. patagonia az 85624|85624|
+4600205063|x33622 n mountain vista blvd san tan valley az 85142|85142|
+46003039|x28479 n main street san tan valley az 85143|85143|
+40133334004|x222 e javelina ave mesa az 85210|85210|
+4600911|x1730 kino ave kingman az 86409|86409|
+46003071|x1084 w san tan hills dr san tan valley az 85143|85143|
+46003049|x100 sunset drive superior az 85173|85173|
+46002418|x100 sunset drive superior az 85173|85173|
+7700237255|x10 s 6th st cottonwood az 86326|86326|
+770039620|x11711 williams st wellton az 85356|85356|
+770040357|x1380 e patagonia hwy nogales az 85621|85621|
+770040018|x1478 queen valley dr queen valley az 85118|85118|
+8850012015|x16402 n fort mcdowell rd fort mcdowell az 85264|85264|
 770039624|v-10 road  az||
-770039640|240 canal street somerton az 85350|85350|
+770039640|x240 canal street somerton az 85350|85350|
 
 
 
