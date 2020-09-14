@@ -36,7 +36,8 @@ $(clean_data): \
 				$(HERE)/clean/input/pa2016_imported.rds \
 				$(HERE)/clean/input/pa2020_imported.rds \
 				$(HERE)/clean/input/census_imported.rds \
-				$(HERE)/clean/input/counzip_azscpa_imported.rds
+				$(HERE)/clean/input/counzip_azscpa_imported.rds \
+				$(HERE)/hand/az_addresses.txt
 			Rscript --vanilla $<
 			
 # done.

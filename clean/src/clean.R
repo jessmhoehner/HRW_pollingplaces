@@ -7,7 +7,8 @@
 # HRW_pollingplaces/clean/src/clean.R
 
 # Load libraries ---------------------------------------------------------------
-pacman::p_load("here", "tidyverse", "assertr", "janitor")
+pacman::p_load("here", "tidyverse", "assertr", "janitor",
+               "stringr")
 
 # Specify file locations -------------------------------------------------------
 inputs <- list(
@@ -15,7 +16,8 @@ inputs <- list(
   pa_2016_imp = here("clean/input/pa2016_imported.rds"),
   pa_2020_imp = here("clean/input/pa2020_imported.rds"),
   census_imp = here("clean/input/census_imported.rds"),
-  counnzip_azscpa_imp = here("clean/input/counzip_azscpa_imported.rds")
+  counnzip_azscpa_imp = here("clean/input/counzip_azscpa_imported.rds"),
+  az_adds = here("hand/az_addresses.txt")
 )
 outputs <- list(
   az_2016_clean = here("write/input/az_2016_clean.rds"),
@@ -33,6 +35,69 @@ outputs <- list(
   pa_demo_clean = here("write/input/pa_demo_clean.rds"),
   pa_places = here::here("write/input/pa_places.rds")
 )
+
+# custom functions -------------------------------------------------------------
+# create function to replace non-standard address parts
+stn_adds <- function(df, x) {
+  mutate(df,
+         x = as.character(gsub(" s ", " south ", x)),
+         x = as.character(gsub(" n ", " north ", x)),
+         x = as.character(gsub(" w ", " west ", x)),
+         x = as.character(gsub(" e ", " east ", x)),
+         x = as.character(gsub(" street ", " st ", x)),
+         x = as.character(gsub(" sts ", " st ", x)),
+         x = as.character(gsub(" avenue ", " ave ", x)),
+         x = as.character(gsub(" av ", " ave ", x)),
+         x = as.character(gsub(" road ", " rd ", x)),
+         x = as.character(gsub(" drive ", " dr ", x)),
+         x = as.character(gsub(" boulevard ", " blvd ", x)),
+         x = as.character(gsub(" blv ", " blvd ", x)),
+         x = as.character(gsub(" route ", " rte ", x)),
+         x = as.character(gsub(" hiway ", " hwy ", x)),
+         x = as.character(gsub(" highway ", " hwy ", x)),
+         x = as.character(gsub(" parkway ", " pkwy ", x)),
+         x = as.character(gsub(" rt ", " rte ", x)),
+         x = as.character(gsub(" lane ", " ln ", x)),
+         x = as.character(gsub(" first ", " 1st ", x)),
+         x = as.character(gsub(" second ", " 2nd ", x)),
+         x = as.character(gsub(" third ", " 3rd ", x)),
+         x = as.character(gsub(" fourth ", " 4th ", x)),
+         x = as.character(gsub(" fifth ", " 5th ", x)),
+         x = as.character(gsub(" sixth ", " 6th ", x)),
+         x = as.character(gsub(" seventh ", " 7th ", x)),
+         x = as.character(gsub(" eigth ", " 8th ", x)),
+         x = as.character(gsub(" ninth ", " 9th ", x)),
+         x = as.character(gsub(" tenth ", " 10th ", x)),
+         x = as.character(gsub(" 01st ", " 1st ", x)),
+         x = as.character(gsub(" 02nd ", " 2nd ", x)),
+         x = as.character(gsub(" 03rd ", " 3rd ", x)),
+         x = as.character(gsub(" 04th ", " 4th ", x)),
+         x = as.character(gsub(" 05th ", " 5th ", x)),
+         x = as.character(gsub(" 06th ", " 6th ", x)),
+         x = as.character(gsub(" 07th ", " 7th ", x)),
+         x = as.character(gsub(" 08th ", " 8th ", x)),
+         x = as.character(gsub(" 09th ", " 9th ", x)),
+         x = as.character(gsub("first ", "1st ", x)),
+         x = as.character(gsub("second ", "2nd ", x)),
+         x = as.character(gsub("third ", "3rd ", x)),
+         x = as.character(gsub("fourth ", "4th ", x)),
+         x = as.character(gsub("fifth ", "5th ", x)),
+         x = as.character(gsub("sixth ", "6th ", x)),
+         x = as.character(gsub("seventh ", "7th ", x)),
+         x = as.character(gsub("eigth ", "8th ", x)),
+         x = as.character(gsub("ninth ", "9th ", x)),
+         x = as.character(gsub("tenth ", "10th ", x)),
+         x = as.character(gsub("01st ", "1st ", x)),
+         x = as.character(gsub("02nd ", "2nd ", x)),
+         x = as.character(gsub("03rd ", "3rd ", x)),
+         x = as.character(gsub("04th ", "4th ", x)),
+         x = as.character(gsub("05th ", "5th ", x)),
+         x = as.character(gsub("06th ", "6th ", x)),
+         x = as.character(gsub("07th ", "7th ", x)),
+         x = as.character(gsub("08th ", "8th ", x)),
+         x = as.character(gsub("09th ", "9th ", x)))
+  return(x)
+}
 
 # Add in counties for each zip --------------------------------------------------
 az_cos <- read_rds(inputs$counnzip_azscpa_imp) %>%
@@ -64,377 +129,80 @@ invalid_info <- c(
   "46002418", "46002423", "46002453", "46002446"
 )
 
+az_address_data <- read_delim(inputs$az_adds, delim = "|") %>%
+  mutate_all(as.character)
+
 az_2016_df <- pluck(read_rds(inputs$VIPinlist_imp), 1) %>%
   verify(ncol(.) == 3 & nrow(.) == 342) %>%
   verify(min(id) == 401333310112 & max(id) == 4610933) %>%
-  mutate_at(c("id", "name", "address_line"), as.character) %>%
+  mutate_all(as.character) %>%
   mutate(zipcode = as.character(substr(
     address_line, nchar(address_line) - n_last + 1, nchar(address_line)))) %>%
   filter(!id %in% invalid_info) %>%
+  full_join(az_address_data, by = "id") %>%
   mutate(
-    zipcode = if_else(id == "46002418", "85142", zipcode),
-    zipcode = if_else(id == "46002423", "85544", zipcode),
-    zipcode = if_else(id == "46002453", "85553", zipcode),
-    zipcode = if_else(id == "46002446", "85006", zipcode),
-    zipcode = if_else(id == "46003324", "85501", zipcode),
-    zipcode = if_else(id == "46002435", "85539", zipcode),
-    zipcode = if_else(id == "46003328", "85648", zipcode),
-    zipcode = if_else(id == "46002414", "85941", zipcode),
-    zipcode = if_else(id == "46002442", "85541", zipcode),
-    zipcode = if_else(id == "46002443", "85554", zipcode),
-    zipcode = if_else(id == "46001841", "86511", zipcode),
-    zipcode = if_else(id == "460041", "86040", zipcode),
-    zipcode = if_else(id == "46003330", "85621", zipcode),
-    zipcode = if_else(id == "46002452", "85541", zipcode),
-    zipcode = if_else(id == "46002429", "85541", zipcode),
-    zipcode = if_else(id == "46002483", "85192", zipcode),
-    zipcode = if_else(id == "46002417", "85501", zipcode),
-    zipcode = if_else(id == "46003314", "85624", zipcode),
-    zipcode = if_else(id == "46002420", "85541", zipcode),
-    zipcode = if_else(id == "460019", "86040", zipcode),
-    zipcode = if_else(id == "46006", "86020", zipcode),
-    zipcode = if_else(id == "46001848", "85940", zipcode),
-    zipcode = if_else(id == "460036", "86044", zipcode),
-    zipcode = if_else(id == "46002412", "85941", zipcode),
-    zipcode = if_else(id == "46003325", "85637", zipcode),
-    zipcode = if_else(id == "46002737", "85346", zipcode),
-    zipcode = if_else(id == "460043" | id == "460034", "86001", zipcode),
-    zipcode = if_else(id == "4600928", "85925", zipcode),
-    id = if_else(id == "4600956", "4600977", id),
-    id = if_else(id == "46003067", "4600205063", id),
-    id = if_else(id == "46001808", "46001809", id),
-    id = if_else(id == "4600183", "4600186", id),
-    id = if_else(id == "46002737", "46002718", id),
-    address_line = if_else(id == "46001811",
-      "cornfields chapter house ganado az 86505", address_line
-    ),
-    address_line = if_else(id == "46001812",
-      "cottonwood chapter house chinle az 86503", address_line
-    ),
-    address_line = if_else(id == "46001206",
-      "black mesa chapter house black mesa az 86033", address_line
-    ),
-    address_line = if_else(id == "46001841",
-      "st. michaels chapter house st. michaels az 85611", address_line
-    ),
-    address_line = if_else(id == "46001828",
-      "mexican water chapter mexican water az 86514", address_line
-    ),
-    address_line = if_else(id == "46001822",
-      "kinlichee chapter house st michaels az 86511", address_line
-    ),
-    address_line = if_else(id == "46001213",
-      "forest lake chapter house forest lake az 86033", address_line
-    ),
-    address_line = if_else(id == "46003069",
-      "federal route 15 & saint  augustine street sells az 85122", address_line
-    ),
-    address_line = if_else(id == "46003018",
-      "962 w gila bend highway casa grande az 85122",
-      address_line
-    ),
-    address_line = if_else(id == "46003017",
-      "8470 n overfield rd  coolidge az 85128",
-      address_line
-    ),
-    address_line = if_else(id == "46002483",
-      "824 thorn avenue winkelman az 85192",
-      address_line
-    ),
-    address_line = if_else(id == "46003056",
-      "5782 s mountainbrook dr gold canyon az 85118",
-      address_line
-    ),
-    address_line = if_else(id == "46003047",
-      "575 n idaho rd apache junction az 85119",
-      address_line
-    ),
-    address_line = if_else(id == "46003011",
-      "550 s ironwood drive apache junction az 85120",
-      address_line
-    ),
-    address_line = if_else(id == "46003324",
-      "50 bridge road tubac az 85646",
-      address_line
-    ),
-    address_line = if_else(id == "46002412",
-      "4621 south 9th street canyon day az 85491",
-      address_line
-    ),
-    address_line = if_else(id == "46003096",
-      "39315 n cortona dr san tan valley az 85140",
-      address_line
-    ),
-    address_line = if_else(id == "46003078",
-      "3650 w shedd road eloy az 85131",
-      address_line
-    ),
-    address_line = if_else(id == "46003082",
-      "3496 w casa blanca rd bapchule az 85121",
-      address_line
-    ),
-    address_line = if_else(id == "46003314",
-      "346 duquesne ave. patagonia az 85624",
-      address_line
-    ),
-    address_line = if_else(id == "4600205063",
-      "33622 n mountain vista blvd san tan valley az 85142",
-      address_line
-    ),
-    address_line = if_else(id == "46003039",
-      "28479 n main street san tan valley az 85143",
-      address_line
-    ),
-    address_line = if_else(id == "40133334004",
-      "222 e javelina ave mesa az 85210",
-      address_line
-    ),
-    address_line = if_else(id == "4600911",
-      "1730 kino ave kingman az 86409", address_line
-    ),
-    address_line = if_else(id == "46003071",
-      "1084 w san tan hills dr san tan valley az 85143",
-      address_line
-    ),
-    address_line = if_else(id == "46003049",
-      "100 sunset drive superior az 85173", address_line
-    ),
-    address_line = if_else(id == "46002418",
-      "100 sunset drive superior az 85173", address_line
-    ),
-    address_line = make_clean_names(address_line,
-      sep_out = " ",
-      unique_sep = NULL
-    ),
-    address_line = sub("_.*", "", address_line),
-    name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
-    name = sub("_.*", "", name),
-    address_line = as.character(gsub(" s ", " south ", address_line)),
-    address_line = as.character(gsub(" n ", " north ", address_line)),
-    address_line = as.character(gsub(" w ", " west ", address_line)),
-    address_line = as.character(gsub(" e ", " east ", address_line)),
-    address_line = as.character(gsub(" street ", " st ", address_line)),
-    address_line = as.character(gsub(" sts ", " st ", address_line)),
-    address_line = as.character(gsub(" avenue ", " ave ", address_line)),
-    address_line = as.character(gsub(" av ", " ave ", address_line)),
-    address_line = as.character(gsub(" road ", " rd ", address_line)),
-    address_line = as.character(gsub(" drive ", " dr ", address_line)),
-    address_line = as.character(gsub(" boulevard ", " blvd ", address_line)),
-    address_line = as.character(gsub(" blv ", " blvd ", address_line)),
-    address_line = as.character(gsub(" route ", " rte ", address_line)),
-    address_line = as.character(gsub(" hiway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" highway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" parkway ", " pkwy ", address_line)),
-    address_line = as.character(gsub(" rt ", " rte ", address_line)),
-    address_line = as.character(gsub(" lane ", " ln ", address_line)),
-    address_line = as.character(gsub(" first ", " 1st ", address_line)),
-    address_line = as.character(gsub(" second ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" third ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" fourth ", " 4th ", address_line)),
-    address_line = as.character(gsub(" fifth ", " 5th ", address_line)),
-    address_line = as.character(gsub(" sixth ", " 6th ", address_line)),
-    address_line = as.character(gsub(" seventh ", " 7th ", address_line)),
-    address_line = as.character(gsub(" eigth ", " 8th ", address_line)),
-    address_line = as.character(gsub(" ninth ", " 9th ", address_line)),
-    address_line = as.character(gsub(" tenth ", " 10th ", address_line)),
-    address_line = as.character(gsub(" 01st ", " 1st ", address_line)),
-    address_line = as.character(gsub(" 02nd ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" 03rd ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" 04th ", " 4th ", address_line)),
-    address_line = as.character(gsub(" 05th ", " 5th ", address_line)),
-    address_line = as.character(gsub(" 06th ", " 6th ", address_line)),
-    address_line = as.character(gsub(" 07th ", " 7th ", address_line)),
-    address_line = as.character(gsub(" 08th ", " 8th ", address_line)),
-    address_line = as.character(gsub(" 09th ", " 9th ", address_line)),
-    address_line = as.character(gsub("first ", "1st ", address_line)),
-    address_line = as.character(gsub("second ", "2nd ", address_line)),
-    address_line = as.character(gsub("third ", "3rd ", address_line)),
-    address_line = as.character(gsub("fourth ", "4th ", address_line)),
-    address_line = as.character(gsub("fifth ", "5th ", address_line)),
-    address_line = as.character(gsub("sixth ", "6th ", address_line)),
-    address_line = as.character(gsub("seventh ", "7th ", address_line)),
-    address_line = as.character(gsub("eigth ", "8th ", address_line)),
-    address_line = as.character(gsub("ninth ", "9th ", address_line)),
-    address_line = as.character(gsub("tenth ", "10th ", address_line)),
-    address_line = as.character(gsub("01st ", "1st ", address_line)),
-    address_line = as.character(gsub("02nd ", "2nd ", address_line)),
-    address_line = as.character(gsub("03rd ", "3rd ", address_line)),
-    address_line = as.character(gsub("04th ", "4th ", address_line)),
-    address_line = as.character(gsub("05th ", "5th ", address_line)),
-    address_line = as.character(gsub("06th ", "6th ", address_line)),
-    address_line = as.character(gsub("07th ", "7th ", address_line)),
-    address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line))) %>%
+  zipcode = if_else(is.na(new_zip) == TRUE, zipcode, new_zip),
+  id = if_else(is.na(new_id) == TRUE, id, new_id),
+  address_line = as.character(if_else(is.na(new_address) == TRUE,
+                                      address_line, new_address)),
+  address_line = make_clean_names(address_line, sep_out = " ", unique_sep = NULL),
+  address_line = as.character(sub("_.*", "", address_line)),
+  name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
+  name = sub("_.*", "", name),
+  address_line = as.character(stn_adds(., address_line))) %>%
+  filter(name != "na") %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify(is.na(zipcode) == FALSE) %>%
   verify((zipcode %in% az_cos$zip) == TRUE) %>%
-  verify(nrow(.) == 322 & ncol(.) == 4) %>%
+  verify(nrow(.) == 322 & ncol(.) == 7) %>%
   arrange(address_line)
 
 az_zips_freq_2016 <- as.data.frame(table(az_2016_df$zipcode)) %>%
   mutate(
     zipcode = Var1,
-    n_pp_2016 = as.numeric(Freq)
-  ) %>%
-  verify(ncol(.) == 4 & nrow(.) == 193)
+    n_pp_2016 = as.numeric(Freq)) %>%
+  verify(ncol(.) == 4 & nrow(.) == 195)
 
 az_2020_df <- pluck(read_rds(inputs$VIPinlist_imp), 2) %>%
   verify(ncol(.) == 3 & nrow(.) == 330) %>%
   verify(min(id) == 7700104067 & max(id) == 770099999) %>%
-  mutate_at(c("id", "name", "address_line"), as.character) %>%
+  mutate_all(as.character) %>%
+  full_join(az_address_data, by = "id") %>%
   mutate(
-    zipcode = as.character(substr(
-      address_line, nchar(address_line) - n_last + 1,
-      nchar(address_line))),
-    address_line = make_clean_names(address_line,
-      sep_out = " ",
-      unique_sep = NULL),
+    zipcode = as.character(substr(address_line,
+                                   nchar(address_line) - n_last + 1,
+                                   nchar(address_line))),
+    address_line = make_clean_names(address_line, sep_out = " ", unique_sep = NULL),
     address_line = sub("_.*", "", address_line),
     name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
     name = sub("_.*", "", name),
-    address_line = as.character(gsub(" s ", " south ", address_line)),
-    address_line = as.character(gsub(" n ", " north ", address_line)),
-    address_line = as.character(gsub(" w ", " west ", address_line)),
-    address_line = as.character(gsub(" e ", " east ", address_line)),
-    address_line = as.character(gsub(" street ", " st ", address_line)),
-    address_line = as.character(gsub(" sts ", " st ", address_line)),
-    address_line = as.character(gsub(" avenue ", " ave ", address_line)),
-    address_line = as.character(gsub(" av ", " ave ", address_line)),
-    address_line = as.character(gsub(" road ", " rd ", address_line)),
-    address_line = as.character(gsub(" drive ", " dr ", address_line)),
-    address_line = as.character(gsub(" boulevard ", " blvd ", address_line)),
-    address_line = as.character(gsub(" blv ", " blvd ", address_line)),
-    address_line = as.character(gsub(" route ", " rte ", address_line)),
-    address_line = as.character(gsub(" hiway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" highway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" parkway ", " pkwy ", address_line)),
-    address_line = as.character(gsub(" rt ", " rte ", address_line)),
-    address_line = as.character(gsub(" lane ", " ln ", address_line)),
-    address_line = as.character(gsub(" first ", " 1st ", address_line)),
-    address_line = as.character(gsub(" second ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" third ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" fourth ", " 4th ", address_line)),
-    address_line = as.character(gsub(" fifth ", " 5th ", address_line)),
-    address_line = as.character(gsub(" sixth ", " 6th ", address_line)),
-    address_line = as.character(gsub(" seventh ", " 7th ", address_line)),
-    address_line = as.character(gsub(" eigth ", " 8th ", address_line)),
-    address_line = as.character(gsub(" ninth ", " 9th ", address_line)),
-    address_line = as.character(gsub(" tenth ", " 10th ", address_line)),
-    address_line = as.character(gsub(" 01st ", " 1st ", address_line)),
-    address_line = as.character(gsub(" 02nd ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" 03rd ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" 04th ", " 4th ", address_line)),
-    address_line = as.character(gsub(" 05th ", " 5th ", address_line)),
-    address_line = as.character(gsub(" 06th ", " 6th ", address_line)),
-    address_line = as.character(gsub(" 07th ", " 7th ", address_line)),
-    address_line = as.character(gsub(" 08th ", " 8th ", address_line)),
-    address_line = as.character(gsub(" 09th ", " 9th ", address_line)),
-    address_line = as.character(gsub("first ", "1st ", address_line)),
-    address_line = as.character(gsub("second ", "2nd ", address_line)),
-    address_line = as.character(gsub("third ", "3rd ", address_line)),
-    address_line = as.character(gsub("fourth ", "4th ", address_line)),
-    address_line = as.character(gsub("fifth ", "5th ", address_line)),
-    address_line = as.character(gsub("sixth ", "6th ", address_line)),
-    address_line = as.character(gsub("seventh ", "7th ", address_line)),
-    address_line = as.character(gsub("eigth ", "8th ", address_line)),
-    address_line = as.character(gsub("ninth ", "9th ", address_line)),
-    address_line = as.character(gsub("tenth ", "10th ", address_line)),
-    address_line = as.character(gsub("01st ", "1st ", address_line)),
-    address_line = as.character(gsub("02nd ", "2nd ", address_line)),
-    address_line = as.character(gsub("03rd ", "3rd ", address_line)),
-    address_line = as.character(gsub("04th ", "4th ", address_line)),
-    address_line = as.character(gsub("05th ", "5th ", address_line)),
-    address_line = as.character(gsub("06th ", "6th ", address_line)),
-    address_line = as.character(gsub("07th ", "7th ", address_line)),
-    address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line)),
-    zipcode = if_else(zipcode == "89501", "85901", zipcode),
-    zipcode = if_else(zipcode == "85491", "85941", zipcode),
-    zipcode = if_else(zipcode == "86529", "85925", zipcode)
-    ) %>%
+    address_line = stn_adds(., address_line),
+    zipcode = if_else(is.na(new_zip) == TRUE, zipcode, new_zip)) %>%
   filter(zipcode != "12345") %>%
+  filter(name != "na") %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify(is.na(zipcode) == FALSE) %>%
   verify((zipcode %in% az_cos$zip) == TRUE) %>%
   verify(n_distinct(id, address_line) == 318) %>%
-  verify(nrow(.) == 318 & ncol(.) == 4) %>%
+  verify(nrow(.) == 318 & ncol(.) == 7) %>%
   arrange(address_line)
 
 az_2020_maricopa_df <- pluck(read_rds(inputs$VIPinlist_imp), 3) %>%
   verify(ncol(.) == 3 & nrow(.) == 151) %>%
   verify(min(id) == 8850010055 & max(id) == 8850015622) %>%
-  mutate_at(c("id", "name", "address_line"), as.character) %>%
+  mutate_all(as.character) %>%
   mutate(
-    zipcode = as.factor(substr(
-      address_line, nchar(address_line) - n_last + 1,
-      nchar(address_line)
-    )),
-    address_line = make_clean_names(address_line,
-      sep_out = " ",
-      unique_sep = NULL
-    ),
+    zipcode = as.character(substr(address_line,
+                                  nchar(address_line) - n_last + 1,
+                                  nchar(address_line))),
+    address_line = make_clean_names(address_line, sep_out = " ", unique_sep = NULL),
     address_line = sub("_.*", "", address_line),
     name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
     name = sub("_.*", "", name),
-    address_line = as.character(gsub(" s ", " south ", address_line)),
-    address_line = as.character(gsub(" n ", " north ", address_line)),
-    address_line = as.character(gsub(" w ", " west ", address_line)),
-    address_line = as.character(gsub(" e ", " east ", address_line)),
-    address_line = as.character(gsub(" street ", " st ", address_line)),
-    address_line = as.character(gsub(" sts ", " st ", address_line)),
-    address_line = as.character(gsub(" avenue ", " ave ", address_line)),
-    address_line = as.character(gsub(" av ", " ave ", address_line)),
-    address_line = as.character(gsub(" road ", " rd ", address_line)),
-    address_line = as.character(gsub(" drive ", " dr ", address_line)),
-    address_line = as.character(gsub(" boulevard ", " blvd ", address_line)),
-    address_line = as.character(gsub(" blv ", " blvd ", address_line)),
-    address_line = as.character(gsub(" route ", " rte ", address_line)),
-    address_line = as.character(gsub(" hiway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" highway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" parkway ", " pkwy ", address_line)),
-    address_line = as.character(gsub(" rt ", " rte ", address_line)),
-    address_line = as.character(gsub(" lane ", " ln ", address_line)),
-    address_line = as.character(gsub(" first ", " 1st ", address_line)),
-    address_line = as.character(gsub(" second ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" third ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" fourth ", " 4th ", address_line)),
-    address_line = as.character(gsub(" fifth ", " 5th ", address_line)),
-    address_line = as.character(gsub(" sixth ", " 6th ", address_line)),
-    address_line = as.character(gsub(" seventh ", " 7th ", address_line)),
-    address_line = as.character(gsub(" eigth ", " 8th ", address_line)),
-    address_line = as.character(gsub(" ninth ", " 9th ", address_line)),
-    address_line = as.character(gsub(" tenth ", " 10th ", address_line)),
-    address_line = as.character(gsub(" 01st ", " 1st ", address_line)),
-    address_line = as.character(gsub(" 02nd ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" 03rd ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" 04th ", " 4th ", address_line)),
-    address_line = as.character(gsub(" 05th ", " 5th ", address_line)),
-    address_line = as.character(gsub(" 06th ", " 6th ", address_line)),
-    address_line = as.character(gsub(" 07th ", " 7th ", address_line)),
-    address_line = as.character(gsub(" 08th ", " 8th ", address_line)),
-    address_line = as.character(gsub(" 09th ", " 9th ", address_line)),
-    address_line = as.character(gsub("first ", "1st ", address_line)),
-    address_line = as.character(gsub("second ", "2nd ", address_line)),
-    address_line = as.character(gsub("third ", "3rd ", address_line)),
-    address_line = as.character(gsub("fourth ", "4th ", address_line)),
-    address_line = as.character(gsub("fifth ", "5th ", address_line)),
-    address_line = as.character(gsub("sixth ", "6th ", address_line)),
-    address_line = as.character(gsub("seventh ", "7th ", address_line)),
-    address_line = as.character(gsub("eigth ", "8th ", address_line)),
-    address_line = as.character(gsub("ninth ", "9th ", address_line)),
-    address_line = as.character(gsub("tenth ", "10th ", address_line)),
-    address_line = as.character(gsub("01st ", "1st ", address_line)),
-    address_line = as.character(gsub("02nd ", "2nd ", address_line)),
-    address_line = as.character(gsub("03rd ", "3rd ", address_line)),
-    address_line = as.character(gsub("04th ", "4th ", address_line)),
-    address_line = as.character(gsub("05th ", "5th ", address_line)),
-    address_line = as.character(gsub("06th ", "6th ", address_line)),
-    address_line = as.character(gsub("07th ", "7th ", address_line)),
-    address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line))
-  ) %>%
+    address_line = stn_adds(., address_line)) %>%
+  filter(name != "na") %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify(is.na(zipcode) == FALSE) %>%
@@ -444,136 +212,24 @@ az_2020_maricopa_df <- pluck(read_rds(inputs$VIPinlist_imp), 3) %>%
   arrange(address_line)
 
 az_2020_df_full <- full_join(az_2020_df, az_2020_maricopa_df) %>%
-  verify(ncol(.) == 4 & nrow(.) == 469) %>%
+  verify(ncol(.) == 7 & nrow(.) == 469) %>%
   verify(min(id) == 7700104067 & max(id) == 8850015622) %>%
-  mutate_at(c("id", "name", "address_line"), as.character) %>%
+  full_join(az_address_data, by = "id") %>%
   mutate(
     address_line = tolower(address_line),
     name = tolower(name),
-    zipcode = as.character(substr(
-      address_line,
-      nchar(address_line) - n_last + 1,
-      nchar(address_line)
-    )),
-    zipcode = if_else(id == "770039622" | id == "770039624",
-      "85941", zipcode
-    ),
-    zipcode = if_else(zipcode == "89501", "85901", zipcode),
-    zipcode = if_else(id == "770039781", "86336", zipcode),
-    zipcode = if_else(id == "770039481" | id == "770040157",
-      "85925", zipcode
-    ),
-    zipcode = if_else(id == "770039899" | id == "770039783",
-      "86001", zipcode
-    ),
-    id = if_else(id == "770039554", "7700237255", id),
-    id = if_else(id == "770039639", "770040368", id),
-    id = if_else(id == "770040370" | id == "770040369", "770039702", id),
-    id = if_else(id == "770040394", "770040395", id),
-    id = if_else(id == "770040123", "7700206366", id),
-    id = if_else(id == "770040396", "770040397", id),
-    id = if_else(id == "770040077", "7700237271", id),
-    id = if_else(id == "770039484", "770039485", id),
-    address_line = if_else(id == "7700237255",
-      "10 s 6th st cottonwood az 86326", address_line
-    ),
-    address_line = if_else(id == "770039550",
-      "yavapai county administration building",
-      address_line
-    ),
-    address_line = if_else(id == "770039620",
-      "11711 williams st wellton az 85356",
-      address_line
-    ),
-    address_line = if_else(id == "770040357",
-      "1380 e patagonia hwy nogales az 85621",
-      address_line
-    ),
-    address_line = if_else(id == "770039624",
-      "v-10 road  az", address_line
-    ),
-    address_line = if_else(id == "770040018",
-      "1478 queen valley dr queen valley az 85118",
-      address_line
-    ),
-    address_line = if_else(id == "8850012015",
-      "16402 n fort mcdowell rd fort mcdowell az 85264",
-      address_line
-    ),
-    address_line = if_else(id == "770039640",
-      "240 canal street somerton az 85350",
-      address_line
-    ),
-    address_line = make_clean_names(address_line,
-      sep_out = " ",
-      unique_sep = NULL
-    ),
-    address_line = sub("_.*", "", address_line),
-    name = make_clean_names(name, sep_out = " ", unique_sep = NULL),
-    name = sub("_.*", "", name),
-    address_line = as.character(gsub(" s ", " south ", address_line)),
-    address_line = as.character(gsub(" n ", " north ", address_line)),
-    address_line = as.character(gsub(" w ", " west ", address_line)),
-    address_line = as.character(gsub(" e ", " east ", address_line)),
-    address_line = as.character(gsub(" street ", " st ", address_line)),
-    address_line = as.character(gsub(" sts ", " st ", address_line)),
-    address_line = as.character(gsub(" avenue ", " ave ", address_line)),
-    address_line = as.character(gsub(" av ", " ave ", address_line)),
-    address_line = as.character(gsub(" road ", " rd ", address_line)),
-    address_line = as.character(gsub(" drive ", " dr ", address_line)),
-    address_line = as.character(gsub(" boulevard ", " blvd ", address_line)),
-    address_line = as.character(gsub(" blv ", " blvd ", address_line)),
-    address_line = as.character(gsub(" route ", " rte ", address_line)),
-    address_line = as.character(gsub(" hiway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" highway ", " hwy ", address_line)),
-    address_line = as.character(gsub(" rt ", " rte ", address_line)),
-    address_line = as.character(gsub(" lane ", " ln ", address_line)),
-    address_line = as.character(gsub(" parkway ", " pkwy ", address_line)),
-    address_line = as.character(gsub(" first ", " 1st ", address_line)),
-    address_line = as.character(gsub(" second ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" third ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" fourth ", " 4th ", address_line)),
-    address_line = as.character(gsub(" fifth ", " 5th ", address_line)),
-    address_line = as.character(gsub(" sixth ", " 6th ", address_line)),
-    address_line = as.character(gsub(" seventh ", " 7th ", address_line)),
-    address_line = as.character(gsub(" eigth ", " 8th ", address_line)),
-    address_line = as.character(gsub(" ninth ", " 9th ", address_line)),
-    address_line = as.character(gsub(" tenth ", " 10th ", address_line)),
-    address_line = as.character(gsub(" 01st ", " 1st ", address_line)),
-    address_line = as.character(gsub(" 02nd ", " 2nd ", address_line)),
-    address_line = as.character(gsub(" 03rd ", " 3rd ", address_line)),
-    address_line = as.character(gsub(" 04th ", " 4th ", address_line)),
-    address_line = as.character(gsub(" 05th ", " 5th ", address_line)),
-    address_line = as.character(gsub(" 06th ", " 6th ", address_line)),
-    address_line = as.character(gsub(" 07th ", " 7th ", address_line)),
-    address_line = as.character(gsub(" 08th ", " 8th ", address_line)),
-    address_line = as.character(gsub(" 09th ", " 9th ", address_line)),
-    address_line = as.character(gsub("first ", "1st ", address_line)),
-    address_line = as.character(gsub("second ", "2nd ", address_line)),
-    address_line = as.character(gsub("third ", "3rd ", address_line)),
-    address_line = as.character(gsub("fourth ", "4th ", address_line)),
-    address_line = as.character(gsub("fifth ", "5th ", address_line)),
-    address_line = as.character(gsub("sixth ", "6th ", address_line)),
-    address_line = as.character(gsub("seventh ", "7th ", address_line)),
-    address_line = as.character(gsub("eigth ", "8th ", address_line)),
-    address_line = as.character(gsub("ninth ", "9th ", address_line)),
-    address_line = as.character(gsub("tenth ", "10th ", address_line)),
-    address_line = as.character(gsub("01st ", "1st ", address_line)),
-    address_line = as.character(gsub("02nd ", "2nd ", address_line)),
-    address_line = as.character(gsub("03rd ", "3rd ", address_line)),
-    address_line = as.character(gsub("04th ", "4th ", address_line)),
-    address_line = as.character(gsub("05th ", "5th ", address_line)),
-    address_line = as.character(gsub("06th ", "6th ", address_line)),
-    address_line = as.character(gsub("07th ", "7th ", address_line)),
-    address_line = as.character(gsub("08th ", "8th ", address_line)),
-    address_line = as.character(gsub("09th ", "9th ", address_line))
-  ) %>%
+    zipcode = as.character(substr(address_line,nchar(address_line) - n_last + 1, nchar(address_line))),
+    zipcode = if_else(is.na(new_zip.y) == TRUE, zipcode, new_zip.y),
+    id = if_else(is.na(new_id.y) == TRUE, id, new_id.y),
+    address_line = if_else(is.na(new_address.y) == TRUE, address_line, new_address.y),
+    address_line = stn_adds(., address_line)) %>%
+  filter(name != "na") %>%
   distinct(id, .keep_all = TRUE) %>%
   distinct(address_line, .keep_all = TRUE) %>%
   verify(is.na(zipcode) == FALSE) %>%
   verify((zipcode %in% az_cos$zip) == TRUE) %>%
   verify(n_distinct(id, address_line) == 469) %>%
-  verify(nrow(.) == 469 & ncol(.) == 4) %>%
+  verify(nrow(.) == 469 & ncol(.) == 10) %>%
   arrange(address_line)
 
 az_zips_freq_2020 <- as.data.frame(table(az_2020_df_full$zipcode)) %>%
@@ -591,9 +247,7 @@ n_places_az <- full_join(az_zips_freq_2020, az_zips_freq_2016, by = "zipcode") %
     delta_cat = case_when(
       delta_n_places == 0 ~ "Maintained Polling Locations",
       delta_n_places < 0 ~ "Lost Polling Locations",
-      delta_n_places > 0 ~ "Gained Polling Locations"
-    )
-  ) %>%
+      delta_n_places > 0 ~ "Gained Polling Locations")) %>%
   arrange(delta_n_places) %>%
   select(zipcode, n_pp_2020, n_pp_2016, delta_n_places, delta_cat) %>%
   verify(ncol(.) == 5 & nrow(.) == 284)
