@@ -1,0 +1,200 @@
+old_address|new_address|new_zip
+x982 chestnut st ext derry 15627|x982 chestnut st derry 15627|15627
+x933 briookline blvd pittsburgh 15226|x933 brookline blvd pittsburgh 15226|15226
+x915 linc ave west chester 19380|x915 lincoln ave west chester 19380|19380
+x91 commonwealth dr west mifflin 15122|x91 commonwealth ave west mifflin 15122|15122
+x900 haslage ave liberty 15133|x900 haslage st mckeesport 15133|15133
+x900 desdemont ave pittsburgh 15210|x900 desmont ave pittsburgh 15210|15210
+x889 milledgeville rd sandy lake 16145|x889 milledgeville rd hadley 16130|16130
+x8800 peebles rd pittsburgh 15137|x8800 peebles rd allison park 15101|15101
+x860 colonial manor large bldg rd n huntingdon 15642|x860 colonial manor rd n huntingdon 15642|15642
+x850 cranberry woods rd sewickley 15066|x850 cranberry woods rd warrendale 16066|16066
+x8711 old perry hwy pittsburgh 15237|x8711 old perry hwy way mccandless 15237|15237
+x800 coopertown rd bryn mawr 19010|x800 coopertown rd haverford 19041|19041
+x7605 saltsburg st pittsburgh 15239|x7605 saltsburg rd pittsburgh 15239|15239
+x751 sugar run rd altoona 16602|x751 sugar run rd altoona 16601|16601
+x718 wallace ave wilkinsburg 15221|x718 wallace ave pittsburgh 15221|15221
+x700 york mitchell ave lansdale 19446|x700 york ave lansdale 19446|19446
+x695 freeeport rd freeport 16229|x695 freeport rd freeport 16229|16229
+x660 noble rd west mifflin 15122|x660 noble dr west mifflin 15122|15122
+x6051 west chester park newtown square 19073|x6051 west chester pike newtown square 19073|19073
+x602 ingomar rd sewickley 15090|x602 ingomar rd pittsburgh 15237|15237
+x60 ganaldo rd pittsburgh 15108|x60 gawaldo dr coraopolis 15108|15108
+x5901 library hgts rd bethel park 15102|x5901 library rd bethel park 15102|15102
+x555 broadway ave stowe 15136|x555 broadway ave mckees rocks 15136|15136
+x551 ravensburg blvd pittsburgh 15025|x551 ravensburg blvd clairton 15025|15025
+x537 bayne ave bellevue 15202|x537 bayne ave pittsburgh 15202|15202
+x525 pleasant hill rd marshall 15090|x525 pleasant hill rd wexford 15090|15090
+x5145 wexford run rd marshall 15090|x5145 wexford run rd wexford 15090|15090
+x503 speer st n belle vern 15012|x503 speer st belle vernon 15012|15012
+x480 ridge rd pottstown 19465|x480 ridge rd spring city 19475|19475
+x4565 prestwick dr reading 19601|x4565 prestwick dr reading 19606|19606
+x456 first st heidelberg 15106|x456 first st carnegie 15106|15106
+x423 allegheny st h0llidaysburg 16648|x423 allegheny st hollidaysburg 16648|16648
+x417 lincoln ave walnutport 18035|x417 lincoln ave walnutport 18088|18088
+x415 three sq hollow rd newburg 17240|x415 three square hollow rd newburg 17240|17240
+x415 brennan ave loyalhanna 15661|x415 brennan ave latrobe 15650|15650
+x411 babylon rd horsham 19002|x411 babylon rd horsham 19044|19044
+x409 ashland ave primos 19018|x409 ashland ave secane 19018|19018
+x403 fox chapel rd fox chapel 15238|x403 fox chapel rd pittsburgh 15238|15238
+x401 washington rd mt lebanon 15228|x401 washington rd pittsburgh 15228|15228
+x400 sproul rd springield 19064|x400 sproul rd springfield 19064|19064
+x4 walnut st dunlevy 15342|x4 walnut st dunlevy 15432|15432
+x3916 old wm penn murrysville 15668|x3916 old william penn hwy murrysville 15668|15668
+x373 beaver rd leetsdale 15056|x373 beaver st leetsdale 15056|15056
+x3710 saxonburg blvd indianola 15051|x3710 saxonburg blvd indiana 15051|15051
+x3640 old oakdale rd mc donald 15057|x3640 old oakdale rd mcdonald 15057|15057
+x349 magee rd sewickley hl 15143|x349 magee rd sewickley 15143|15143
+x3454 pleasantvue dr baldwin br 15227|x3454 pleasantvue dr pittsburgh 15227|15227
+x3436 windchester rd allentown 18104|x3436 winchester rd allentown 18104|18104
+x330 hill top rd hummelstown  17036|x330 hilltop rd hummelstown 17036|17036
+x3260 queneshukney rd linden 17744|x3260 queneshukeny rd linden 17744|17744
+x325 nicholson rd pittsburgh 15143|x325 nicholson rd sewickley 15143|15143
+x325 fox chapel rd rd pittsburgh 15215|x325 fox chapel rd pittsburgh 15238|15238
+x320 fairies st wilcox 15870|x320 faries st wilcox 15870|15870
+x315 susquehanst lancaster 17602|x315 susquehanna st lancaster 17602|17602
+x3101 mccully rd hampton 15101|x3101 mccully rd allison park 15101|15101
+x310 middleton rd carlisle 17013|x310 n middleton rd carlisle 17013|17013
+x306 st james ln n alexandria 15670|x306 st james ln new alexandria 15670|15670
+x306 bessemer st e pittsburgh 15112|x306 bessemer ave e pittsburgh 15112|15112
+x3054 howes run rd natroheights 15065|x3054 howes run rd tarentum 15084|15084
+x301 station ave wilmerding 15148|x301 station st wilmerding 15148|15148
+x30 charter way wilkes barre 18702|x30 charter school way wilkes barre 18702|18702
+x3 keystone cmns white haven 18661|x3 keystone commons white haven 18661|18661
+x280 normal s green steast stroudsburg 18301|x280 normal s green st e stroudsburg 18301|18301
+x26 patterson st rlansford 18232|x26 patterson st lansford 18232|18232
+x2565 susquehanna ave abington 19001|x2565 susquehanna rd abington 19001|19001
+x2425 new falls rd newportville 19056|x2425 new falls rd levittown 19054|19054
+x2415 allequippa st pittsburgh 152131|x2415 allequippa st pittsburgh 15213|15213
+x241 maple ave edgewood 15221|x241 maple ave pittsburgh 15218|15218
+x2344 ingomar rd wexford 15237|x2344 ingomar rd pittsburgh 15237|15237
+x2341 delaware dr mount bethel 18434|x2341 delaware dr mount bethel 18343|18343
+x2336 brownsville rd ent rd pittsburgh 15210|x2336 brownsville rd pittsburgh 15210|15210
+x230 boquet st pittsburgh 15213|x230 bouquet st pittsburgh 15213|15213
+x227 meetinghouse rd horsham 19044|x227 meeting house rd horsham 19044|19044
+x2200 haines rd levittown 19054|x2200 haines rd levittown 19055|19055
+x2200 cornerstone ln delmont 15626|x2200 cornerstone ln export 15632|15632
+x211 sweet briar st pittsburgh 15211|x211 sweetbriar st pittsburgh 15211|15211
+x2055 bedford ave pittsburgh 151219|x2055 bedford ave pittsburgh 15219|15219
+x2025 lincoln rd 15147|x2025 lincoln rd penn hills 15147|15147
+x2021 20 st erie 16510|x2021 20th st erie 16510|16510
+x201 summit stnorth wales 19454|x201 summit st n wales 19454|19454
+x201 center new texas roadpittsburgh 15239|x201 center new texas rd pittsburgh 15239|15239
+x2000 ashbourne rd washington lnelkins park 19027|x2000 ashbourne washington ln rd elkins park 19027|19027
+x194 donahoe rd greensburg 15601|x194 donohoe rd greensburg 15601|15601
+x1919 8th st bethlehem 18017|x1919 8th st bethlehem 18020|18020
+x1807 state rte 268east brady 16028|x1807 state rte 268 e brady 16028|16028
+x1801 paper mill rd oreland 19075|x1801 paper mill rd glenside 19038|19038
+x1800 7th st rd new kensingtn 15068|x1800 7th st rd new kensington 15068|15068
+x175 green la philadelphia 19127|x175 green ln philadelphia 19127|19127
+x17074 crogan pike shirleysburg 17260|x17074 croghan pike shirleysburg 17260|17260
+x1701 15th st philadelphia 19146|x1701 15th st philadelphia 19145|19145
+x166 village dr williamsport 17702|x166 village dr s williamsport 17702|17702
+x1414 beaver st osborne 15143|x1414 beaver st sewickley 15143|15143
+x998 lloyd st nty glo |x998 lloyd st nty glo 15943|15943
+x9722 cumberland hwy pleasant hall |x9722 cumberland hwy pleasant hall 17246|17246
+x965 burtner rd harrison |x965 burtner rd natrona heights 15065|15065
+x93 jones st lilly|x93 jones st lilly 15938|15938
+x927 johnston st philadelphia|x927 johnston st philadelphia 19148|19148
+x927 freeport rd e deer|x927 freeport rd creighton 15030|15030
+x9244 five forks rd waynesboro|x9244 five forks rd waynesboro 17268|17268
+x915 linc ave w chester 19380|x915 lincoln ave w chester 19380|19380
+x9019 roberts hollow rd forward|x9019 roberts hollow rd elizabeth 15037|15037
+x900 potomac st waynesboro|x900 potomac st waynesboro 17268|17268
+x890 fowlers hollow rd blain|x890 fowlers hollow rd blain 17006|17006
+x8800 peebles rd mccandless|x8800 peebles rd allison park 15101|15101
+x8770 possum hollow rd shippensburg|x8770 possum hollow rd shippensburg 17257|17257
+x8724 crispin dr philadelphia|x8724 crispin st philadelphia 19136|19136
+x8650 mcclays mill rd newburg|x8650 mcclays mill rd newburg 17240|17240
+x860 colonial manor rd n huntingdon 15642|x860 colonial manor rd n huntingdon 15642|15642
+x825 poplar st greentree|x825 poplar st pittsburgh 15220|15220
+x810 orchard dr chambersburg|x810 orchard dr chambersburg 17201|17201
+x8098 anthony hwy waynesboro|x8098 anthony hwy waynesboro 17268|17268
+x809 main st stroudsburg|x809 main st stroudsburg 18360|18360
+x803 st augustine rd dysart|x803 st augustine rd dysart 16636|16636
+x803 market st ex mckeesport|x803 market st mckeesport 15132|15132
+x797 thompson run rd ross |x797 thompson run rd pittsburgh 15237|15237
+x7911 wm penn hwy cresson|x7911 wm penn hwy cresson 16630|16630
+x423 allegheny st h0llidaysburg 16648|x423 allegheny st hollidaysburg 16648|16648
+x764 beverly dr w mifflin|x764 beverly dr w mifflin 15122|15122
+x7600 evans st swissvale|x7600 evans st pittsburgh 15218|15218
+x741 coldbrook ave chambersburg|x741 coldbrook ave chambersburg 17201|17201
+x736 railroad ave vero|x736 railroad ave vero 15147|15147
+x7301 germantown ave philadelphia|x7301 germantown ave philadelphia 19119|19119
+x730 bloom st johnstown|x730 bloom st johnstown 15902|15902
+x7289 ruritan dr chambersburg|x7289 ruritan dr chambersburg 17202|17202
+x728 ben franklin hwy ebensburg|x728 ben franklin hwy ebensburg 15931|15931
+x7219 church ave ben avon|x7219 church ave pittsburgh 15202|15202
+x721 california ave avalon|x721 california ave pittsburgh 15202|15202
+x951 1st st coraopolis|x951 1st ave coraopolis 15108|15108
+x901 n blvd|x901 n blvd bethlehem 18017|18017
+x901 n blvd bethlehem|x901 n blvd bethlehem 18017|18017
+x8800 peebles rd mccandless|x8800 peebles rd allison park 15101|15101
+x803 market st ex mckeesport |x803 market st mckeesport 15132|15132
+x803 market st mckeesport|x803 market st mckeesport 15132|15132
+x801 allegehny st h0llidaysburg 16648|x801 allegehny st hollidaysburg 16648|16648
+x7745 tioga st pittsburgh|x7745 tioga st pittsburgh 15208|15208
+x2300 morton rd up st clair|x2300 morton rd pittsburgh 15241|15241
+x15 ible run rd shaler|x15 wible run rd shaler 15209|15209
+x1514 norcross erie 16509|x1514 norcross rd erie 16509|16509
+x5 nov blue mountain dr cherryville 18035|x675 blue mountain dr cherryville 18035|18035
+x2 race st edgewood|x2 race st edgewood 15218|15218
+x1500 burchfield rd shaler|x1500 burchfield rd 15101|15101
+x315 shady ave pittsburgh|x315 shady ave pittsburgh 15206|15206
+x220 37th st pittsburgh|x220 37th st pittsburgh 15224|15224
+x301 franklin ave carnegie|x301 franklin ave carnegie 15106|15106
+x551 ravensburg blvd clairton 15025|x551 ravensburg blvd clairton 15025|15025
+main rd bedford|main rd bedford 15522|15522
+x951 1st st coraopolis|x951 1st ave coraopolis 15108|15108
+x539 chicora st mckeesport 15035|x539 chicora st e mc keesport 15035|15035
+x8448 jonestown rd grantville 17028|x8848 jonestown rd grantville 17028|17028
+x1801 colonial rd harrisburg|x1801 colonial rd harrisburg 17112|17112
+x1606 sullivan easton|x1606 sullivan trail easton 18040|18040
+x715 universal rd penn hills|x715 universal rd pittsburgh 15235|15235
+x620 6th st n braddock|x620 6th st n braddock 15104|15104
+x542 otterman st greensburg 15601|x542 w otterman st greensburg 15601|15601
+vine st penn hills|vine st pittsburgh 15235|15235
+x3710 saxonburg blvd india 15051|x3710 saxonburg blvd indiana 15051|15051
+x26 patterson st r lansford 18232|x26 patterson st lansford 18232|18232
+x13 nov robinson ave|x13 nov robinson ave pen argyl 18072|18072
+x11 castle shanon blvd mt lebanon|x11 castle shannon blvd mt lebanon 15228|15228
+x8800 peebles rd mccandless|x8800 peebles rd allison park 15101|15101
+x6502 lilac st pittsburgh|x6502 lilac st pittsburgh 15217|15217
+x33 lonsdale st reserve|x33 lonsdale st pittsburgh 15212|15212
+x440 monogahela ave glassport|x440 monongahela ave glassport 15045|15045
+x1500 lincoln ave scranton 18504|x1500 n lincoln ave scranton 18504|18504
+tioga st tunhannock|tioga st tunkhannock 18657|18657
+rr 2 box 2914|rr 2 box 2914 laceyville 18623|18623
+x2375 levans rd coplay 18036|x2375 levans rd coplay 18037|18037
+x419 maryland ave oakmont|x419 maryland ave oakmont 15139|15139
+x1000 lindsay rd scott 15106|x1000 lindsay rd carnegie 15106|15106
+x124 morgan st brackenridge|x124 morgan brackenridge 15014|15014
+x2601 norwood ave pittsburgh|x2601 norwood ave pittsburgh 15214|15214
+x2601 norwood ave pittsburgh|x2601 norwood ave pittsburgh 15214|15214
+x930 main st rockwood 15557|x630 main st rockwood 15557|15557
+x736 railroad ave vero|x736 railroad ave vero 15147|15147
+x1926 sarah st pittsburgh|x1926 sarah st pittsburgh 15203|15203
+x3198 schieck st baldwin br|x3198 schieck st baldwin br 15227|15227
+x509 dallas ave pittsburgh|x509 dallas ave pittsburgh 15208|15208
+x1550 lincoln ave ave pittsburgh 15206|x1550 lincoln ave pittsburgh 15206|15206
+x1550 lincoln ave pittsburgh 15208|x1550 lincoln ave pittsburgh 15206|15206
+x519 58th st altoona 16601|x519 58th st altoona 16602|16602
+x418 unity center rd plum|x418 unity center rd pittsburgh 15239|15239
+x120 boggs ave pittsburgh|x120 boggs ave pittsburgh 15211|15211
+x600 pitt st wilkinsburg|x600 pitt st pittsburgh 15221|15221
+x1705 maple st homestead|x1705 maple st homestead 15120|15120
+x1315 marshall selma st norristown 19401|x1315 marshall st norristown 19401|19401
+x1833 laketon rd wilkinsburg|x1833 laketon rd wilkinsburg 15221|15221
+x1228 brinkerton rd greensburg 156010|x1228 brinkerton rd greensburg 15601|15601
+x12 fire rd eldersville 15036|x12 fire rd eldersville 15021|15021
+x4628 upper rd gowen city 17828|x4628 upper rd gowen city 17872|17872
+x900 packer ave philadelphia 1914|x900 packer ave philadelphia 19148|19148
+x339 jamestown rd greenville 16152|x339 e jamestown rd greenville 16125|16125
+x5177 nuangola rd nuangola 18637|x5177 nuangola rd nuangola 18707|18707
+x109 german erie 16597|x109 german erie 16507|16507
+x414 railroad st pittsburgh 15028 |x414 railroad st white oak 15131|15131
+x414 railroad st coulters 15028|x414 railroad st white oak 15131|15131
+x1350 fulling millmiddletown 17057|x1350 fulling mill rd middletown 17057|17057
+x136 community bldg rd leechburg 15656|x136 community building rd leechburg 15656|15656
+
+

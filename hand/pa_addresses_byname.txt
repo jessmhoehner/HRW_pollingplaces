@@ -1,0 +1,10 @@
+name|new_address|new_zip
+west homestead vfd|x447 w 8th ave w homestead pa 15120|15120
+eisenhower middle school|x1601 markley st norristown 19401|19401
+barbush langloth muni corp by langloth ballfield|x554 5th ave langeloth 15054|15054
+rosedale vfd social hall|x5806 verona rd penn hills 15147|15147
+roslyn elementary school|x2565 susquehanna rd abington 19001|19001
+boys girls club of allentown|x720 n 6th st allentown 18102|18102
+volunteer fire department|x14183 wilcox clermont rd wilcox 15870|15870
+kerr elementary school multi purp|x341 kittanning pike pittsburgh 15215|15215
+cheltenham school admin building|x2000 ashbourne rd elkins park 19027|19027
