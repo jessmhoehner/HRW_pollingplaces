@@ -758,6 +758,6 @@ Data are current as of as of `r format(Sys.time(), '%d %B, %Y')`.
 ## Acknowledgements {-} 
 
 We are grateful to Sarah Berlin at Democracy Works for providing data on Arizona 
-and South Caroling from the Voter Information Project and Rebecca Fuhrman at the 
+and South Carolina from the Voter Information Project and Rebecca Fuhrman at the 
 Commonwealth of Pennsylvania's Department of State for providing data from 
 Pennsylvania.
