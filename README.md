@@ -1,5 +1,7 @@
 # HRW_pollingplaces 
-Project structure
+Project structure for analysis related to this project with HRW "What Democracy Looks Like
+Protecting Voting Rights in the US during the Covid-19 Pandemic"
+https://www.hrw.org/report/2020/09/22/what-democracy-looks/protecting-voting-rights-us-during-covid-19-pandemic
 <br>
   1. import
       - input/covid data, vip data, zipcode data
